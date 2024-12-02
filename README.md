@@ -18,10 +18,13 @@ This tool allows you to clone a GitHub repository, filter its files based on spe
 
 ## Usage in Google Colab
 
-### 1. Copy the Script into a Colab Notebook
+### 1. Use the Provided Colab Notebook
 
-- Open a new Google Colab notebook.
-- Copy the entire script provided into a code cell.
+We have prepared a Google Colab notebook that contains all the necessary code and instructions. You can access it directly using the following link:
+
+[Repo Digest Tool Colab Notebook](https://colab.research.google.com/drive/137CRmEAlgsJiBxT10jkUeqxy4TZ6yCjO?usp=sharing)
+
+Note: There’s no need to copy any code; simply open the notebook and follow the instructions provided within.
 
 ### 2. Set Parameters and Run
 
