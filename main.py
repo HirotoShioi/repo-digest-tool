@@ -233,6 +233,14 @@ def save_digest(output_content: List[str], repo_path: Path):
 from jinja2 import Environment, FileSystemLoader
 
 
+# カスタムフィルターを定義
+def format_number(value):
+    """数値をカンマ区切りにフォーマット"""
+    if isinstance(value, (int, float)):
+        return f"{value:,}"  # カンマ区切り
+    return value
+
+
 def create_visualization(summary: dict, repo_path: Path):
     """
     Create HTML report with Chart.js visualizations using Jinja2
@@ -262,6 +270,7 @@ def create_visualization(summary: dict, repo_path: Path):
 
     # Jinja2環境の設定
     env = Environment(loader=FileSystemLoader("templates"))
+    env.filters["format_number"] = format_number
     template = env.get_template("report.html")
 
     # テンプレートにデータを渡してレンダリング
@@ -272,17 +281,17 @@ def create_visualization(summary: dict, repo_path: Path):
             ext
             for ext, _ in sorted(
                 summary["file_types"].items(), key=lambda x: x[1], reverse=True
-            )[:10]
+            )[:20]
         ],
         file_types_data=[
             count
             for _, count in sorted(
                 summary["file_types"].items(), key=lambda x: x[1], reverse=True
-            )[:10]
+            )[:20]
         ],
-        file_sizes_labels=[item["name"] for item in file_size_data[:15]],
-        file_sizes_data=[item["size"] for item in file_size_data[:15]],
-        file_sizes_paths=[item["path"] for item in file_size_data[:15]],
+        file_sizes_labels=[item["name"] for item in file_size_data[:20]],
+        file_sizes_data=[item["size"] for item in file_size_data[:20]],
+        file_sizes_paths=[item["path"] for item in file_size_data[:20]],
     )
 
     # Save HTML report

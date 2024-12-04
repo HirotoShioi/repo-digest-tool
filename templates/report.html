@@ -46,7 +46,8 @@
                   Total Files
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ summary.total_files }}
+                  {{ summary.total_files | string | replace(",", "_") |
+                  format_number }}
                 </td>
               </tr>
               <tr>
@@ -54,7 +55,7 @@
                   Total Size
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ summary.total_size_kb }} KB
+                  {{ summary.total_size_kb | format_number }} KB
                 </td>
               </tr>
               <tr>
@@ -62,7 +63,7 @@
                   Average File Size
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ summary.average_file_size_kb }} KB
+                  {{ summary.average_file_size_kb | format_number }} KB
                 </td>
               </tr>
               <tr>
@@ -70,7 +71,7 @@
                   Max File Size
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ summary.max_file_size_kb }} KB
+                  {{ summary.max_file_size_kb | format_number }} KB
                 </td>
               </tr>
               <tr>
@@ -78,7 +79,7 @@
                   Min File Size
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ summary.min_file_size_kb }} KB
+                  {{ summary.min_file_size_kb | format_number }} KB
                 </td>
               </tr>
             </tbody>
@@ -116,6 +117,7 @@
           responsive: true,
           plugins: {
             legend: { position: 'right' },
+            title: { display: true, text: 'File Types Distribution' }
           }
         }
       });
@@ -147,6 +149,10 @@
                 }
               }
             },
+            title: {
+              display: true,
+              text: 'Top 15 Largest Files'
+            }
           },
           scales: {
             x: {
