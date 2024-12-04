@@ -57,18 +57,66 @@ def get_all_files(repo_path: Path, target_dir: Optional[Union[str, List[str]]]) 
     return all_files
 
 
-def filter_files(all_files: List[Path], repo_path: Path, extensions_list: List[str], ignore_files: List[str], ignore_dirs: List[str]) -> List[Path]:
+def should_ignore(file_path: Path, repo_path: Path, ignore_list: List[str]) -> bool:
+    """Check if the file should be ignored based on the ignore list."""
+    relative_path = file_path.relative_to(repo_path)
+    relative_path_str = str(relative_path).replace(os.sep, '/')
+    for pattern in ignore_list:
+        if fnmatch.fnmatch(relative_path_str, pattern):
+            return True
+    return False
+
+def filter_files(
+    all_files: List[Path], 
+    repo_path: Path, 
+    extensions_list: Optional[List[str]], 
+    ignore_list: List[str]
+) -> List[Path]:
+    """Filter files based on extensions and ignore list."""
     filtered_files = []
     for file_path in all_files:
-        if is_ignored(file_path, repo_path, ignore_files, ignore_dirs):
+        if should_ignore(file_path, repo_path, ignore_list):
             continue
         if extensions_list:
-            if any(file_path.suffix == ext for ext in extensions_list):
+            if file_path.suffix in extensions_list:
                 filtered_files.append(file_path)
         else:
             filtered_files.append(file_path)
     return filtered_files
 
+def get_ignore_list(ignore_file_path: Path) -> List[str]:
+    """
+    Reads the .gptignore file and returns a list of patterns.
+    """
+    ignore_list = []
+    if ignore_file_path.exists():
+        with ignore_file_path.open("r", encoding="utf-8") as ignore_file:
+            for line in ignore_file:
+                line = line.strip()
+                if line and not line.startswith("#"):  # Skip comments and empty lines
+                    ignore_list.append(line)
+    return ignore_list
+
+def process_repo(repo_id: str, target_dir: Optional[Union[str, List[str]]] = None, extensions_list: Optional[List[str]] = None):
+    """
+    Processes a repository using the .gptignore file to filter files.
+    """
+    repo_path = Path(f"tmp/{repo_id}")
+    if not repo_path.exists():
+        raise ValueError(f"Repository path '{repo_path}' does not exist.")
+
+    # Determine .gptignore location
+    ignore_file_path = repo_path / ".gptignore"
+    if not ignore_file_path.exists():
+        ignore_file_path = Path(".") / ".gptignore"
+
+    ignore_list = get_ignore_list(ignore_file_path)
+
+    # Get all files and filter based on extensions and .gptignore
+    all_files = get_all_files(repo_path, target_dir)
+    filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_list)
+
+    return generate_digest(repo_path, filtered_files)
 
 def generate_digest(repo_path: Path, filtered_files: List[Path]) -> Tuple[List[str], Path]:
     if not filtered_files:
@@ -98,25 +146,6 @@ def save_digest(output_content: List[str], repo_path: Path):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n\n".join(output_content))
 
-def process_repo(
-    repo_id: str,
-    target_dir: Optional[Union[str, List[str]]] = None,
-    extensions_list: Optional[List[str]] = None,
-    ignore_files: Optional[List[str]] = None,
-    ignore_dirs: Optional[List[str]] = None,
-):
-    repo_path = Path(f"tmp/{repo_id}")
-    if not repo_path.exists():
-        raise ValueError(f"Repository path '{repo_path}' does not exist.")
-
-    extensions_list = extensions_list or []
-    ignore_files = ignore_files or []
-    ignore_dirs = ignore_dirs or []
-
-    all_files = get_all_files(repo_path, target_dir)
-    filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_files, ignore_dirs)
-    return generate_digest(repo_path, filtered_files)
-
 
 def main(
     repo_url: str,
@@ -124,8 +153,6 @@ def main(
     branch: Optional[str] = None,
     target_dir: Optional[Union[str, List[str]]] = None,
     extensions: Optional[List[str]] = None,
-    ignore_files: Optional[List[str]] = None,
-    ignore_dirs: Optional[List[str]] = None,
 ):
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
 
@@ -135,7 +162,7 @@ def main(
         download_repo(repo_url, repo_id, github_token, branch)
 
         print("Processing repository...")
-        output_content, repo_path = process_repo(repo_id, target_dir, extensions, ignore_files, ignore_dirs)
+        output_content, repo_path = process_repo(repo_id, target_dir, extensions)
         if output_content:
             print("Saving digest...")
             save_digest(output_content, repo_path)
@@ -156,6 +183,4 @@ if __name__ == "__main__":
         branch=None,
         target_dir=None,
         extensions=None,
-        ignore_files=["pnpm-lock.yaml", "*.png", "*.svg", "*.sketch"],
-        ignore_dirs=[".git/**"],
     )
