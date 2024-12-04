@@ -205,20 +205,19 @@ def generate_digest(repo_path: Path, filtered_files: List[Path]) -> List[str]:
     for file_path in filtered_files:
         # Skip directories
         if file_path.is_dir():
-            continue
-
-    try:
-        with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+            pass
+        try:
+            with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+                relative_path = file_path.relative_to(repo_path)
+                output_content.append("----")  # Section divider
+                output_content.append(str(relative_path))  # File path
+                output_content.append(f.read())  # File content
+        except Exception as e:
+            # Log the error and continue
             relative_path = file_path.relative_to(repo_path)
-            output_content.append("----")  # Section divider
-            output_content.append(str(relative_path))  # File path
-            output_content.append(f.read())  # File content
-    except Exception as e:
-        # Log the error and continue
-        relative_path = file_path.relative_to(repo_path)
-        output_content.append("----")
-        output_content.append(str(relative_path))
-        output_content.append(f"Error reading file: {e}")
+            output_content.append("----")
+            output_content.append(str(relative_path))
+            output_content.append(f"Error reading file: {e}")
 
     output_content.append("--END--")  # End marker
     return output_content
