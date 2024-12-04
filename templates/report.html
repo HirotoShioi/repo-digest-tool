@@ -113,7 +113,7 @@
 
       <!-- Top 15 Largest Files -->
       <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Top 15 Largest Files</h2>
+        <h2 class="text-xl font-semibold mb-4">Top 20 Largest Files</h2>
         <div class="chart-container">
           <canvas id="fileSizesChart"></canvas>
         </div>
@@ -141,7 +141,6 @@
           responsive: true,
           plugins: {
             legend: { position: 'right' },
-            title: { display: true, text: 'File Types Distribution' }
           }
         }
       });
@@ -173,10 +172,6 @@
                 }
               }
             },
-            title: {
-              display: true,
-              text: 'Top 15 Largest Files'
-            }
           },
           scales: {
             x: {

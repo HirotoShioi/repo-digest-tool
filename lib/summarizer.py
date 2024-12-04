@@ -6,6 +6,8 @@ from typing import List
 from jinja2 import Environment, FileSystemLoader
 import tiktoken
 
+data_size = 20
+
 
 # カスタムフィルターを定義
 def format_number(value):
@@ -55,17 +57,17 @@ def create_visualization(summary: dict, repo_path: Path):
             ext
             for ext, _ in sorted(
                 summary["file_types"].items(), key=lambda x: x[1], reverse=True
-            )[:20]
+            )[:data_size]
         ],
         file_types_data=[
             count
             for _, count in sorted(
                 summary["file_types"].items(), key=lambda x: x[1], reverse=True
-            )[:20]
+            )[:data_size]
         ],
-        file_sizes_labels=[item["name"] for item in file_size_data[:20]],
-        file_sizes_data=[item["size"] for item in file_size_data[:20]],
-        file_sizes_paths=[item["path"] for item in file_size_data[:20]],
+        file_sizes_labels=[item["name"] for item in file_size_data[:data_size]],
+        file_sizes_data=[item["size"] for item in file_size_data[:data_size]],
+        file_sizes_paths=[item["path"] for item in file_size_data[:data_size]],
     )
 
     # Save HTML report
