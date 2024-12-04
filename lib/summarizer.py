@@ -90,7 +90,7 @@ def generate_summary(file_list: List[Path], repo_path: Path, output_content: str
     summary_path = f"digests/{repo_path.name}_summary.json"
 
     # Initialize counters and stats
-    extension_counts = {}
+    extension_tokens = {}  # 新しい辞書を作成してtoken数を追跡
     total_size = 0  # in KB
     file_sizes = []  # in KB
     total_tokens = len(encoding.encode(output_content))
@@ -108,14 +108,19 @@ def generate_summary(file_list: List[Path], repo_path: Path, output_content: str
             relative_path = file_path.relative_to(repo_path)
             processed_files.append(str(relative_path))
 
+            # ファイルの内容を読み込んでtoken数を計算
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+                tokens = len(encoding.encode(content))
+
             # Convert bytes to KB
             file_size = file_path.stat().st_size / 1024  # bytes to KB
             total_size += file_size
             file_sizes.append(file_size)
 
-            # Count file extensions
+            # 拡張子ごとのtoken数を集計
             ext = file_path.suffix.lower() or "no_extension"
-            extension_counts[ext] = extension_counts.get(ext, 0) + 1
+            extension_tokens[ext] = extension_tokens.get(ext, 0) + tokens
         except Exception as e:
             print(f"Error processing file {file_path}: {e}")
             continue
@@ -140,7 +145,7 @@ def generate_summary(file_list: List[Path], repo_path: Path, output_content: str
         "average_file_size_kb": average_size,
         "max_file_size_kb": max_size,
         "min_file_size_kb": min_size,
-        "file_types": extension_counts,
+        "file_types": extension_tokens,  # extension_countsからextension_tokensに変更
         "total_tokens": total_tokens,
     }
 

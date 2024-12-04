@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Repository Analysis Report - {{ repo_name }}</title>
+    <title>Repository Digest Report - {{ repo_name }}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -28,7 +28,9 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
         <!-- File Types Distribution -->
         <div class="bg-white shadow-md rounded-lg p-6">
-          <h2 class="text-xl font-semibold mb-4">File Types Distribution</h2>
+          <h2 class="text-xl font-semibold mb-4">
+            File Types Token Distribution
+          </h2>
           <div class="chart-container">
             <canvas id="fileTypesChart"></canvas>
           </div>
@@ -47,7 +49,7 @@
                 </td>
                 <td class="border border-gray-200 px-4 py-2 relative">
                   <span
-                    style="color: {{ '#DC2626' if summary.total_tokens > 128000 else 'inherit' }}"
+                    style="color: {% if summary.total_tokens > 128000 %} #DC2626 {% else %} inherit {% endif %}"
                   >
                     {{ summary.total_tokens | format_number }}
                   </span>
@@ -123,43 +125,52 @@
     <script>
       // File Types Pie Chart
       const typeCtx = document.getElementById('fileTypesChart');
+      const fileTypesLabels = {{ file_types_labels | tojson | safe }};
+      const fileTypesData = {{ file_types_data | tojson | safe }};
+
       new Chart(typeCtx, {
         type: 'pie',
         data: {
-          labels: {{ file_types_labels }},
-          datasets: [
-            {
-              data: {{ file_types_data }},
-              backgroundColor: [
-                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
-              ]
-            }
-          ]
+          labels: fileTypesLabels,
+          datasets: [{
+            data: fileTypesData,
+            backgroundColor: [
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+              '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+            ]
+          }]
         },
         options: {
           responsive: true,
           plugins: {
             legend: { position: 'right' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.label}: ${context.raw.toLocaleString()} tokens`;
+                }
+              }
+            }
           }
         }
       });
 
       // Top 15 Largest Files Bar Chart
       const sizeCtx = document.getElementById('fileSizesChart');
+      const fileSizesLabels = {{ file_sizes_labels | tojson | safe }};
+      const fileSizesData = {{ file_sizes_data | tojson | safe }};
+
       new Chart(sizeCtx, {
         type: 'bar',
         data: {
-          labels: {{ file_sizes_labels }},
-          datasets: [
-            {
-              label: 'File Size (KB)',
-              data: {{ file_sizes_data }},
-              backgroundColor: '#36A2EB',
-              borderColor: '#2693e6',
-              borderWidth: 1
-            }
-          ]
+          labels: fileSizesLabels,
+          datasets: [{
+            label: 'File Size (KB)',
+            data: fileSizesData,
+            backgroundColor: '#36A2EB',
+            borderColor: '#2693e6',
+            borderWidth: 1
+          }]
         },
         options: {
           responsive: true,
@@ -167,18 +178,18 @@
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: function (context) {
+                label: function(context) {
                   return `${context.raw} KB`;
                 }
               }
-            },
+            }
           },
           scales: {
             x: {
               title: { display: true, text: 'File Names' },
               ticks: {
-                autoSkip: false, // Prevent skipping labels
-                maxRotation: 45, // Rotate labels for better visibility
+                autoSkip: false,
+                maxRotation: 45,
                 minRotation: 45
               }
             },
