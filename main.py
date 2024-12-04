@@ -48,21 +48,9 @@ def is_ignored(file_path: Path, repo_path: Path, ignore_files: List[str], ignore
     return False
 
 
-def get_all_files(repo_path: Path, target_dir: Optional[Union[str, List[str]]]) -> List[Path]:
+def get_all_files(repo_path: Path) -> List[Path]:
     try:
-        all_files = []
-        if not target_dir:
-            all_files = list(repo_path.rglob("*"))
-        else:
-            if isinstance(target_dir, str):
-                target_dir = [target_dir]
-            for pattern in target_dir:
-                # rglob を利用した再帰的検索
-                matching_files = list(repo_path.rglob(pattern))
-                if matching_files:
-                    all_files.extend(matching_files)
-                else:
-                    print(f"No files matching pattern '{pattern}' in '{repo_path}'.")
+        all_files = list(repo_path.rglob("*"))
         return all_files
     except Exception as e:
         log_error(e)
@@ -94,7 +82,6 @@ def read_file(file_path: Path) -> str:
 def filter_files(
     all_files: List[Path],
     repo_path: Path,
-    extensions_list: Optional[List[str]],
     ignore_patterns: List[str],
     include_patterns: List[str]
 ) -> List[Path]:
@@ -115,10 +102,6 @@ def filter_files(
 
         # If include patterns are provided, skip files that do not match
         if include_patterns and not include_match:
-            continue
-
-        # Filter by extensions if specified
-        if extensions_list and not any(file_path.name.endswith(ext) for ext in extensions_list):
             continue
 
         filtered_files.append(file_path)
@@ -150,7 +133,7 @@ def get_include_list(include_file_path: Path) -> List[str]:
                     include_list.append(line)
     return include_list
 
-def process_repo(repo_id: str, target_dir: Optional[Union[str, List[str]]] = None, extensions_list: Optional[List[str]] = None):
+def process_repo(repo_id: str):
     """
     Processes a repository using the .gptignore file to filter files.
     """
@@ -171,8 +154,8 @@ def process_repo(repo_id: str, target_dir: Optional[Union[str, List[str]]] = Non
         include_list = get_include_list(include_file_path)
 
         # Get all files and filter based on extensions and .gptignore
-        all_files = get_all_files(repo_path, include_list)
-        filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_list, include_list)
+        all_files = get_all_files(repo_path)
+        filtered_files = filter_files(all_files, repo_path, ignore_list, include_list)
 
         return generate_digest(repo_path, filtered_files), generate_file_list(repo_path, filtered_files), repo_path
     except Exception as e:
