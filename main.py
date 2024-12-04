@@ -57,12 +57,10 @@ def get_all_files(repo_path: Path, target_dir: Optional[Union[str, List[str]]]) 
             if isinstance(target_dir, str):
                 target_dir = [target_dir]
             for pattern in target_dir:
-                matching_paths = repo_path.glob(pattern)
-                matching_files = [p for p in matching_paths if p.is_file()]
+                # rglob を利用した再帰的検索
+                matching_files = list(repo_path.rglob(pattern))
                 if matching_files:
                     all_files.extend(matching_files)
-                elif any(p.is_dir() for p in matching_paths):
-                    print(f"No files found in '{pattern}', but the directory exists.")
                 else:
                     print(f"No files matching pattern '{pattern}' in '{repo_path}'.")
         return all_files
@@ -94,18 +92,35 @@ def read_file(file_path: Path) -> str:
             return f.read()
         
 def filter_files(
-    all_files: List[Path], repo_path: Path, extensions_list: Optional[List[str]], ignore_patterns: List[str]
+    all_files: List[Path],
+    repo_path: Path,
+    extensions_list: Optional[List[str]],
+    ignore_patterns: List[str],
+    include_patterns: List[str]
 ) -> List[Path]:
     """
-    Filters the files based on extensions and .gptignore patterns.
+    Filters the files based on .gptignore and .gptinclude patterns.
     """
     filtered_files = []
     for file_path in all_files:
         if should_ignore(file_path, repo_path, ignore_patterns):
             continue
-        if extensions_list:
-            if not any(file_path.name.endswith(ext) for ext in extensions_list):
-                continue
+
+        relative_path = str(file_path.relative_to(repo_path))
+
+        # Check if the file matches any include pattern
+        include_match = any(
+            fnmatch.fnmatch(relative_path, pattern) for pattern in include_patterns
+        )
+
+        # If include patterns are provided, skip files that do not match
+        if include_patterns and not include_match:
+            continue
+
+        # Filter by extensions if specified
+        if extensions_list and not any(file_path.name.endswith(ext) for ext in extensions_list):
+            continue
+
         filtered_files.append(file_path)
     return filtered_files
 
@@ -122,6 +137,19 @@ def get_ignore_list(ignore_file_path: Path) -> List[str]:
                     ignore_list.append(line)
     return ignore_list
 
+def get_include_list(include_file_path: Path) -> List[str]:
+    """
+    Reads the .gptinclude file and returns a list of include patterns.
+    """
+    include_list = []
+    if include_file_path.exists():
+        with include_file_path.open("r", encoding="utf-8") as include_file:
+            for line in include_file:
+                line = line.strip()
+                if line and not line.startswith("#"):  # Skip comments and empty lines
+                    include_list.append(line)
+    return include_list
+
 def process_repo(repo_id: str, target_dir: Optional[Union[str, List[str]]] = None, extensions_list: Optional[List[str]] = None):
     """
     Processes a repository using the .gptignore file to filter files.
@@ -135,12 +163,16 @@ def process_repo(repo_id: str, target_dir: Optional[Union[str, List[str]]] = Non
         ignore_file_path = repo_path / ".gptignore"
         if not ignore_file_path.exists():
             ignore_file_path = Path(".") / ".gptignore"
+        include_file_path = repo_path / ".gptinclude"
+        if not include_file_path.exists():
+            include_file_path = Path(".") / ".gptinclude"
 
         ignore_list = get_ignore_list(ignore_file_path)
+        include_list = get_include_list(include_file_path)
 
         # Get all files and filter based on extensions and .gptignore
-        all_files = get_all_files(repo_path, target_dir)
-        filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_list)
+        all_files = get_all_files(repo_path, include_list)
+        filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_list, include_list)
 
         return generate_digest(repo_path, filtered_files), generate_file_list(repo_path, filtered_files), repo_path
     except Exception as e:
@@ -214,8 +246,6 @@ def main(
     repo_url: str,
     github_token: Optional[str],
     branch: Optional[str] = None,
-    target_dir: Optional[Union[str, List[str]]] = None,
-    extensions: Optional[List[str]] = None,
 ):
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
 
@@ -225,7 +255,7 @@ def main(
         download_repo(repo_url, repo_id, github_token, branch)
 
         print("Processing repository...")
-        output_content, file_list, repo_path = process_repo(repo_id, target_dir, extensions)
+        output_content, file_list, repo_path = process_repo(repo_id)
         if file_list:
             print("Saving file list...")
             save_file_list(file_list, repo_path)
@@ -247,6 +277,4 @@ if __name__ == "__main__":
         repo_url="https://github.com/TanStack/query",
         github_token=None,
         branch=None,
-        target_dir=None,
-        extensions=None,
     )

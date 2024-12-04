@@ -1,0 +1,2 @@
+2024-12-04 16:28:02,507 - ERROR - filter_files() missing 1 required positional argument: 'include_patterns'
+2024-12-04 16:29:06,530 - ERROR - filter_files() missing 1 required positional argument: 'include_patterns'
