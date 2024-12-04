@@ -43,6 +43,30 @@
             <tbody>
               <tr>
                 <td class="border border-gray-200 px-4 py-2 font-semibold">
+                  Total Tokens (GPT-4o)
+                </td>
+                <td class="border border-gray-200 px-4 py-2 relative">
+                  <span
+                    style="color: {{ '#DC2626' if summary.total_tokens > 128000 else 'inherit' }}"
+                  >
+                    {{ summary.total_tokens | format_number }}
+                  </span>
+                  {% if summary.total_tokens > 128000 %}
+                  <div class="group inline-block relative">
+                    <span class="text-red-600 underline cursor-help">?</span>
+                    <div
+                      class="hidden group-hover:block absolute z-10 bg-gray-800 text-white text-sm rounded-md shadow-md px-4 py-2 w-64 -translate-x-1/2 left-1/2"
+                    >
+                      The total tokens exceed the limit of 128,000 for GPT-4o.
+                      Consider reducing the content or splitting it into smaller
+                      chunks to fit within the limit.
+                    </div>
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 px-4 py-2 font-semibold">
                   Total Files
                 </td>
                 <td class="border border-gray-200 px-4 py-2">

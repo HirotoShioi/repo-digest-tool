@@ -9,6 +9,7 @@ import logging
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 import json
+import tiktoken
 
 load_dotenv()
 
@@ -301,6 +302,27 @@ def create_visualization(summary: dict, repo_path: Path):
     print(f"Report saved to {report_path}")
 
 
+encoding = tiktoken.get_encoding("o200k_base")
+
+
+def count_tokens_in_file(file_path: Path) -> int:
+    """
+    指定されたファイルのトークン数を計算
+    """
+    try:
+        with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+
+        # 明示的にエンコーディングを取得
+
+        tokens = encoding.encode(content)
+        return len(tokens)
+    except Exception as e:
+        log_error(e)
+        print(f"Error processing {file_path}: {e}")
+        return 0
+
+
 def save_file_list(file_list: List[Path], repo_path: Path):
     """
     Save the file list and generate a summary report with file statistics.
@@ -314,6 +336,7 @@ def save_file_list(file_list: List[Path], repo_path: Path):
     extension_counts = {}
     total_size = 0  # in KB
     file_sizes = []  # in KB
+    total_tokens = 0
 
     # Process files for detailed stats
     processed_files = []
@@ -336,6 +359,9 @@ def save_file_list(file_list: List[Path], repo_path: Path):
             # Count file extensions
             ext = file_path.suffix.lower() or "no_extension"
             extension_counts[ext] = extension_counts.get(ext, 0) + 1
+
+            # Count tokens
+            total_tokens += count_tokens_in_file(file_path)
         except Exception as e:
             print(f"Error processing file {file_path}: {e}")
             continue
@@ -361,6 +387,7 @@ def save_file_list(file_list: List[Path], repo_path: Path):
         "max_file_size_kb": max_size,
         "min_file_size_kb": min_size,
         "file_types": extension_counts,
+        "total_tokens": total_tokens,
     }
 
     # Save summary as JSON
