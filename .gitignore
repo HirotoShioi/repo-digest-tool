@@ -4,3 +4,4 @@ tmp/
 digests/
 .env
 repo_tool.log
+__pycache__/
