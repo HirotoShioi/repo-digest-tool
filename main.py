@@ -1,9 +1,20 @@
 import os
 import shutil
-from datetime import datetime
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Union
 from pathlib import Path
 import fnmatch
+import subprocess
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename="repo_tool.log",
+    level=logging.ERROR,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+
+def log_error(e: Exception):
+    logging.error(str(e))
 
 def download_repo(repo_url: str, repo_id: str, github_token: Optional[str] = None, branch: Optional[str] = None):
     if not repo_url.startswith("https://github.com/"):
@@ -16,72 +27,86 @@ def download_repo(repo_url: str, repo_id: str, github_token: Optional[str] = Non
     if branch:
         cmd.extend(["--branch", branch])
     cmd.extend([repo_url, f"tmp/{repo_id}"])
-    result = os.system(" ".join(cmd))
-    if result != 0:
-        raise RuntimeError("Failed to clone the repository. Check the URL, branch name, or token.")
 
+    try:
+        subprocess.run(cmd, check=True, text=True)
+    except subprocess.CalledProcessError as e:
+        log_error(e)
+        raise RuntimeError(f"Error during repository cloning: {e}")
 
 def is_ignored(file_path: Path, repo_path: Path, ignore_files: List[str], ignore_dirs: List[str]) -> bool:
-    relative_path = file_path.relative_to(repo_path)
-    relative_path_str = str(relative_path).replace(os.sep, '/')
+    relative_path = file_path.relative_to(repo_path).as_posix()
 
     for ignore_dir in ignore_dirs:
-        ignore_dir = ignore_dir.replace(os.sep, '/')
-        if fnmatch.fnmatch(relative_path_str, ignore_dir) or fnmatch.fnmatch(os.path.dirname(relative_path_str), ignore_dir):
+        if fnmatch.fnmatch(relative_path, ignore_dir) or fnmatch.fnmatch(str(file_path.parent), ignore_dir):
             return True
 
     for ignore_file in ignore_files:
-        ignore_file = ignore_file.replace(os.sep, '/')
-        if fnmatch.fnmatch(relative_path_str, ignore_file):
+        if fnmatch.fnmatch(relative_path, ignore_file):
             return True
 
     return False
 
 
 def get_all_files(repo_path: Path, target_dir: Optional[Union[str, List[str]]]) -> List[Path]:
-    all_files = []
-    if not target_dir:
-        all_files = list(repo_path.rglob("*"))
-    else:
-        if isinstance(target_dir, str):
-            target_dir = [target_dir]
-        for pattern in target_dir:
-            matching_paths = repo_path.glob(pattern)
-            matching_files = [p for p in matching_paths if p.is_file()]
-            if matching_files:
-                all_files.extend(matching_files)
-            elif any(p.is_dir() for p in matching_paths):
-                print(f"No files found in '{pattern}', but the directory exists.")
-            else:
-                print(f"No files matching pattern '{pattern}' in '{repo_path}'.")
-    return all_files
+    try:
+        all_files = []
+        if not target_dir:
+            all_files = list(repo_path.rglob("*"))
+        else:
+            if isinstance(target_dir, str):
+                target_dir = [target_dir]
+            for pattern in target_dir:
+                matching_paths = repo_path.glob(pattern)
+                matching_files = [p for p in matching_paths if p.is_file()]
+                if matching_files:
+                    all_files.extend(matching_files)
+                elif any(p.is_dir() for p in matching_paths):
+                    print(f"No files found in '{pattern}', but the directory exists.")
+                else:
+                    print(f"No files matching pattern '{pattern}' in '{repo_path}'.")
+        return all_files
+    except Exception as e:
+        log_error(e)
+        raise RuntimeError(f"Error while retrieving files from {repo_path}: {e}") from e
 
 
-def should_ignore(file_path: Path, repo_path: Path, ignore_list: List[str]) -> bool:
-    """Check if the file should be ignored based on the ignore list."""
-    relative_path = file_path.relative_to(repo_path)
-    relative_path_str = str(relative_path).replace(os.sep, '/')
-    for pattern in ignore_list:
-        if fnmatch.fnmatch(relative_path_str, pattern):
+def should_ignore(file_path: Path, repo_path: Path, ignore_patterns: List[str]) -> bool:
+    """
+    Checks if a file or directory matches any of the ignore patterns.
+    """
+    relative_path = str(file_path.relative_to(repo_path))
+    for pattern in ignore_patterns:
+        # Match directories and files explicitly
+        if pattern.endswith("/") and file_path.is_dir():
+            if fnmatch.fnmatch(relative_path + "/", pattern):
+                return True
+        elif fnmatch.fnmatch(relative_path, pattern):
             return True
     return False
 
+def read_file(file_path: Path) -> str:
+    try:
+        with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+            return f.read()
+    except UnicodeDecodeError:
+        with file_path.open("r", encoding="shift_jis", errors="ignore") as f:
+            return f.read()
+        
 def filter_files(
-    all_files: List[Path], 
-    repo_path: Path, 
-    extensions_list: Optional[List[str]], 
-    ignore_list: List[str]
+    all_files: List[Path], repo_path: Path, extensions_list: Optional[List[str]], ignore_patterns: List[str]
 ) -> List[Path]:
-    """Filter files based on extensions and ignore list."""
+    """
+    Filters the files based on extensions and .gptignore patterns.
+    """
     filtered_files = []
     for file_path in all_files:
-        if should_ignore(file_path, repo_path, ignore_list):
+        if should_ignore(file_path, repo_path, ignore_patterns):
             continue
         if extensions_list:
-            if file_path.suffix in extensions_list:
-                filtered_files.append(file_path)
-        else:
-            filtered_files.append(file_path)
+            if not any(file_path.name.endswith(ext) for ext in extensions_list):
+                continue
+        filtered_files.append(file_path)
     return filtered_files
 
 def get_ignore_list(ignore_file_path: Path) -> List[str]:
@@ -105,47 +130,85 @@ def process_repo(repo_id: str, target_dir: Optional[Union[str, List[str]]] = Non
     if not repo_path.exists():
         raise ValueError(f"Repository path '{repo_path}' does not exist.")
 
-    # Determine .gptignore location
-    ignore_file_path = repo_path / ".gptignore"
-    if not ignore_file_path.exists():
-        ignore_file_path = Path(".") / ".gptignore"
+    try:
+        # Determine .gptignore location
+        ignore_file_path = repo_path / ".gptignore"
+        if not ignore_file_path.exists():
+            ignore_file_path = Path(".") / ".gptignore"
 
-    ignore_list = get_ignore_list(ignore_file_path)
+        ignore_list = get_ignore_list(ignore_file_path)
 
-    # Get all files and filter based on extensions and .gptignore
-    all_files = get_all_files(repo_path, target_dir)
-    filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_list)
+        # Get all files and filter based on extensions and .gptignore
+        all_files = get_all_files(repo_path, target_dir)
+        filtered_files = filter_files(all_files, repo_path, extensions_list, ignore_list)
 
-    return generate_digest(repo_path, filtered_files)
+        return generate_digest(repo_path, filtered_files), generate_file_list(repo_path, filtered_files), repo_path
+    except Exception as e:
+        log_error(e)
+        raise RuntimeError(f"Error while processing repository '{repo_id}': {e}") from e
 
-def generate_digest(repo_path: Path, filtered_files: List[Path]) -> Tuple[List[str], Path]:
+
+def generate_file_list(repo_path: Path, filtered_files: List[Path]) -> List[str]:
+    output_content = []
+    # Add file list
+    # Add file list without blank lines
+    output_content.append("-- FILE LIST --")
+    file_list = "\n".join([str(file_path.relative_to(repo_path)) for file_path in filtered_files])
+    output_content.append(file_list)  # Add file list as a single string
+    output_content.append("-- END OF FILE LIST --")
+    return output_content
+
+def generate_digest(repo_path: Path, filtered_files: List[Path]) -> List[str]:
+    """
+    Generates a digest from the filtered files in the repository.
+    Includes a file list at the beginning of the output.
+    """
     if not filtered_files:
         print("No matching files found.")
-        return [], repo_path
-
-    file_list = [
-        str(file_path.relative_to(repo_path)).replace(os.sep, '/') for file_path in filtered_files
-    ]
+        return []
 
     output_content = []
-    output_content.append("\n".join(file_list))
+
+    # Add preamble to explain the format
+    preamble = (
+        "The following text represents the contents of the repository.\n"
+        "Each section begins with ----, followed by the file path and name.\n"
+        "A file list is provided at the beginning. End of repository content is marked by --END--.\n"
+    )
+    output_content.append(preamble)
+
+    # Add file contents
     for file_path in filtered_files:
         try:
             with file_path.open("r", encoding="utf-8", errors="ignore") as f:
                 relative_path = file_path.relative_to(repo_path)
-                output_content.append(f"# {relative_path}\n{f.read()}\n")
+                output_content.append("----")  # Section divider
+                output_content.append(str(relative_path))  # File path
+                output_content.append(f.read())  # File content
         except Exception as e:
-            output_content.append(f"# Error reading file {relative_path}: {e}\n")
+            relative_path = file_path.relative_to(repo_path)
+            output_content.append("----")  # Section divider
+            output_content.append(str(relative_path))  # File path
+            output_content.append(f"Error reading file: {e}")
 
-    return output_content, repo_path
+    output_content.append("--END--")  # End marker
+    return output_content
 
 def save_digest(output_content: List[str], repo_path: Path):
     os.makedirs("digests", exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = f"digests/{repo_path.name}_digest_{timestamp}.txt"
+    output_path = f"digests/{repo_path.name}.txt"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n\n".join(output_content))
 
+def save_file_list(file_list: List[str], repo_path: Path):
+    """
+    Save the file list to a separate file.
+    """
+    os.makedirs("digests", exist_ok=True)
+    file_list_path = f"digests/{repo_path.name}_file_list.txt"
+    with open(file_list_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(file_list))
+    print(f"File list saved to {file_list_path}")
 
 def main(
     repo_url: str,
@@ -162,7 +225,10 @@ def main(
         download_repo(repo_url, repo_id, github_token, branch)
 
         print("Processing repository...")
-        output_content, repo_path = process_repo(repo_id, target_dir, extensions)
+        output_content, file_list, repo_path = process_repo(repo_id, target_dir, extensions)
+        if file_list:
+            print("Saving file list...")
+            save_file_list(file_list, repo_path)
         if output_content:
             print("Saving digest...")
             save_digest(output_content, repo_path)
