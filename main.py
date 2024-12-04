@@ -6,6 +6,7 @@ import fnmatch
 import subprocess
 from dotenv import load_dotenv
 from lib import log_error, generate_summary
+from lib.file_filtering_chain import filter_files_with_llm
 
 load_dotenv()
 
@@ -111,7 +112,7 @@ def read_pattern_file(file_path: Path) -> List[str]:
     return pattern_list
 
 
-def process_repo(repo_id: str):
+def process_repo(repo_id: str, prompt: Optional[str] = None):
     """
     Processes a repository using the .gptignore file to filter files.
     """
@@ -134,6 +135,8 @@ def process_repo(repo_id: str):
         # Get all files and filter based on extensions and .gptignore
         all_files = get_all_files(repo_path)
         filtered_files = filter_files(all_files, repo_path, ignore_list, include_list)
+        if prompt:
+            filtered_files = filter_files_with_llm(filtered_files, prompt)
         file_list = [file_path for file_path in filtered_files if file_path.is_file()]
 
         return (
@@ -187,19 +190,14 @@ def generate_digest(repo_path: Path, filtered_files: List[Path]) -> str:
     return "\n\n".join(output_content)
 
 
-def save_digest(output_content: str, repo_path: Path):
-    os.makedirs("digests", exist_ok=True)
-    output_path = f"digests/{repo_path.name}.txt"
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(output_content)
-
-
 def main():
     repo_url = "https://github.com/TanStack/query"
     github_token = os.getenv("GITHUB_TOKEN")
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
-
+    prompt = (
+        "Please filter the files to include only the files that are related to react."
+    )
     try:
         # 一時ディレクトリのクリーンアップ
         shutil.rmtree(f"tmp/", ignore_errors=True)
@@ -207,13 +205,16 @@ def main():
         download_repo(repo_url, repo_id, github_token, branch)
 
         print("Processing repository...")
-        output_content, file_list, repo_path = process_repo(repo_id)
+        output_content, file_list, repo_path = process_repo(repo_id, prompt)
         if file_list:
             print("Generating summary...")
             generate_summary(file_list, repo_path, output_content)
         if output_content:
             print("Saving digest...")
-            save_digest(output_content, repo_path)
+            os.makedirs("digests", exist_ok=True)
+            output_path = f"digests/{repo_path.name}.txt"
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(output_content)
         else:
             print("Failed to generate digest.")
 
