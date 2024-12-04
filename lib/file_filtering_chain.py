@@ -54,47 +54,28 @@ async def filter_files_with_llm_in_batch(
 
     # プロンプトテンプレートの作成
     template = """
-Filter files from a GitHub repository based on relevance to create a digest suitable for input into ChatGPT by excluding irrelevant files such as CI/CD, configuration files, binary files, and compiled files.
+Filter files from a GitHub repository based on relevance by excluding irrelevant files such as CI/CD, configuration files, binary files, and compiled files.
 
-Consider files relevant if they contain source code, documentation, or other text-based content that provides insights into project functionality. Make use of given file paths and sizes to assist in filtering decisions.
+You will receive a list of file paths and their associated sizes. Your task is to assess each file path and determine if it is relevant for creating a digest suitable for input into ChatGPT. Exclude files that are commonly not useful for summaries or understanding, such as CI/CD, configuration files, binary files, and compiled files.
 
 # Steps
 
-1. **Identify and List Files**: Begin with a list of file paths located in the /tmp directory, ensuring paths are in the format `tmp/query/examples/react/load-more-infinite-scroll/tsconfig.json`.
-
-2. **Identify Irrelevant Files**: Recognize file types that are generally considered irrelevant (CI/CD configurations, binary files, compiled files, etc.) These might include:
-   - `.gitignore`
-   - `.github/` directories
-   - Files with extensions like `.exe`, `.dll`, `.tar`, `.zip`, `.class`, etc.
-   - Any continuous integration files such as those in `.circleci`, `.travis.yml`
-
-3. **Filter with Assistance from File Size**: Use the file size as an additional metric to assist in determining relevance, potentially prioritizing smaller text files over larger, likely binary, files.
-
-4. **Filter Relevant Files**: Choose files that contain essential information:
-   - Source code files (e.g., `.py`, `.java`, `.cpp`)
-   - README and other documentation files (`README.md`, `.txt`, etc.)
-   - License files (`LICENSE`)
-   - Important script files (`install.sh`, etc.)
-
-# Output Format
-
-The output should be a single, consolidated text file that includes the content of only relevant files from the repository, in a readable and organized manner suitable for text ingestion.
-
-# Examples
-
-**Example 1:**
-- **Input**: Repository containing files with paths and sizes such as `tmp/query/examples/react/load-more-infinite-scroll/main.py` (2KB), `tmp/query/readme/README.md` (1KB), `tmp/bin/app.exe` (5MB), `tmp/config/.travis.yml` (3KB)
-- **Output**: Consolidated text file content from `main.py` and `README.md`.
-
-(Note: Real examples should include a larger and more diverse file set to demonstrate complexity in file filtering and size-based relevance.)
+1. **Identify File Types**: Examine the file paths and identify the types of files they represent.
+2. **Determine Relevance**: Use the following guidelines to determine if a file should be excluded:
+   - Exclude files typically irrelevant for summaries:
+     - Continuous Integration/Continuous Deployment (CI/CD) files (e.g., `.github/workflows/`, `.gitlab-ci.yml`)
+     - Configuration files (e.g., `*.config`, `config.yaml`)
+     - Binary files (e.g., `*.exe`, `*.bin`, `*.dll`)
+     - Compiled files (e.g., `*.class`, `*.o`, `*.pyc`)
+     - Other non-source code files that do not contribute to code understanding (e.g., `*.log`, `*.tmp`)
+3. **Filter Files**: Create a list that only includes the files deemed relevant based on the above criteria.
 
 # Notes
 
-- Edge Cases: Consider cases where files may have unusual extensions but are text-based. Ensure these are not wrongly excluded.
-- Pay special attention to nested directories that might contain relevant files.
-- The relevance of certain file types might vary depending on the repository's specific nature, and adjustments may be necessary based on context.
-- File size should be used to filter out unusually large files that are less likely to be relevant as text inputs.
-- File path should not be modified in any way.
+- Only focus on the file path suffix in determining file type.
+- Consider common conventions for CI/CD and configuration files.
+- This process is to ensure only the potentially most relevant files for understanding the repository's code are included.
+- Do not modify the file paths in the output in any way.
 
 # Input
 {file_info}
