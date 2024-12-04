@@ -125,32 +125,19 @@ def filter_files(
     return filtered_files
 
 
-def get_ignore_list(ignore_file_path: Path) -> List[str]:
+def read_pattern_file(file_path: Path) -> List[str]:
     """
-    Reads the .gptignore file and returns a list of patterns.
+    Reads a pattern file and returns a list of patterns.
+    Skips comments and empty lines.
     """
-    ignore_list = []
-    if ignore_file_path.exists():
-        with ignore_file_path.open("r", encoding="utf-8") as ignore_file:
-            for line in ignore_file:
+    pattern_list = []
+    if file_path.exists():
+        with file_path.open("r", encoding="utf-8") as pattern_file:
+            for line in pattern_file:
                 line = line.strip()
                 if line and not line.startswith("#"):  # Skip comments and empty lines
-                    ignore_list.append(line)
-    return ignore_list
-
-
-def get_include_list(include_file_path: Path) -> List[str]:
-    """
-    Reads the .gptinclude file and returns a list of include patterns.
-    """
-    include_list = []
-    if include_file_path.exists():
-        with include_file_path.open("r", encoding="utf-8") as include_file:
-            for line in include_file:
-                line = line.strip()
-                if line and not line.startswith("#"):  # Skip comments and empty lines
-                    include_list.append(line)
-    return include_list
+                    pattern_list.append(line)
+    return pattern_list
 
 
 def process_repo(repo_id: str):
@@ -170,8 +157,8 @@ def process_repo(repo_id: str):
         if not include_file_path.exists():
             include_file_path = Path(".") / ".gptinclude"
 
-        ignore_list = get_ignore_list(ignore_file_path)
-        include_list = get_include_list(include_file_path)
+        ignore_list = read_pattern_file(ignore_file_path)
+        include_list = read_pattern_file(include_file_path)
 
         # Get all files and filter based on extensions and .gptignore
         all_files = get_all_files(repo_path)
@@ -189,13 +176,11 @@ def process_repo(repo_id: str):
 
 def generate_file_list(repo_path: Path, filtered_files: List[Path]) -> List[str]:
     output_content = []
-    # Add file list
-    # Add file list without blank lines
     output_content.append("-- FILE LIST --")
     file_list = "\n".join(
         [str(file_path.relative_to(repo_path)) for file_path in filtered_files]
     )
-    output_content.append(file_list)  # Add file list as a single string
+    output_content.append(file_list)
     output_content.append("-- END OF FILE LIST --")
     return output_content
 
