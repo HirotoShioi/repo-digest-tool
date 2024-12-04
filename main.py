@@ -1,10 +1,9 @@
 import os
 import shutil
 from datetime import datetime
-from typing import Optional, List, Union
+from typing import Optional, List, Tuple, Union
 from pathlib import Path
 import fnmatch
-
 
 def download_repo(repo_url: str, repo_id: str, github_token: Optional[str] = None, branch: Optional[str] = None):
     if not repo_url.startswith("https://github.com/"):
@@ -71,10 +70,10 @@ def filter_files(all_files: List[Path], repo_path: Path, extensions_list: List[s
     return filtered_files
 
 
-def generate_digest(repo_path: Path, filtered_files: List[Path]) -> Optional[str]:
+def generate_digest(repo_path: Path, filtered_files: List[Path]) -> Tuple[List[str], Path]:
     if not filtered_files:
         print("No matching files found.")
-        return None
+        return [], repo_path
 
     file_list = [
         str(file_path.relative_to(repo_path)).replace(os.sep, '/') for file_path in filtered_files
@@ -90,13 +89,14 @@ def generate_digest(repo_path: Path, filtered_files: List[Path]) -> Optional[str
         except Exception as e:
             output_content.append(f"# Error reading file {relative_path}: {e}\n")
 
+    return output_content, repo_path
+
+def save_digest(output_content: List[str], repo_path: Path):
+    os.makedirs("digests", exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = f"tmp/{repo_path.name}_digest_{timestamp}.txt"
+    output_path = f"digests/{repo_path.name}_digest_{timestamp}.txt"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n\n".join(output_content))
-
-    return output_path
-
 
 def process_repo(
     repo_id: str,
@@ -118,13 +118,6 @@ def process_repo(
     return generate_digest(repo_path, filtered_files)
 
 
-def download_digest(file_path: str):
-    if os.path.exists(file_path):
-        print(f"The digest has been saved to: {os.path.abspath(file_path)}")
-    else:
-        print("File not found:", file_path)
-
-
 def main(
     repo_url: str,
     github_token: Optional[str],
@@ -137,14 +130,15 @@ def main(
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
 
     try:
+        shutil.rmtree(f"tmp/", ignore_errors=True)
         print("Cloning repository...")
         download_repo(repo_url, repo_id, github_token, branch)
 
         print("Processing repository...")
-        digest_path = process_repo(repo_id, target_dir, extensions, ignore_files, ignore_dirs)
-        if digest_path:
-            print("Downloading digest...")
-            download_digest(digest_path)
+        output_content, repo_path = process_repo(repo_id, target_dir, extensions, ignore_files, ignore_dirs)
+        if output_content:
+            print("Saving digest...")
+            save_digest(output_content, repo_path)
         else:
             print("Failed to generate digest.")
 
