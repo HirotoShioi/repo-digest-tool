@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repository Analysis Report - {{ repo_name }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .chart-container {
+        position: relative;
+        height: 400px; /* Adjust height */
+        width: 100%; /* Full width */
+      }
+
+      @media (min-width: 768px) {
+        .chart-container {
+          height: 500px; /* Larger height for bigger screens */
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-6">
+      <!-- Header -->
+      <h1 class="text-4xl font-bold text-center mb-8">
+        Repository Analysis Report - {{ repo_name }}
+      </h1>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">File Types Distribution</h2>
+          <div class="chart-container">
+            <canvas id="fileTypesChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h2 class="text-xl font-semibold mb-4">Top 15 Largest Files</h2>
+          <div class="chart-container">
+            <canvas id="fileSizesChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">
+          File Types Breakdown (Bar Chart)
+        </h2>
+        <div class="chart-container">
+          <canvas id="fileTypesBarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // File Types Pie Chart
+      const typeCtx = document.getElementById('fileTypesChart');
+      new Chart(typeCtx, {
+        type: 'pie',
+        data: {
+          labels: {{ file_types_labels }},
+          datasets: [
+            {
+              data: {{ file_types_data }},
+              backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+              ]
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'right' },
+            title: { display: true, text: 'Top 10 File Types' }
+          }
+        }
+      });
+
+      // Top 15 Largest Files Bar Chart
+      const sizeCtx = document.getElementById('fileSizesChart');
+      new Chart(sizeCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ file_sizes_labels }},
+          datasets: [
+            {
+              label: 'File Size (KB)',
+              data: {{ file_sizes_data }},
+              backgroundColor: '#36A2EB',
+              borderColor: '#2693e6',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Size (KB)' }
+            },
+            y: {
+              ticks: { font: { size: 11 } }
+            }
+          }
+        }
+      });
+
+      // File Types Breakdown Bar Chart
+      const barCtx = document.getElementById('fileTypesBarChart');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ file_types_labels }},
+          datasets: [
+            {
+              label: 'File Count',
+              data: {{ file_types_data }},
+              backgroundColor: '#FF6384',
+              borderColor: '#FF4C60',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'File Types Breakdown' }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'File Types' }
+            },
+            y: {
+              title: { display: true, text: 'Count' },
+              ticks: { beginAtZero: true }
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
