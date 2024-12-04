@@ -9,14 +9,11 @@
     <style>
       .chart-container {
         position: relative;
-        height: 400px; /* Adjust height */
+        height: 500px; /* Increased height for better visibility */
         width: 100%; /* Full width */
-      }
-
-      @media (min-width: 768px) {
-        .chart-container {
-          height: 500px; /* Larger height for bigger screens */
-        }
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
     </style>
   </head>
@@ -27,29 +24,73 @@
         Repository Analysis Report - {{ repo_name }}
       </h1>
 
-      <!-- Charts -->
+      <!-- File Types Distribution & Digest Statistics -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <!-- File Types Distribution -->
         <div class="bg-white shadow-md rounded-lg p-6">
           <h2 class="text-xl font-semibold mb-4">File Types Distribution</h2>
           <div class="chart-container">
             <canvas id="fileTypesChart"></canvas>
           </div>
         </div>
+
+        <!-- Digest Statistics -->
         <div class="bg-white shadow-md rounded-lg p-6">
-          <h2 class="text-xl font-semibold mb-4">Top 15 Largest Files</h2>
-          <div class="chart-container">
-            <canvas id="fileSizesChart"></canvas>
-          </div>
+          <h2 class="text-xl font-semibold mb-4">Digest Statistics</h2>
+          <table
+            class="table-auto w-full border-collapse border border-gray-200"
+          >
+            <tbody>
+              <tr>
+                <td class="border border-gray-200 px-4 py-2 font-semibold">
+                  Total Files
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ summary.total_files }}
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 px-4 py-2 font-semibold">
+                  Total Size
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ summary.total_size_kb }} KB
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 px-4 py-2 font-semibold">
+                  Average File Size
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ summary.average_file_size_kb }} KB
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 px-4 py-2 font-semibold">
+                  Max File Size
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ summary.max_file_size_kb }} KB
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-200 px-4 py-2 font-semibold">
+                  Min File Size
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ summary.min_file_size_kb }} KB
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-4">
-          File Types Breakdown (Bar Chart)
-        </h2>
+      <!-- Top 15 Largest Files -->
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Top 15 Largest Files</h2>
         <div class="chart-container">
-          <canvas id="fileTypesBarChart"></canvas>
+          <canvas id="fileSizesChart"></canvas>
         </div>
       </div>
     </div>
@@ -75,7 +116,6 @@
           responsive: true,
           plugins: {
             legend: { position: 'right' },
-            title: { display: true, text: 'Top 10 File Types' }
           }
         }
       });
@@ -97,50 +137,28 @@
           ]
         },
         options: {
-          indexAxis: 'y',
-          responsive: true,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              title: { display: true, text: 'Size (KB)' }
-            },
-            y: {
-              ticks: { font: { size: 11 } }
-            }
-          }
-        }
-      });
-
-      // File Types Breakdown Bar Chart
-      const barCtx = document.getElementById('fileTypesBarChart');
-      new Chart(barCtx, {
-        type: 'bar',
-        data: {
-          labels: {{ file_types_labels }},
-          datasets: [
-            {
-              label: 'File Count',
-              data: {{ file_types_data }},
-              backgroundColor: '#FF6384',
-              borderColor: '#FF4C60',
-              borderWidth: 1
-            }
-          ]
-        },
-        options: {
           responsive: true,
           plugins: {
             legend: { display: false },
-            title: { display: true, text: 'File Types Breakdown' }
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.raw} KB`;
+                }
+              }
+            },
           },
           scales: {
             x: {
-              title: { display: true, text: 'File Types' }
+              title: { display: true, text: 'File Names' },
+              ticks: {
+                autoSkip: false, // Prevent skipping labels
+                maxRotation: 45, // Rotate labels for better visibility
+                minRotation: 45
+              }
             },
             y: {
-              title: { display: true, text: 'Count' },
+              title: { display: true, text: 'Size (KB)' },
               ticks: { beginAtZero: true }
             }
           }
