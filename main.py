@@ -196,8 +196,7 @@ def main():
     github_token = os.getenv("GITHUB_TOKEN")
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
-    prompt = None
-    # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
+    prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
         shutil.rmtree(f"tmp/", ignore_errors=True)
         print("Cloning repository...")
