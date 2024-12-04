@@ -3,12 +3,16 @@ from typing import List, Dict, Any
 import os
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
+
+default_model = "gpt-4o-mini"
+default_temperature = 0
+default_batch_size = 20
 
 
 class FileInfo(BaseModel):
@@ -21,14 +25,32 @@ class FilteredFiles(BaseModel):
     )
 
 
-def filter_files_with_llm(file_list: List[Path], prompt: str) -> List[Path]:
-    print("Using LLM to filter files...")
-    # ファイルサイズを取得し、情報をまとめる
+async def filter_files_batch(
+    file_batch: List[Path], prompt: str, llm_chain
+) -> List[Path]:
+    """単一のバッチに対するファイルフィルタリングを実行"""
     file_info = [
         {"path": str(file), "size": os.path.getsize(file)}
-        for file in file_list
+        for file in file_batch
         if file.is_file()
     ]
+
+    # invoke を使用して同期的に実行
+    result = await llm_chain.ainvoke(
+        {
+            "file_info": "\n".join(
+                [f"{file['path']}: {file['size']} bytes" for file in file_info]
+            ),
+            "user_prompt": prompt,
+        }
+    )
+    return [Path(file_info.path) for file_info in result.files]
+
+
+async def filter_files_with_llm_in_batch(
+    file_list: List[Path], prompt: str, batch_size: int = 50
+) -> List[Path]:
+    print("Using LLM to filter files in parallel...")
 
     # プロンプトテンプレートの作成
     template = """
@@ -53,10 +75,6 @@ Consider files relevant if they contain source code, documentation, or other tex
    - README and other documentation files (`README.md`, `.txt`, etc.)
    - License files (`LICENSE`)
    - Important script files (`install.sh`, etc.)
-
-5. **Aggregate Content**: Concatenate or otherwise combine the contents of the selected relevant files into a single text format.
-
-6. **Preprocess Text**: Clean and format the text to enhance readability if necessary.
 
 # Output Format
 
@@ -88,18 +106,37 @@ The output should be a single, consolidated text file that includes the content 
     prompt_template = ChatPromptTemplate.from_template(template)
 
     # LLMチェーンの作成
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4o-mini").with_structured_output(
-        FilteredFiles
-    )
+    llm = ChatOpenAI(
+        temperature=0,
+        model_name="gpt-4o-mini",
+    ).with_structured_output(FilteredFiles)
     llm_chain = prompt_template | llm
-    result = llm_chain.invoke(
-        {
-            "file_info": "\n".join(
-                [f"{file['path']}: {file['size']} bytes" for file in file_info]
-            ),
-            "user_prompt": prompt,
-        }
+
+    # ファイルリストをバッチに分割
+    batches = [
+        file_list[i : i + batch_size] for i in range(0, len(file_list), batch_size)
+    ]
+
+    # 各バッチを並行処理
+    tasks = []
+    for batch in batches:
+        task = asyncio.create_task(filter_files_batch(batch, prompt, llm_chain))
+        tasks.append(task)
+
+    # すべてのタスクを実行して結果を待機
+    results = await asyncio.gather(*tasks)
+
+    # 結果を結合
+    filtered_files = [file for batch_result in results for file in batch_result]
+
+    print(
+        f"Finished filtering {len(file_list)} files with LLM in {len(batches)} batches."
     )
-    print("Finished filtering files with LLM.")
-    # 絞り込まれたファイルのパスを返す
-    return [Path(file_info.path) for file_info in result.files]
+    return filtered_files
+
+
+# 同期的なインターフェースを提供するラッパー関数
+def filter_files_with_llm(
+    file_list: List[Path], prompt: str, batch_size: int = 50
+) -> List[Path]:
+    return asyncio.run(filter_files_with_llm_in_batch(file_list, prompt, batch_size))

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from lib import log_error, generate_summary
 from lib.file_filtering_chain import filter_files_with_llm
 
+
 load_dotenv()
 
 
@@ -195,11 +196,8 @@ def main():
     github_token = os.getenv("GITHUB_TOKEN")
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
-    prompt = (
-        "Please filter the files to include only the files that are related to react."
-    )
+    prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
-        # 一時ディレクトリのクリーンアップ
         shutil.rmtree(f"tmp/", ignore_errors=True)
         print("Cloning repository...")
         download_repo(repo_url, repo_id, github_token, branch)
