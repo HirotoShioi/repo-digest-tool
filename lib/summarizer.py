@@ -100,7 +100,6 @@ def generate_summary(
     """
     os.makedirs("digests", exist_ok=True)
     file_list_path = f"digests/{repo_path.name}_file_list.txt"
-    summary_path = f"digests/{repo_path.name}_summary.json"
 
     # Initialize counters and stats
     extension_tokens = {}  # 新しい辞書を作成してtoken数を追跡
@@ -161,11 +160,6 @@ def generate_summary(
         "file_types": extension_tokens,  # extension_countsからextension_tokensに変更
         "total_tokens": total_tokens,
     }
-
-    # Save summary as JSON
-    with open(summary_path, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=4)
-    print(f"Summary saved to {summary_path}")
 
     # Generate visualization report
     create_visualization(summary, repo_path)
