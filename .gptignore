@@ -22,8 +22,5 @@ LICENSE
 *.webp
 *.sketch
 pnpm-lock.yaml
-*.vue
-*.svelte
-*.json
 *.ico
 yarn.lock
