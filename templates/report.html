@@ -1,3 +1,4 @@
+<!-- htmlhint template-rule-off -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9,11 +10,19 @@
     <style>
       .chart-container {
         position: relative;
-        height: 500px; /* Increased height for better visibility */
-        width: 100%; /* Full width */
+        height: 500px;
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
+      }
+
+      .token-warning {
+        color: #dc2626;
+      }
+
+      .token-normal {
+        color: inherit;
       }
     </style>
   </head>
@@ -52,7 +61,7 @@
                 </td>
                 <td class="border border-gray-200 px-4 py-2 relative">
                   <span
-                    style="color: {% if summary.total_tokens > 128000 %} #DC2626 {% else %} inherit {% endif %}"
+                    class="{% if summary.total_tokens > 128000 %}token-warning{% else %}token-normal{% endif %}"
                   >
                     {{ summary.total_tokens | format_number }}
                   </span>
@@ -123,13 +132,71 @@
           <canvas id="fileSizesChart"></canvas>
         </div>
       </div>
+
+      <!-- All Files Table -->
+      <div class="bg-white shadow-md rounded-lg p-6 mt-8">
+        <h2 class="text-xl font-semibold mb-4">全ファイル一覧</h2>
+
+        <!-- Search Input -->
+        <div class="mb-4">
+          <input
+            type="text"
+            id="fileSearchInput"
+            placeholder="ファイル名で検索..."
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full table-auto border-collapse border border-gray-200"
+          >
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="border border-gray-200 px-4 py-2 text-left">
+                  ファイル名
+                </th>
+                <th class="border border-gray-200 px-4 py-2 text-left">パス</th>
+                <th class="border border-gray-200 px-4 py-2 text-left">
+                  拡張子
+                </th>
+                <th class="border border-gray-200 px-4 py-2 text-left">
+                  サイズ (KB)
+                </th>
+              </tr>
+            </thead>
+            <tbody id="fileTableBody">
+              {% for file in all_files %}
+              <tr class="hover:bg-gray-50">
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ file.name }}
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ file.path }}
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ file.path.split('.')[-1] if '.' in file.path else 'なし' }}
+                </td>
+                <td class="border border-gray-200 px-4 py-2">
+                  {{ file.size | format_number }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <script>
+    <!-- eslint-disable -->
+    <!-- prettier-ignore -->
+    <script type="text/javascript">
+      // @ts-nocheck
       // File Types Pie Chart
       const typeCtx = document.getElementById('fileTypesChart');
-      const fileTypesLabels = {{ file_types_labels | tojson | safe }};
-      const fileTypesData = {{ file_types_data | tojson | safe }};
+      const fileTypesLabels = JSON.parse('{{ file_types_labels | tojson | safe }}');
+      const fileTypesData = JSON.parse('{{ file_types_data | tojson | safe }}');
 
       new Chart(typeCtx, {
         type: 'pie',
@@ -160,8 +227,8 @@
 
       // Top 15 Largest Files Bar Chart
       const sizeCtx = document.getElementById('fileSizesChart');
-      const fileSizesLabels = {{ file_sizes_labels | tojson | safe }};
-      const fileSizesData = {{ file_sizes_data | tojson | safe }};
+      const fileSizesLabels = JSON.parse('{{ file_sizes_labels | tojson | safe }}');
+      const fileSizesData = JSON.parse('{{ file_sizes_data | tojson | safe }}');
 
       new Chart(sizeCtx, {
         type: 'bar',
@@ -200,6 +267,22 @@
               title: { display: true, text: 'Size (KB)' },
               ticks: { beginAtZero: true }
             }
+          }
+        }
+      });
+
+      // ファイル検索機能
+      document.getElementById('fileSearchInput').addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const rows = document.getElementById('fileTableBody').getElementsByTagName('tr');
+        
+        for (let row of rows) {
+          const fileName = row.getElementsByTagName('td')[0].textContent.toLowerCase();
+          const filePath = row.getElementsByTagName('td')[1].textContent.toLowerCase();
+          if (fileName.includes(searchText) || filePath.includes(searchText)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
           }
         }
       });

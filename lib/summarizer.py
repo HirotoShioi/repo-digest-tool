@@ -68,6 +68,7 @@ def create_visualization(summary: dict, repo_path: Path):
         file_sizes_labels=[item["name"] for item in file_size_data[:data_size]],
         file_sizes_data=[item["size"] for item in file_size_data[:data_size]],
         file_sizes_paths=[item["path"] for item in file_size_data[:data_size]],
+        all_files=file_size_data,
     )
 
     # Save HTML report
@@ -80,7 +81,9 @@ def create_visualization(summary: dict, repo_path: Path):
 encoding = tiktoken.get_encoding("o200k_base")
 
 
-def generate_summary(file_list: List[Path], repo_path: Path, output_content: str):
+def generate_summary(
+    file_list: List[Path], repo_path: Path, output_content: str, file_info: List[dict]
+):
     """
     Save the file list and generate a summary report with file statistics.
     File sizes are stored in kilobytes.

@@ -140,10 +140,22 @@ def process_repo(repo_id: str, prompt: Optional[str] = None):
             filtered_files = filter_files_with_llm(filtered_files, prompt)
         file_list = [file_path for file_path in filtered_files if file_path.is_file()]
 
+        # ファイル情報を収集
+        file_info = []
+        for file_path in file_list:
+            file_info.append(
+                {
+                    "path": str(file_path.relative_to(repo_path)),
+                    "extension": file_path.suffix[1:] if file_path.suffix else "",
+                    "size_kb": round(file_path.stat().st_size / 1024, 2),
+                }
+            )
+
         return (
             generate_digest(repo_path, filtered_files),
             file_list,
             repo_path,
+            file_info,
         )
     except Exception as e:
         log_error(e)
@@ -196,17 +208,18 @@ def main():
     github_token = os.getenv("GITHUB_TOKEN")
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
-    prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
+    prompt = None
+    # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
         shutil.rmtree(f"tmp/", ignore_errors=True)
         print("Cloning repository...")
         download_repo(repo_url, repo_id, github_token, branch)
 
         print("Processing repository...")
-        output_content, file_list, repo_path = process_repo(repo_id, prompt)
+        output_content, file_list, repo_path, file_info = process_repo(repo_id, prompt)
         if file_list:
             print("Generating summary...")
-            generate_summary(file_list, repo_path, output_content)
+            generate_summary(file_list, repo_path, output_content, file_info)
         if output_content:
             print("Saving digest...")
             os.makedirs("digests", exist_ok=True)
