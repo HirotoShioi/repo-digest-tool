@@ -32,17 +32,27 @@ def create_visualization(summary: dict, repo_path: Path):
     for file_path in files:
         full_path = repo_dir / file_path
         if full_path.is_file():
-            size_kb = round(full_path.stat().st_size / 1024, 2)  # Convert to KB
-            file_size_data.append(
-                {
-                    "name": str(Path(file_path).name),
-                    "path": str(file_path),
-                    "size": size_kb,
-                }
-            )
+            try:
+                with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    tokens = len(encoding.encode(content))
+
+                file_size_data.append(
+                    {
+                        "name": str(Path(file_path).name),
+                        "path": str(file_path),
+                        "size": round(
+                            full_path.stat().st_size / 1024, 2
+                        ),  # Keep for the chart
+                        "tokens": tokens,
+                    }
+                )
+            except Exception as e:
+                print(f"Error processing file {file_path}: {e}")
+                continue
 
     # サイズでソート
-    file_size_data.sort(key=lambda x: x["size"], reverse=True)
+    file_size_data.sort(key=lambda x: x["tokens"], reverse=True)
 
     # Jinja2環境の設定
     env = Environment(loader=FileSystemLoader("templates"))
@@ -66,7 +76,7 @@ def create_visualization(summary: dict, repo_path: Path):
             )[:data_size]
         ],
         file_sizes_labels=[item["name"] for item in file_size_data[:data_size]],
-        file_sizes_data=[item["size"] for item in file_size_data[:data_size]],
+        file_sizes_data=[item["tokens"] for item in file_size_data[:data_size]],
         file_sizes_paths=[item["path"] for item in file_size_data[:data_size]],
         all_files=file_size_data,
     )

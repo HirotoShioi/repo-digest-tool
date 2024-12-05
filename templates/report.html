@@ -125,9 +125,9 @@
         </div>
       </div>
 
-      <!-- Top 15 Largest Files -->
+      <!-- Top 20 Files by Token Count -->
       <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Top 20 Largest Files</h2>
+        <h2 class="text-xl font-semibold mb-4">Top 20 Files by Token Count</h2>
         <div class="chart-container">
           <canvas id="fileSizesChart"></canvas>
         </div>
@@ -137,14 +137,34 @@
       <div class="bg-white shadow-md rounded-lg p-6 mt-8">
         <h2 class="text-xl font-semibold mb-4">All Files</h2>
 
-        <!-- Search Input -->
-        <div class="mb-4">
-          <input
-            type="text"
-            id="fileSearchInput"
-            placeholder="Search by file name..."
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <!-- Search and Display Controls -->
+        <div class="flex flex-wrap gap-4 mb-4">
+          <!-- Search Input -->
+          <div class="flex-grow">
+            <input
+              type="text"
+              id="fileSearchInput"
+              placeholder="Search by file name..."
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- Display Count Selector -->
+          <div class="flex items-center gap-2">
+            <label for="displayCount" class="text-sm text-gray-600"
+              >Show:</label
+            >
+            <select
+              id="displayCount"
+              class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+              <option value="-1">All</option>
+            </select>
+          </div>
         </div>
 
         <!-- Table -->
@@ -162,7 +182,7 @@
                   Extension
                 </th>
                 <th class="border border-gray-200 px-4 py-2 text-left">
-                  Size (KB)
+                  Tokens
                 </th>
               </tr>
             </thead>
@@ -179,12 +199,18 @@
                   {{ file.path.split('.')[-1] if '.' in file.path else 'None' }}
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ file.size | format_number }}
+                  {{ file.tokens | format_number }}
                 </td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="mt-4 text-sm text-gray-600">
+          Showing <span id="displayedCount">0</span> of
+          <span id="totalCount">0</span> files
         </div>
       </div>
     </div>
@@ -235,7 +261,7 @@
         data: {
           labels: fileSizesLabels,
           datasets: [{
-            label: 'File Size (KB)',
+            label: 'Token Count',
             data: fileSizesData,
             backgroundColor: '#36A2EB',
             borderColor: '#2693e6',
@@ -249,7 +275,7 @@
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  return `${context.raw} KB`;
+                  return `${context.raw.toLocaleString()} tokens`;
                 }
               }
             }
@@ -264,28 +290,50 @@
               }
             },
             y: {
-              title: { display: true, text: 'Size (KB)' },
+              title: { display: true, text: 'Token Count' },
               ticks: { beginAtZero: true }
             }
           }
         }
       });
 
-      // ファイル検索機能
-      document.getElementById('fileSearchInput').addEventListener('input', function(e) {
-        const searchText = e.target.value.toLowerCase();
-        const rows = document.getElementById('fileTableBody').getElementsByTagName('tr');
+      // ファイル検索と表示件数の制御
+      const fileSearchInput = document.getElementById('fileSearchInput');
+      const displayCountSelect = document.getElementById('displayCount');
+      const fileTableBody = document.getElementById('fileTableBody');
+      const displayedCountSpan = document.getElementById('displayedCount');
+      const totalCountSpan = document.getElementById('totalCount');
+      const allRows = Array.from(fileTableBody.getElementsByTagName('tr'));
+
+      // 初期表示
+      totalCountSpan.textContent = allRows.length;
+      updateDisplayedRows();
+
+      // 検索とフィルタリングの関数
+      function updateDisplayedRows() {
+        const searchText = fileSearchInput.value.toLowerCase();
+        const displayCount = parseInt(displayCountSelect.value);
+        let visibleCount = 0;
         
-        for (let row of rows) {
+        allRows.forEach((row, index) => {
           const fileName = row.getElementsByTagName('td')[0].textContent.toLowerCase();
           const filePath = row.getElementsByTagName('td')[1].textContent.toLowerCase();
-          if (fileName.includes(searchText) || filePath.includes(searchText)) {
+          const matchesSearch = fileName.includes(searchText) || filePath.includes(searchText);
+          
+          if (matchesSearch && (displayCount === -1 || visibleCount < displayCount)) {
             row.style.display = '';
+            visibleCount++;
           } else {
             row.style.display = 'none';
           }
-        }
-      });
+        });
+
+        displayedCountSpan.textContent = visibleCount;
+      }
+
+      // イベントリスナーの設定
+      fileSearchInput.addEventListener('input', updateDisplayedRows);
+      displayCountSelect.addEventListener('change', updateDisplayedRows);
     </script>
   </body>
 </html>
