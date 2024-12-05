@@ -135,14 +135,14 @@
 
       <!-- All Files Table -->
       <div class="bg-white shadow-md rounded-lg p-6 mt-8">
-        <h2 class="text-xl font-semibold mb-4">全ファイル一覧</h2>
+        <h2 class="text-xl font-semibold mb-4">All Files</h2>
 
         <!-- Search Input -->
         <div class="mb-4">
           <input
             type="text"
             id="fileSearchInput"
-            placeholder="ファイル名で検索..."
+            placeholder="Search by file name..."
             class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -155,14 +155,14 @@
             <thead>
               <tr class="bg-gray-100">
                 <th class="border border-gray-200 px-4 py-2 text-left">
-                  ファイル名
+                  File Name
                 </th>
-                <th class="border border-gray-200 px-4 py-2 text-left">パス</th>
+                <th class="border border-gray-200 px-4 py-2 text-left">Path</th>
                 <th class="border border-gray-200 px-4 py-2 text-left">
-                  拡張子
+                  Extension
                 </th>
                 <th class="border border-gray-200 px-4 py-2 text-left">
-                  サイズ (KB)
+                  Size (KB)
                 </th>
               </tr>
             </thead>
@@ -176,7 +176,7 @@
                   {{ file.path }}
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
-                  {{ file.path.split('.')[-1] if '.' in file.path else 'なし' }}
+                  {{ file.path.split('.')[-1] if '.' in file.path else 'None' }}
                 </td>
                 <td class="border border-gray-200 px-4 py-2">
                   {{ file.size | format_number }}
