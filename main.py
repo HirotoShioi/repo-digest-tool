@@ -10,7 +10,7 @@ load_dotenv()
 
 
 def main():
-    repo_url = "https://github.com/TanStack/query"
+    repo_url = "https://github.com/honojs/hono"
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
     prompt = None
@@ -21,10 +21,10 @@ def main():
         download_repo(repo_url, repo_id, branch)
 
         print("Processing repository...")
-        output_content, file_list, repo_path, file_info = process_repo(repo_id, prompt)
+        output_content, file_list, repo_path = process_repo(repo_id, prompt)
         if file_list:
             print("Generating summary...")
-            generate_summary(file_list, repo_path, output_content, file_info)
+            generate_summary(file_list, repo_path, output_content)
         if output_content:
             print("Saving digest...")
             os.makedirs("digests", exist_ok=True)

@@ -1,5 +1,5 @@
 from .logger import log_error
-from .summarizer import generate_summary
+from .summary import generate_summary
 from .file_filtering_chain import filter_files_with_llm
 from .github import download_repo
 from .digest import generate_digest, process_repo

@@ -1,6 +1,6 @@
 import fnmatch
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from lib.file_filtering_chain import filter_files_with_llm
 from lib.logger import log_error
 
@@ -36,6 +36,47 @@ def read_file(file_path: Path) -> str:
     except UnicodeDecodeError:
         with file_path.open("r", encoding="shift_jis", errors="ignore") as f:
             return f.read()
+
+
+def generate_digest(repo_path: Path, filtered_files: List[Path]) -> str:
+    """
+    Generates a digest from the filtered files in the repository.
+    Includes a file list at the beginning of the output.
+    """
+    if not filtered_files:
+        print("No matching files found.")
+        return []
+
+    output_content = []
+
+    # Add preamble to explain the format
+    preamble = (
+        "The following text represents the contents of the repository.\n"
+        "Each section begins with ----, followed by the file path and name.\n"
+        "A file list is provided at the beginning. End of repository content is marked by --END--.\n"
+    )
+    output_content.append(preamble)
+
+    # Add file contents
+    for file_path in filtered_files:
+        # Skip directories
+        if file_path.is_dir():
+            pass
+        try:
+            with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+                relative_path = file_path.relative_to(repo_path)
+                output_content.append("----")  # Section divider
+                output_content.append(str(relative_path))  # File path
+                output_content.append(f.read())  # File content
+        except Exception as e:
+            # Log the error and continue
+            relative_path = file_path.relative_to(repo_path)
+            output_content.append("----")
+            output_content.append(str(relative_path))
+            output_content.append(f"Error reading file: {e}")
+
+    output_content.append("--END--")  # End marker
+    return "\n\n".join(output_content)
 
 
 def filter_files(
@@ -82,7 +123,9 @@ def read_pattern_file(file_path: Path) -> List[str]:
     return pattern_list
 
 
-def process_repo(repo_id: str, prompt: Optional[str] = None):
+def process_repo(
+    repo_id: str, prompt: Optional[str] = None
+) -> Tuple[str, List[Path], Path]:
     """
     Processes a repository using the .gptignore file to filter files.
     """
@@ -108,65 +151,12 @@ def process_repo(repo_id: str, prompt: Optional[str] = None):
         if prompt:
             filtered_files = filter_files_with_llm(filtered_files, prompt)
         file_list = [file_path for file_path in filtered_files if file_path.is_file()]
-
-        # ファイル情報を収集
-        file_info = []
-        for file_path in file_list:
-            file_info.append(
-                {
-                    "path": str(file_path.relative_to(repo_path)),
-                    "extension": file_path.suffix[1:] if file_path.suffix else "",
-                    "size_kb": round(file_path.stat().st_size / 1024, 2),
-                }
-            )
-
+        digest = generate_digest(repo_path, filtered_files)
         return (
-            generate_digest(repo_path, filtered_files),
+            digest,
             file_list,
             repo_path,
-            file_info,
         )
     except Exception as e:
         log_error(e)
         raise RuntimeError(f"Error while processing repository '{repo_id}': {e}") from e
-
-
-def generate_digest(repo_path: Path, filtered_files: List[Path]) -> str:
-    """
-    Generates a digest from the filtered files in the repository.
-    Includes a file list at the beginning of the output.
-    """
-    if not filtered_files:
-        print("No matching files found.")
-        return []
-
-    output_content = []
-
-    # Add preamble to explain the format
-    preamble = (
-        "The following text represents the contents of the repository.\n"
-        "Each section begins with ----, followed by the file path and name.\n"
-        "A file list is provided at the beginning. End of repository content is marked by --END--.\n"
-    )
-    output_content.append(preamble)
-
-    # Add file contents
-    for file_path in filtered_files:
-        # Skip directories
-        if file_path.is_dir():
-            pass
-        try:
-            with file_path.open("r", encoding="utf-8", errors="ignore") as f:
-                relative_path = file_path.relative_to(repo_path)
-                output_content.append("----")  # Section divider
-                output_content.append(str(relative_path))  # File path
-                output_content.append(f.read())  # File content
-        except Exception as e:
-            # Log the error and continue
-            relative_path = file_path.relative_to(repo_path)
-            output_content.append("----")
-            output_content.append(str(relative_path))
-            output_content.append(f"Error reading file: {e}")
-
-    output_content.append("--END--")  # End marker
-    return "\n\n".join(output_content)

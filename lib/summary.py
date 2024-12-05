@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 import tiktoken
 
 data_size = 20
+precision = 2
 
 
 # カスタムフィルターを定義
@@ -17,15 +18,11 @@ def format_number(value):
     return value
 
 
-def create_visualization(summary: dict, repo_path: Path):
+def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
     """
     Create HTML report with Chart.js visualizations using Jinja2
     """
     # ファイルサイズデータの取得
-    file_list_path = f"digests/{repo_path.name}_file_list.txt"
-    with open(file_list_path, "r", encoding="utf-8") as f:
-        files = f.read().splitlines()
-
     file_size_data = []
     repo_dir = Path(f"tmp/{repo_path.name}")
 
@@ -91,15 +88,12 @@ def create_visualization(summary: dict, repo_path: Path):
 encoding = tiktoken.get_encoding("o200k_base")
 
 
-def generate_summary(
-    file_list: List[Path], repo_path: Path, output_content: str, file_info: List[dict]
-):
+def generate_summary(file_list: List[Path], repo_path: Path, output_content: str):
     """
     Save the file list and generate a summary report with file statistics.
     File sizes are stored in kilobytes.
     """
     os.makedirs("digests", exist_ok=True)
-    file_list_path = f"digests/{repo_path.name}_file_list.txt"
 
     # Initialize counters and stats
     extension_tokens = {}  # 新しい辞書を作成してtoken数を追跡
@@ -139,15 +133,10 @@ def generate_summary(
 
     # Calculate stats (all in KB)
     file_count = len(processed_files)
-    average_size = round(total_size / file_count, 2) if file_count > 0 else 0
-    max_size = round(max(file_sizes, default=0), 2)
-    min_size = round(min(file_sizes, default=0), 2)
-    total_size = round(total_size, 2)
-
-    # Save file list
-    with open(file_list_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(processed_files))
-    print(f"File list saved to {file_list_path}")
+    average_size = round(total_size / file_count, precision) if file_count > 0 else 0
+    max_size = round(max(file_sizes, default=0), precision)
+    min_size = round(min(file_sizes, default=0), precision)
+    total_size = round(total_size, precision)
 
     # Generate summary
     summary = {
@@ -162,4 +151,4 @@ def generate_summary(
     }
 
     # Generate visualization report
-    create_visualization(summary, repo_path)
+    create_visualization(summary, repo_path, file_list)
