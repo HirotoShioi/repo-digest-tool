@@ -1,10 +1,7 @@
-import os
 import shutil
 from dotenv import load_dotenv
-from lib import generate_summary
-from lib.digest import process_repo
+from lib import generate_summary, generate_digest, process_repo
 from lib.github import download_repo
-
 
 load_dotenv()
 
@@ -21,16 +18,11 @@ def main():
         download_repo(repo_url, repo_id, branch)
 
         print("Processing repository...")
-        output_content, file_list, repo_path = process_repo(repo_id, prompt)
+        file_list, repo_path = process_repo(repo_id, prompt)
         if file_list:
             print("Generating summary...")
-            generate_summary(file_list, repo_path, output_content)
-        if output_content:
-            print("Saving digest...")
-            os.makedirs("digests", exist_ok=True)
-            output_path = f"digests/{repo_path.name}.txt"
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(output_content)
+            generate_digest(repo_path, file_list)
+            generate_summary(repo_path, file_list)
         else:
             print("Failed to generate digest.")
 

@@ -97,7 +97,10 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
 encoding = tiktoken.get_encoding("o200k_base")
 
 
-def generate_summary(file_list: List[Path], repo_path: Path, output_content: str):
+def generate_summary(
+    repo_path: Path,
+    file_list: List[Path],
+):
     """
     Save the file list and generate a summary report with file statistics.
     File sizes are stored in kilobytes.
@@ -108,7 +111,7 @@ def generate_summary(file_list: List[Path], repo_path: Path, output_content: str
     extension_tokens = {}  # 新しい辞書を作成してtoken数を追跡
     total_size = 0  # in KB
     file_sizes = []  # in KB
-    total_tokens = len(encoding.encode(output_content))
+    total_tokens = 0
 
     # Process files for detailed stats
     processed_files = []
@@ -131,6 +134,7 @@ def generate_summary(file_list: List[Path], repo_path: Path, output_content: str
             # Convert bytes to KB
             file_size = file_path.stat().st_size / 1024  # bytes to KB
             total_size += file_size
+            total_tokens += tokens
             file_sizes.append(file_size)
 
             # 拡張子ごとのtoken数を集計
@@ -161,3 +165,52 @@ def generate_summary(file_list: List[Path], repo_path: Path, output_content: str
 
     # Generate visualization report
     create_visualization(summary, repo_path, file_list)
+
+
+def generate_digest(repo_path: Path, filtered_files: List[Path]) -> None:
+    """
+    Generates a digest from the filtered files in the repository.
+    Includes a file list at the beginning of the output.
+    メァイルに直接書き込むことでメモリ効率を改善します。
+    """
+    if not filtered_files:
+        print("No matching files found.")
+        return
+
+    # 出力ディレクトリとファイルパスの設定
+    output_dir = Path("digests")
+    output_dir.mkdir(exist_ok=True)
+    output_path = output_dir / f"{repo_path.name}.txt"
+
+    with open(output_path, "w", encoding="utf-8") as output:
+        # Add preamble
+        output.write(
+            "The following text represents the contents of the repository.\n"
+            "Each section begins with ----, followed by the file path and name.\n"
+            "A file list is provided at the beginning. End of repository content is marked by --END--.\n\n"
+        )
+
+        # ファイルのみを処理
+        file_list = [f for f in filtered_files if f.is_file()]
+
+        # Add file contents
+        for file_path in file_list:
+            try:
+                relative_path = file_path.relative_to(repo_path)
+                output.write("----\n")  # Section divider
+                output.write(f"{relative_path}\n")  # File path
+
+                # ファイルを1行ずつ読み込んで処理
+                with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+                    for line in f:
+                        output.write(line)
+                output.write("\n")
+
+            except Exception as e:
+                # Log the error and continue
+                relative_path = file_path.relative_to(repo_path)
+                output.write("----\n")
+                output.write(f"{relative_path}\n")
+                output.write(f"Error reading file: {e}\n\n")
+
+        output.write("--END--")  # End marker

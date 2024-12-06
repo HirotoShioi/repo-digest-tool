@@ -5,9 +5,12 @@ from lib.file_filtering_chain import filter_files_with_llm
 from lib.logger import log_error
 
 
-def get_all_files(repo_path: Path) -> List[Path]:
+def get_all_files(repo_path: Path, ignore_patterns: List[str]) -> List[Path]:
     try:
-        all_files = list(repo_path.rglob("*"))
+        all_files = []
+        for path in repo_path.rglob("*"):
+            if not should_ignore(path, repo_path, ignore_patterns):
+                all_files.append(path)
         return all_files
     except Exception as e:
         log_error(e)
@@ -27,47 +30,6 @@ def should_ignore(file_path: Path, repo_path: Path, ignore_patterns: List[str]) 
         elif fnmatch.fnmatch(relative_path, pattern):
             return True
     return False
-
-
-def generate_digest(repo_path: Path, filtered_files: List[Path]) -> str:
-    """
-    Generates a digest from the filtered files in the repository.
-    Includes a file list at the beginning of the output.
-    """
-    if not filtered_files:
-        print("No matching files found.")
-        return []
-
-    output_content = []
-
-    # Add preamble to explain the format
-    preamble = (
-        "The following text represents the contents of the repository.\n"
-        "Each section begins with ----, followed by the file path and name.\n"
-        "A file list is provided at the beginning. End of repository content is marked by --END--.\n"
-    )
-    output_content.append(preamble)
-
-    # ファイルのみを処理するように修正
-    file_list = [f for f in filtered_files if f.is_file()]
-
-    # Add file contents
-    for file_path in file_list:
-        try:
-            with file_path.open("r", encoding="utf-8", errors="ignore") as f:
-                relative_path = file_path.relative_to(repo_path)
-                output_content.append("----")  # Section divider
-                output_content.append(str(relative_path))  # File path
-                output_content.append(f.read())  # File content
-        except Exception as e:
-            # Log the error and continue
-            relative_path = file_path.relative_to(repo_path)
-            output_content.append("----")
-            output_content.append(str(relative_path))
-            output_content.append(f"Error reading file: {e}")
-
-    output_content.append("--END--")  # End marker
-    return "\n\n".join(output_content)
 
 
 def filter_files(
@@ -114,9 +76,7 @@ def read_pattern_file(file_path: Path) -> List[str]:
     return pattern_list
 
 
-def process_repo(
-    repo_id: str, prompt: Optional[str] = None
-) -> Tuple[str, List[Path], Path]:
+def process_repo(repo_id: str, prompt: Optional[str] = None) -> Tuple[List[Path], Path]:
     """
     Processes a repository using the .gptignore file to filter files.
     """
@@ -128,14 +88,12 @@ def process_repo(
         ignore_list = read_pattern_file(Path(".") / ".gptignore")
         include_list = read_pattern_file(Path(".") / ".gptinclude")
         # Get all files and filter based on extensions and .gptignore
-        all_files = get_all_files(repo_path)
+        all_files = get_all_files(repo_path, ignore_list)
         filtered_files = filter_files(all_files, repo_path, ignore_list, include_list)
         if prompt:
             filtered_files = filter_files_with_llm(filtered_files, prompt)
         file_list = [file_path for file_path in filtered_files if file_path.is_file()]
-        digest = generate_digest(repo_path, filtered_files)
         return (
-            digest,
             file_list,
             repo_path,
         )
