@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import asyncio
 import aiofiles
+from dataclasses import dataclass
 
 from jinja2 import Environment, FileSystemLoader
 import tiktoken
@@ -98,22 +99,29 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
 encoding = tiktoken.get_encoding("o200k_base")
 
 
-async def process_single_file(file_info: Tuple[Path, Path]) -> Dict:
+@dataclass
+class FileInfo:
+    """ファイル処理に必要な情報を保持するデータクラス"""
+
+    file_path: Path
+    repo_path: Path
+
+
+async def process_single_file(file_info: FileInfo) -> Dict:
     """
     単一ファイルの非同期処理を行う補助関数
     """
-    file_path, repo_path = file_info
     try:
-        relative_path = str(file_path.relative_to(repo_path))
+        relative_path = str(file_info.file_path.relative_to(file_info.repo_path))
 
         async with aiofiles.open(
-            file_path, "r", encoding="utf-8", errors="ignore"
+            file_info.file_path, "r", encoding="utf-8", errors="ignore"
         ) as f:
             content = await f.read()
             tokens = len(encoding.encode(content))
 
-        file_size = file_path.stat().st_size / 1024  # bytes to KB
-        ext = file_path.suffix.lower() or "no_extension"
+        file_size = file_info.file_path.stat().st_size / 1024  # bytes to KB
+        ext = file_info.file_path.suffix.lower() or "no_extension"
 
         return {
             "path": relative_path,
@@ -122,11 +130,11 @@ async def process_single_file(file_info: Tuple[Path, Path]) -> Dict:
             "extension": ext,
         }
     except Exception as e:
-        print(f"Error processing file {file_path}: {e}")
+        print(f"Error processing file {file_info.file_path}: {e}")
         return None
 
 
-async def process_files(file_infos: List[Tuple[Path, Path]]) -> Dict:
+async def process_files(file_infos: List[FileInfo]) -> Dict:
     """
     全ファイルの非同期処理と集計を行う
     """
@@ -171,7 +179,7 @@ def generate_summary(
     ファイル統計のサマリーレポートを生成する
     """
     os.makedirs("digests", exist_ok=True)
-    file_infos = [(Path(f), repo_path) for f in file_list]
+    file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
 
     # 非同期処理の実行と結果の取得
     stats = asyncio.run(process_files(file_infos))
