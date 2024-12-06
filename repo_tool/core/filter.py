@@ -1,8 +1,8 @@
 import fnmatch
 from pathlib import Path
 from typing import List, Optional, Tuple
-from lib.file_filtering_chain import filter_files_with_llm
-from lib.logger import log_error
+from core.llm import filter_files_with_llm
+from core.logger import log_error
 
 
 def get_all_files(repo_path: Path, ignore_patterns: List[str]) -> List[Path]:

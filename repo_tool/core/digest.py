@@ -1,23 +1,12 @@
 import shutil
-from dotenv import load_dotenv
-from lib import generate_summary, generate_digest, filter_files_in_repo
-from lib.github import download_repo
+from typing import Optional
+from repo_tool.core.filter import filter_files_in_repo
 import concurrent.futures
+from repo_tool.core.summary import generate_summary
 
-load_dotenv()
 
-
-def main():
-    repo_url = "https://github.com/HirotoShioi/repo-digest-tool"
-    branch = None
-    repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
-    prompt = None
-    # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
+def generate_digest(repo_id: str, prompt: Optional[str] = None) -> None:
     try:
-        shutil.rmtree(f"tmp/", ignore_errors=True)
-        print("Cloning repository...")
-        download_repo(repo_url, repo_id, branch)
-
         print("Processing repository...")
         file_list, repo_path = filter_files_in_repo(repo_id, prompt)
         if file_list:
@@ -35,10 +24,5 @@ def main():
 
         print("Cleaning up...")
         shutil.rmtree(f"tmp/{repo_id}")
-
     except Exception as e:
         print("Error:", e)
-
-
-if __name__ == "__main__":
-    main()
