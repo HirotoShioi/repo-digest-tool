@@ -134,17 +134,8 @@ def process_repo(
         raise ValueError(f"Repository path '{repo_path}' does not exist.")
 
     try:
-        # Determine .gptignore location
-        ignore_file_path = repo_path / ".gptignore"
-        if not ignore_file_path.exists():
-            ignore_file_path = Path(".") / ".gptignore"
-        include_file_path = repo_path / ".gptinclude"
-        if not include_file_path.exists():
-            include_file_path = Path(".") / ".gptinclude"
-
-        ignore_list = read_pattern_file(ignore_file_path)
-        include_list = read_pattern_file(include_file_path)
-
+        ignore_list = read_pattern_file(Path(".") / ".gptignore")
+        include_list = read_pattern_file(Path(".") / ".gptinclude")
         # Get all files and filter based on extensions and .gptignore
         all_files = get_all_files(repo_path)
         filtered_files = filter_files(all_files, repo_path, ignore_list, include_list)
