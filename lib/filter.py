@@ -76,7 +76,9 @@ def read_pattern_file(file_path: Path) -> List[str]:
     return pattern_list
 
 
-def process_repo(repo_id: str, prompt: Optional[str] = None) -> Tuple[List[Path], Path]:
+def filter_files_in_repo(
+    repo_id: str, prompt: Optional[str] = None
+) -> Tuple[List[Path], Path]:
     """
     Processes a repository using the .gptignore file to filter files.
     """

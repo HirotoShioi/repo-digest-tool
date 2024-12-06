@@ -171,7 +171,6 @@ def generate_digest(repo_path: Path, filtered_files: List[Path]) -> None:
     """
     Generates a digest from the filtered files in the repository.
     Includes a file list at the beginning of the output.
-    メァイルに直接書き込むことでメモリ効率を改善します。
     """
     if not filtered_files:
         print("No matching files found.")

@@ -1,7 +1,8 @@
 import shutil
 from dotenv import load_dotenv
-from lib import generate_summary, generate_digest, process_repo
+from lib import generate_summary, generate_digest, filter_files_in_repo
 from lib.github import download_repo
+import concurrent.futures
 
 load_dotenv()
 
@@ -18,11 +19,17 @@ def main():
         download_repo(repo_url, repo_id, branch)
 
         print("Processing repository...")
-        file_list, repo_path = process_repo(repo_id, prompt)
+        file_list, repo_path = filter_files_in_repo(repo_id, prompt)
         if file_list:
-            print("Generating summary...")
-            generate_digest(repo_path, file_list)
-            generate_summary(repo_path, file_list)
+            print("Generating summary and digest in parallel...")
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                # 両方のタスクを同時に実行
+                futures = [
+                    executor.submit(generate_digest, repo_path, file_list),
+                    executor.submit(generate_summary, repo_path, file_list),
+                ]
+                # 全てのタスクが完了するまで待機
+                concurrent.futures.wait(futures)
         else:
             print("Failed to generate digest.")
 
