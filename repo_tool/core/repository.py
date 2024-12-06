@@ -35,3 +35,7 @@ def download_repo(
     except subprocess.CalledProcessError as e:
         log_error(e)
         raise RuntimeError(f"Error during repository cloning: {e}")
+
+
+def calculate_repo_id(repo_url: str) -> str:
+    return repo_url.split("/")[-1].replace(".git", "").replace("/", "_")

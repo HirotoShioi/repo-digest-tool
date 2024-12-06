@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from repo_tool import generate_digest, download_repo
+from repo_tool.core.repository import calculate_repo_id
 
 load_dotenv()
 
@@ -7,7 +8,7 @@ load_dotenv()
 def main():
     repo_url = "https://github.com/HirotoShioi/repo-digest-tool"
     branch = None
-    repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
+    repo_id = calculate_repo_id(repo_url)
     prompt = None
     # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
