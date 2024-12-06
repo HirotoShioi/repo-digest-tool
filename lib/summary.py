@@ -1,7 +1,8 @@
-import json
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Tuple
+import asyncio
+import aiofiles
 
 from jinja2 import Environment, FileSystemLoader
 import tiktoken
@@ -97,73 +98,97 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
 encoding = tiktoken.get_encoding("o200k_base")
 
 
+async def process_single_file(file_info: Tuple[Path, Path]) -> Dict:
+    """
+    単一ファイルの非同期処理を行う補助関数
+    """
+    file_path, repo_path = file_info
+    try:
+        relative_path = str(file_path.relative_to(repo_path))
+
+        async with aiofiles.open(
+            file_path, "r", encoding="utf-8", errors="ignore"
+        ) as f:
+            content = await f.read()
+            tokens = len(encoding.encode(content))
+
+        file_size = file_path.stat().st_size / 1024  # bytes to KB
+        ext = file_path.suffix.lower() or "no_extension"
+
+        return {
+            "path": relative_path,
+            "size": file_size,
+            "tokens": tokens,
+            "extension": ext,
+        }
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+        return None
+
+
+async def process_files(file_infos: List[Tuple[Path, Path]]) -> Dict:
+    """
+    全ファイルの非同期処理と集計を行う
+    """
+    extension_tokens = {}
+    total_size = 0
+    file_sizes = []
+    total_tokens = 0
+    processed_files = []
+
+    tasks = [process_single_file(file_info) for file_info in file_infos]
+    results = await asyncio.gather(*tasks)
+
+    for result in results:
+        if result is None:
+            continue
+
+        processed_files.append(result["path"])
+        total_size += result["size"]
+        total_tokens += result["tokens"]
+        file_sizes.append(result["size"])
+
+        ext = result["extension"]
+        extension_tokens[ext] = extension_tokens.get(ext, 0) + result["tokens"]
+
+    file_count = len(processed_files)
+    return {
+        "file_count": file_count,
+        "total_size": total_size,
+        "average_size": total_size / file_count if file_count > 0 else 0,
+        "max_size": max(file_sizes, default=0),
+        "min_size": min(file_sizes, default=0),
+        "extension_tokens": extension_tokens,
+        "total_tokens": total_tokens,
+    }
+
+
 def generate_summary(
     repo_path: Path,
     file_list: List[Path],
 ):
     """
-    Save the file list and generate a summary report with file statistics.
-    File sizes are stored in kilobytes.
+    ファイル統計のサマリーレポートを生成する
     """
     os.makedirs("digests", exist_ok=True)
+    file_infos = [(Path(f), repo_path) for f in file_list]
 
-    # Initialize counters and stats
-    extension_tokens = {}  # 新しい辞書を作成してtoken数を追跡
-    total_size = 0  # in KB
-    file_sizes = []  # in KB
-    total_tokens = 0
+    # 非同期処理の実行と結果の取得
+    stats = asyncio.run(process_files(file_infos))
 
-    # Process files for detailed stats
-    processed_files = []
-    for file_path in file_list:
-        if not isinstance(file_path, Path):
-            file_path = Path(file_path)
-
-        if not file_path.is_file():
-            continue
-
-        try:
-            relative_path = file_path.relative_to(repo_path)
-            processed_files.append(str(relative_path))
-
-            # ファイルの内容を読み込んでtoken数を計算
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
-                tokens = len(encoding.encode(content))
-
-            # Convert bytes to KB
-            file_size = file_path.stat().st_size / 1024  # bytes to KB
-            total_size += file_size
-            total_tokens += tokens
-            file_sizes.append(file_size)
-
-            # 拡張子ごとのtoken数を集計
-            ext = file_path.suffix.lower() or "no_extension"
-            extension_tokens[ext] = extension_tokens.get(ext, 0) + tokens
-        except Exception as e:
-            print(f"Error processing file {file_path}: {e}")
-            continue
-
-    # Calculate stats (all in KB)
-    file_count = len(processed_files)
-    average_size = round(total_size / file_count, precision) if file_count > 0 else 0
-    max_size = round(max(file_sizes, default=0), precision)
-    min_size = round(min(file_sizes, default=0), precision)
-    total_size = round(total_size, precision)
-
-    # Generate summary
+    # サマリーの生成
     summary = {
         "repository": repo_path.name,
-        "total_files": file_count,
-        "total_size_kb": total_size,
-        "average_file_size_kb": average_size,
-        "max_file_size_kb": max_size,
-        "min_file_size_kb": min_size,
-        "file_types": extension_tokens,  # extension_countsからextension_tokensに変更
-        "total_tokens": total_tokens,
+        "total_files": stats["file_count"],
+        "total_size_kb": round(stats["total_size"], precision),
+        "average_file_size_kb": round(stats["average_size"], precision),
+        "max_file_size_kb": round(stats["max_size"], precision),
+        "min_file_size_kb": round(stats["min_size"], precision),
+        "file_types": stats["extension_tokens"],
+        "total_tokens": stats["total_tokens"],
     }
 
-    # Generate visualization report
+    # レポートの生成
     create_visualization(summary, repo_path, file_list)
 
 
