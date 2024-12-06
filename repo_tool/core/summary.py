@@ -200,7 +200,7 @@ def generate_summary(
     create_visualization(summary, repo_path, file_list)
 
 
-def generated_file(repo_path: Path, filtered_files: List[Path]) -> None:
+def store_result_to_file(repo_path: Path, filtered_files: List[Path]) -> None:
     """
     Generates a digest from the filtered files in the repository.
     Includes a file list at the beginning of the output.

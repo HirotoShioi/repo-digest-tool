@@ -1,7 +1,7 @@
 from typing import Optional
 import os
 import subprocess
-from core.logger import log_error
+from repo_tool.core.logger import log_error
 from dotenv import load_dotenv
 
 load_dotenv()

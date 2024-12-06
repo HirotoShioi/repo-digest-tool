@@ -1,6 +1,8 @@
 import shutil
+import os
 from dotenv import load_dotenv
-from core import generate_digest, download_repo
+from repo_tool import generate_digest, download_repo
+from repo_tool import REPO_DIR
 
 load_dotenv()
 
@@ -10,9 +12,12 @@ def main():
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
     prompt = None
+    # create repo directory
+    if not os.path.exists(REPO_DIR):
+        os.makedirs(REPO_DIR, exist_ok=True)
     # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
-        shutil.rmtree(f"tmp/", ignore_errors=True)
+        # shutil.rmtree(REPO_DIR, ignore_errors=True)
         print("Cloning repository...")
         download_repo(repo_url, repo_id, branch)
 
@@ -20,7 +25,7 @@ def main():
         generate_digest(repo_id, prompt)
     except Exception as e:
         print("Error:", e)
-        shutil.rmtree(f"tmp/{repo_id}")
+        shutil.rmtree(f"{REPO_DIR}/{repo_id}")
 
 
 if __name__ == "__main__":

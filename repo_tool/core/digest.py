@@ -2,7 +2,7 @@ import shutil
 from typing import Optional
 from repo_tool.core.filter import filter_files_in_repo
 import concurrent.futures
-from repo_tool.core.summary import generate_summary
+from repo_tool.core.summary import generate_summary, store_result_to_file
 
 
 def generate_digest(repo_id: str, prompt: Optional[str] = None) -> None:
@@ -14,7 +14,7 @@ def generate_digest(repo_id: str, prompt: Optional[str] = None) -> None:
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 # 両方のタスクを同時に実行
                 futures = [
-                    executor.submit(generate_digest, repo_path, file_list),
+                    executor.submit(store_result_to_file, repo_path, file_list),
                     executor.submit(generate_summary, repo_path, file_list),
                 ]
                 # 全てのタスクが完了するまで待機
