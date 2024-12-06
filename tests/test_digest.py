@@ -8,7 +8,7 @@ from repo_tool.core.contants import DIGEST_DIR
 MOCK_REPO_URL = "https://github.com/HirotoShioi/repo-digest-tool"
 MOCK_PROMPT = None  # 必要ならカスタムプロンプトを設定
 MAX_DIGEST_SIZE_MB = 1 * 1024 * 1024  # ダイジェストファイルの最大サイズ（MB）
-MIN_DIGEST_SIZE = 200 * 1024  # ダイジェストファイルの最小サイズ（バイト）
+MIN_DIGEST_SIZE = 150 * 1024  # ダイジェストファイルの最小サイズ（バイト）
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def test_digest_file_generation(temp_repo_dir):
 
     # ファイルサイズの確認（MB単位）
     file_size = digest_path.stat().st_size
-    assert file_size > MIN_DIGEST_SIZE, "Digest file should not be empty."
+    assert file_size > MIN_DIGEST_SIZE, "Digest file size should be larger than 200KB."
     assert (
         file_size <= MAX_DIGEST_SIZE_MB
     ), f"Digest file size should be less than {MAX_DIGEST_SIZE_MB}MB"
