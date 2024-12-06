@@ -1,0 +1,31 @@
+name: Test test.py
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          uv sync
+
+      - name: Run test.py
+        run: |
+          uv run test.py
