@@ -12,9 +12,6 @@ def main():
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
     prompt = None
-    # create repo directory
-    if not os.path.exists(REPO_DIR):
-        os.makedirs(REPO_DIR, exist_ok=True)
     # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
         # shutil.rmtree(REPO_DIR, ignore_errors=True)

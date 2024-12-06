@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from jinja2 import Environment, FileSystemLoader
 import tiktoken
 
+from repo_tool.core.contants import DIGEST_DIR, REPO_DIR
+
 data_size = 20
 precision = 2
 
@@ -26,14 +28,14 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
     """
     # ファイルサイズデータの取得
     file_size_data = []
-    repo_dir = Path(f"tmp/{repo_path.name}")
+    repo_dir = Path(f"{REPO_DIR}/{repo_path.name}")
 
     for file_path in files:
         # 相対パスの処理を修正
         if isinstance(file_path, str):
             file_path = Path(file_path)
 
-        # tmp/repo-name/を除去して相対パスを取得
+        # {REPO_DIR}/repo-name/を除去して相対パスを取得
         try:
             relative_path = file_path.relative_to(repo_dir)
         except ValueError:
@@ -178,9 +180,9 @@ def generate_summary(
     """
     ファイル統計のサマリーレポートを生成する
     """
-    os.makedirs("digests", exist_ok=True)
+    if not os.path.exists(DIGEST_DIR):
+        os.makedirs(DIGEST_DIR, exist_ok=True)
     file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
-
     # 非同期処理の実行と結果の取得
     stats = asyncio.run(process_files(file_infos))
 
@@ -210,7 +212,7 @@ def store_result_to_file(repo_path: Path, filtered_files: List[Path]) -> None:
         return
 
     # 出力ディレクトリとファイルパスの設定
-    output_dir = Path("digests")
+    output_dir = Path(DIGEST_DIR)
     output_dir.mkdir(exist_ok=True)
     output_path = output_dir / f"{repo_path.name}.txt"
 

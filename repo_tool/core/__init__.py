@@ -8,6 +8,7 @@ from .llm import filter_files_with_llm
 from .repository import download_repo
 from .filter import filter_files_in_repo
 from .digest import generate_digest
+from .contants import REPO_DIR, DIGEST_DIR
 
 # 他のモジュールや関数を必要に応じてインポート
 __all__ = [
@@ -18,4 +19,6 @@ __all__ = [
     "store_result_to_file",
     "filter_files_in_repo",
     "generate_digest",
+    "REPO_DIR",
+    "DIGEST_DIR",
 ]
