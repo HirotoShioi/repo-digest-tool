@@ -1,8 +1,9 @@
 import fnmatch
 from pathlib import Path
 from typing import List, Optional, Tuple
-from lib.file_filtering_chain import filter_files_with_llm
-from lib.logger import log_error
+from repo_tool.core.contants import REPO_DIR
+from repo_tool.core.llm import filter_files_with_llm
+from repo_tool.core.logger import log_error
 
 
 def get_all_files(repo_path: Path, ignore_patterns: List[str]) -> List[Path]:
@@ -82,7 +83,7 @@ def filter_files_in_repo(
     """
     Processes a repository using the .gptignore file to filter files.
     """
-    repo_path = Path(f"tmp/{repo_id}")
+    repo_path = Path(f"{REPO_DIR}/{repo_id}")
     if not repo_path.exists():
         raise ValueError(f"Repository path '{repo_path}' does not exist.")
 
