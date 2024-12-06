@@ -29,15 +29,6 @@ def should_ignore(file_path: Path, repo_path: Path, ignore_patterns: List[str]) 
     return False
 
 
-def read_file(file_path: Path) -> str:
-    try:
-        with file_path.open("r", encoding="utf-8", errors="ignore") as f:
-            return f.read()
-    except UnicodeDecodeError:
-        with file_path.open("r", encoding="shift_jis", errors="ignore") as f:
-            return f.read()
-
-
 def generate_digest(repo_path: Path, filtered_files: List[Path]) -> str:
     """
     Generates a digest from the filtered files in the repository.
@@ -57,11 +48,11 @@ def generate_digest(repo_path: Path, filtered_files: List[Path]) -> str:
     )
     output_content.append(preamble)
 
+    # ファイルのみを処理するように修正
+    file_list = [f for f in filtered_files if f.is_file()]
+
     # Add file contents
-    for file_path in filtered_files:
-        # Skip directories
-        if file_path.is_dir():
-            pass
+    for file_path in file_list:
         try:
             with file_path.open("r", encoding="utf-8", errors="ignore") as f:
                 relative_path = file_path.relative_to(repo_path)
