@@ -1,3 +1,2 @@
-# デフォルトのディレクトリパス
-REPO_DIR = "repo"
+REPO_DIR = "repositories"
 DIGEST_DIR = "digests"

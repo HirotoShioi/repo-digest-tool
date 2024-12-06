@@ -1,8 +1,5 @@
-import shutil
-import os
 from dotenv import load_dotenv
 from repo_tool import generate_digest, download_repo
-from repo_tool import REPO_DIR
 
 load_dotenv()
 
@@ -22,7 +19,6 @@ def main():
         generate_digest(repo_id, prompt)
     except Exception as e:
         print("Error:", e)
-        shutil.rmtree(f"{REPO_DIR}/{repo_id}")
 
 
 if __name__ == "__main__":
