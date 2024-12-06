@@ -3,7 +3,7 @@ Core functionality for repo-digest-tool
 """
 
 from .logger import log_error
-from .summary import generate_summary, store_result_to_file
+from .summary import generate_summary
 from .llm import filter_files_with_llm
 from .repository import download_repo, calculate_repo_id
 from .filter import filter_files_in_repo
@@ -16,7 +16,6 @@ __all__ = [
     "generate_summary",
     "filter_files_with_llm",
     "download_repo",
-    "store_result_to_file",
     "filter_files_in_repo",
     "generate_digest",
     "calculate_repo_id",
