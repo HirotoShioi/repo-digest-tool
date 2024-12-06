@@ -27,7 +27,18 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
     repo_dir = Path(f"tmp/{repo_path.name}")
 
     for file_path in files:
-        full_path = repo_dir / file_path
+        # 相対パスの処理を修正
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        # tmp/repo-name/を除去して相対パスを取得
+        try:
+            relative_path = file_path.relative_to(repo_dir)
+        except ValueError:
+            # すでに相対パスの場合はそのまま使用
+            relative_path = file_path
+
+        full_path = repo_dir / relative_path
         if full_path.is_file():
             try:
                 with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -36,19 +47,17 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
 
                 file_size_data.append(
                     {
-                        "name": str(Path(file_path).name),
-                        "path": str(file_path),
-                        "size": round(
-                            full_path.stat().st_size / 1024, 2
-                        ),  # Keep for the chart
+                        "name": relative_path.name,
+                        "path": str(relative_path),
+                        "extension": relative_path.suffix.lower() or "no_extension",
                         "tokens": tokens,
                     }
                 )
             except Exception as e:
-                print(f"Error processing file {file_path}: {e}")
+                print(f"Error processing file {relative_path}: {e}")
                 continue
 
-    # サイズでソート
+    # トークン数でソート
     file_size_data.sort(key=lambda x: x["tokens"], reverse=True)
 
     # Jinja2環境の設定
@@ -56,7 +65,7 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
     env.filters["format_number"] = format_number
     template = env.get_template("report.html")
 
-    # テンプレートにデータを渡してレンダリング
+    # テンプレートにデータを渡す際にall_filesを確実に含める
     html_content = template.render(
         repo_name=repo_path.name,
         summary=summary,
@@ -75,7 +84,7 @@ def create_visualization(summary: dict, repo_path: Path, files: List[Path]):
         file_sizes_labels=[item["name"] for item in file_size_data[:data_size]],
         file_sizes_data=[item["tokens"] for item in file_size_data[:data_size]],
         file_sizes_paths=[item["path"] for item in file_size_data[:data_size]],
-        all_files=file_size_data,
+        all_files=file_size_data,  # 全ファイルデータを確実に渡す
     )
 
     # Save HTML report

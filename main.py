@@ -10,7 +10,7 @@ load_dotenv()
 
 
 def main():
-    repo_url = "https://github.com/honojs/hono"
+    repo_url = "https://github.com/HirotoShioi/repo-digest-tool"
     branch = None
     repo_id = repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
     prompt = None
