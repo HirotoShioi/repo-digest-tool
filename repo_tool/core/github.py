@@ -1,15 +1,28 @@
+import datetime
 import os
 import re
 import shutil
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-from urllib.parse import urlparse
+from typing import List, Optional
+from urllib.parse import urlparse, urlunparse
 
 from git import GitCommandError, Repo
 
 from repo_tool.core.logger import log_error
 
 REPO_DIR = "repositories"
+
+
+@dataclass
+class Repository:
+    url: str
+    branch: Optional[str]
+    path: Path
+    updated_at: datetime.datetime
+    name: str
+    author: str
+    size: int = 0
 
 
 class GitHub:
@@ -83,6 +96,52 @@ class GitHub:
         repo = Repo(repo_path)
         repo.remotes.origin.pull()
 
+    def list(self) -> List[Repository]:
+        """
+        List all repositories.
+
+        Returns:
+            List[Repository]: List of repositories with their information
+        """
+        try:
+            # Get only the repository root directories
+            repo_paths = []
+            if Path(REPO_DIR).exists():
+                for author_dir in Path(REPO_DIR).iterdir():
+                    if author_dir.is_dir():
+                        for repo_dir in author_dir.iterdir():
+                            if repo_dir.is_dir() and (repo_dir / ".git").exists():
+                                repo_paths.append(repo_dir)
+
+            repositories = []
+            for repo_path in repo_paths:
+                try:
+                    repo = Repo(repo_path)
+                    name = repo_path.name
+                    author = repo_path.parent.name
+                    size = repo_path.stat().st_size
+                    repositories.append(
+                        Repository(
+                            url=GitHub.remove_github_token(repo.remotes.origin.url),
+                            branch=repo.active_branch.name,
+                            path=repo_path,
+                            updated_at=datetime.datetime.fromtimestamp(
+                                repo.head.commit.committed_date
+                            ),
+                            name=name,
+                            author=author,
+                            size=size,
+                        )
+                    )
+                except Exception as e:
+                    log_error(e)
+                    continue
+
+            return repositories
+        except Exception as e:
+            log_error(e)
+            return []
+
     @staticmethod
     def get_repo_path(repo_url: str) -> Path:
         """
@@ -141,6 +200,25 @@ class GitHub:
             return False
 
         return True
+
+    @staticmethod
+    def remove_github_token(repo_url: str) -> str:
+        """
+        Remove GitHub token from the repository URL if present.
+
+        Args:
+            repo_url (str): The repository URL.
+
+        Returns:
+            str: The sanitized repository URL.
+        """
+        parsed_url = urlparse(repo_url)
+        if "@" in parsed_url.netloc:
+            # Split on `@` to remove token part
+            sanitized_netloc = parsed_url.netloc.split("@")[-1]
+            sanitized_url = urlunparse(parsed_url._replace(netloc=sanitized_netloc))
+            return sanitized_url
+        return repo_url
 
     def replace_repo_url(self, repo_url: str) -> str:
         return repo_url.replace(
