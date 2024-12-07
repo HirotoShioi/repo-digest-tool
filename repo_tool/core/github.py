@@ -165,6 +165,7 @@ class GitHub:
             raise ValueError("Repository URL does not match the expected pattern.")
 
         author, repo = match.groups()[:2]
+        repo = repo.replace(".git", "")  # Remove .git from the repository name
         return Path(REPO_DIR) / author / repo
 
     @staticmethod
