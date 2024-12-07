@@ -53,7 +53,7 @@ def generate_summary(
         "max_file_size_kb": round(stats["max_size"], precision),
         "min_file_size_kb": round(stats["min_size"], precision),
         "file_types": stats["extension_tokens"],
-        "total_tokens": stats["total_tokens"],
+        "context_length": stats["context_length"],
     }
     # レポートの生成
     # ファイルサイズデータの取得
@@ -132,7 +132,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
     extension_tokens: Dict[str, int] = {}
     total_size = 0
     file_sizes = []
-    total_tokens = 0
+    context_length = 0
     processed_files = []
 
     tasks = [process_single_file(file_info) for file_info in file_infos]
@@ -144,7 +144,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
 
         processed_files.append(result["path"])
         total_size += result["size"]
-        total_tokens += result["tokens"]
+        context_length += result["tokens"]
         file_sizes.append(result["size"])
 
         ext = result["extension"]
@@ -158,7 +158,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
         "max_size": max(file_sizes, default=0),
         "min_size": min(file_sizes, default=0),
         "extension_tokens": extension_tokens,
-        "total_tokens": total_tokens,
+        "context_length": context_length,
     }
 
 

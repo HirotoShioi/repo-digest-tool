@@ -13,7 +13,7 @@ def main() -> None:
     # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
         print("Cloning repository...")
-        github.clone(repo_url, branch, force=True)
+        github.clone(repo_url, branch)
 
         print("Processing repository...")
         repo_path = GitHub.get_repo_path(repo_url)

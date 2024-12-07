@@ -34,10 +34,6 @@ class GitHub:
             log_error(e)
             raise e
 
-    # @staticmethod
-    # def calculate_repo_id(repo_url: str) -> str:
-    #     return repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
-
     @staticmethod
     def get_repo_path(repo_url: str) -> Path:
         if not GitHub.is_valid_repo_url(repo_url):

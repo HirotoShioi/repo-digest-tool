@@ -38,10 +38,10 @@
         <!-- File Types Distribution -->
         <div class="bg-white shadow-md rounded-lg p-6">
           <h2 class="text-xl font-semibold">
-            Token count distribution by file type
+            Context length distribution by file type
           </h2>
           <span class="text-sm text-gray-500 block">
-            (Total GPT-4o token count for each file type)
+            (Total context length for each file type)
           </span>
           <div class="chart-container">
             <canvas id="fileTypesChart"></canvas>
@@ -57,23 +57,23 @@
             <tbody>
               <tr>
                 <td class="border border-gray-200 px-4 py-2 font-semibold">
-                  Total Tokens (GPT-4o)
+                  Context Length (GPT-4o)
                 </td>
                 <td class="border border-gray-200 px-4 py-2 relative">
                   <span
-                    class="{% if summary.total_tokens > 128000 %}token-warning{% else %}token-normal{% endif %}"
+                    class="{% if summary.context_length > 128000 %}token-warning{% else %}token-normal{% endif %}"
                   >
-                    {{ summary.total_tokens | format_number }}
+                    {{ summary.context_length | format_number }}
                   </span>
-                  {% if summary.total_tokens > 128000 %}
+                  {% if summary.context_length > 128000 %}
                   <div class="group inline-block relative">
                     <span class="text-red-600 underline cursor-help">?</span>
                     <div
                       class="hidden group-hover:block absolute z-10 bg-gray-800 text-white text-sm rounded-md shadow-md px-4 py-2 w-64 -translate-x-1/2 left-1/2"
                     >
-                      The total tokens exceed the limit of 128,000 for GPT-4o.
-                      Consider reducing the content or splitting it into smaller
-                      chunks to fit within the limit.
+                      The context length exceeds the limit of 128,000 for
+                      GPT-4o. Consider reducing the content or splitting it into
+                      smaller chunks to fit within the limit.
                     </div>
                   </div>
                   {% endif %}
@@ -127,7 +127,9 @@
 
       <!-- Top 20 Files by Token Count -->
       <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Top 20 Files by Token Count</h2>
+        <h2 class="text-xl font-semibold mb-4">
+          Top 20 Files by Context Length
+        </h2>
         <div class="chart-container">
           <canvas id="fileSizesChart"></canvas>
         </div>
@@ -182,7 +184,7 @@
                   Extension
                 </th>
                 <th class="border border-gray-200 px-4 py-2 text-left">
-                  Tokens
+                  Context Length
                 </th>
               </tr>
             </thead>
@@ -261,7 +263,7 @@
         data: {
           labels: fileSizesLabels,
           datasets: [{
-            label: 'Token Count',
+            label: 'Context Length',
             data: fileSizesData,
             backgroundColor: '#36A2EB',
             borderColor: '#2693e6',
@@ -290,7 +292,7 @@
               }
             },
             y: {
-              title: { display: true, text: 'Token Count' },
+              title: { display: true, text: 'Context Length' },
               ticks: { beginAtZero: true }
             }
           }
