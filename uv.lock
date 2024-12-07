@@ -910,32 +910,40 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
-    { name = "black" },
     { name = "jinja2" },
     { name = "langchain" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
+    { name = "python-dotenv" },
+    { name = "tiktoken" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
     { name = "mypy" },
     { name = "pytest" },
-    { name = "python-dotenv" },
     { name = "ruff" },
-    { name = "tiktoken" },
     { name = "types-aiofiles" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
-    { name = "black", specifier = ">=24.10.0" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "langchain", specifier = ">=0.3.9" },
     { name = "langchain-core", specifier = ">=0.3.21" },
     { name = "langchain-openai", specifier = ">=0.2.11" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "tiktoken", specifier = ">=0.8.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = ">=24.10.0" },
     { name = "mypy", specifier = ">=1.13.0" },
     { name = "pytest", specifier = ">=8.3.4" },
-    { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "ruff", specifier = ">=0.8.2" },
-    { name = "tiktoken", specifier = ">=0.8.0" },
     { name = "types-aiofiles", specifier = ">=24.1.0.20240626" },
 ]
 
