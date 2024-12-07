@@ -29,14 +29,10 @@ This is a CLI application for managing repositories and generating digests, impl
 
 ### Input Specifications
 
-- **Definition of `repo_id`**
-  - Format: `{author/organization}@{repo_name}`
-  - Example: `https://github.com/honojs/hono` → `honojs@hono`
 - **Options**
   - `--force`: Force re-download of a repository.
   - `--branch`: Specify a branch for operations.
   - `--prompt`: Provide a custom prompt for digest generation.
-  - `--update`: Update a branch
   - `--checkout`: Checkout to specific branch
 
 ---
@@ -135,8 +131,7 @@ python -m repo_tool.cli add https://github.com/honojs/hono
 - **Duration**: 1–2 weeks
 - **Tasks**:
   1. Implement `add`, `remove`, and `list` commands.
-  2. Add conversion logic for `repo_id` and `repo_url` in `utils.py`.
-  3. Initialize directory structures (`repo`, `digests`).
+  2. Initialize directory structures (`repo`, `digests`).
 
 ### **Phase 2: Digest Generation**
 

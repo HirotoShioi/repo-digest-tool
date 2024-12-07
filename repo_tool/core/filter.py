@@ -1,8 +1,7 @@
 import fnmatch
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
-from repo_tool.core.contants import REPO_DIR
 from repo_tool.core.llm import filter_files_with_llm
 from repo_tool.core.logger import log_error
 
@@ -78,13 +77,10 @@ def read_pattern_file(file_path: Path) -> List[str]:
     return pattern_list
 
 
-def filter_files_in_repo(
-    repo_id: str, prompt: Optional[str] = None
-) -> Tuple[List[Path], Path]:
+def filter_files_in_repo(repo_path: Path, prompt: Optional[str] = None) -> List[Path]:
     """
     Processes a repository using the .gptignore file to filter files.
     """
-    repo_path = Path(f"{REPO_DIR}/{repo_id}")
     if not repo_path.exists():
         raise ValueError(f"Repository path '{repo_path}' does not exist.")
 
@@ -97,10 +93,9 @@ def filter_files_in_repo(
         if prompt:
             filtered_files = filter_files_with_llm(filtered_files, prompt)
         file_list = [file_path for file_path in filtered_files if file_path.is_file()]
-        return (
-            file_list,
-            repo_path,
-        )
+        return file_list
     except Exception as e:
         log_error(e)
-        raise RuntimeError(f"Error while processing repository '{repo_id}': {e}") from e
+        raise RuntimeError(
+            f"Error while processing repository '{repo_path}': {e}"
+        ) from e

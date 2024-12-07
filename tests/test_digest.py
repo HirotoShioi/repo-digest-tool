@@ -1,19 +1,19 @@
 from pathlib import Path
 
-from repo_tool import download_repo, generate_digest
+from repo_tool import generate_digest
 from repo_tool.core.contants import DIGEST_DIR
-from repo_tool.core.repository import calculate_repo_id
+from repo_tool.core.github import GitHub
 
 REPO_URL = "https://github.com/HirotoShioi/repo-digest-tool"
 PROMPT = None
 
 
 def test_digest_file_generation() -> None:
-    repo_id = calculate_repo_id(REPO_URL)
-    digest_path = Path(DIGEST_DIR) / f"{repo_id}.txt"
-
-    download_repo(REPO_URL, repo_id, branch=None)
-    generate_digest(repo_id, PROMPT)
+    digest_path = Path(DIGEST_DIR) / "repo-digest-tool.txt"
+    github = GitHub()
+    github.clone(REPO_URL, branch=None, force=True)
+    repo_path = GitHub.get_repo_path(REPO_URL)
+    generate_digest(repo_path, PROMPT)
 
     assert digest_path.exists(), "Digest file should be generated."
 

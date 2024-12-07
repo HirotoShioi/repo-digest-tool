@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 
-from repo_tool import download_repo, generate_digest
-from repo_tool.core.repository import calculate_repo_id
+from repo_tool import GitHub, generate_digest
 
 load_dotenv()
 
@@ -9,16 +8,16 @@ load_dotenv()
 def main() -> None:
     repo_url = "https://github.com/HirotoShioi/repo-digest-tool"
     branch = None
-    repo_id = calculate_repo_id(repo_url)
     prompt = None
+    github = GitHub()
     # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
     try:
-        # shutil.rmtree(REPO_DIR, ignore_errors=True)
         print("Cloning repository...")
-        download_repo(repo_url, repo_id, branch)
+        github.clone(repo_url, branch)
 
         print("Processing repository...")
-        generate_digest(repo_id, prompt)
+        repo_path = GitHub.get_repo_path(repo_url)
+        generate_digest(repo_path, prompt)
     except Exception as e:
         print("Error:", e)
 

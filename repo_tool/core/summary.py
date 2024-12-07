@@ -8,7 +8,7 @@ import aiofiles
 import tiktoken
 from jinja2 import Environment, FileSystemLoader
 
-from repo_tool.core.contants import DIGEST_DIR, REPO_DIR
+from repo_tool.core.contants import DIGEST_DIR
 
 data_size = 20
 precision = 2
@@ -53,26 +53,24 @@ def generate_summary(
         "max_file_size_kb": round(stats["max_size"], precision),
         "min_file_size_kb": round(stats["min_size"], precision),
         "file_types": stats["extension_tokens"],
-        "total_tokens": stats["total_tokens"],
+        "context_length": stats["context_length"],
     }
     # レポートの生成
     # ファイルサイズデータの取得
     file_size_data = []
-    repo_dir = Path(f"{REPO_DIR}/{repo_path.name}")
 
     for file_path in file_list:
         # 相対パスの処理を修正
         if isinstance(file_path, str):
             file_path = Path(file_path)
 
-        # {REPO_DIR}/repo-name/を除去して相対パスを取得
         try:
-            relative_path = file_path.relative_to(repo_dir)
+            relative_path = file_path.relative_to(repo_path)
         except ValueError:
             # すでに相対パスの場合はそのまま使用
             relative_path = file_path
 
-        full_path = repo_dir / relative_path
+        full_path = repo_path / relative_path
         if full_path.is_file():
             try:
                 with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -134,7 +132,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
     extension_tokens: Dict[str, int] = {}
     total_size = 0
     file_sizes = []
-    total_tokens = 0
+    context_length = 0
     processed_files = []
 
     tasks = [process_single_file(file_info) for file_info in file_infos]
@@ -146,7 +144,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
 
         processed_files.append(result["path"])
         total_size += result["size"]
-        total_tokens += result["tokens"]
+        context_length += result["tokens"]
         file_sizes.append(result["size"])
 
         ext = result["extension"]
@@ -160,7 +158,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
         "max_size": max(file_sizes, default=0),
         "min_size": min(file_sizes, default=0),
         "extension_tokens": extension_tokens,
-        "total_tokens": total_tokens,
+        "context_length": context_length,
     }
 
 
