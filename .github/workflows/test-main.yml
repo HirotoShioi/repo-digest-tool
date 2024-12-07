@@ -26,6 +26,10 @@ jobs:
         run: |
           uv sync
 
+      - name: Lint code
+        run: |
+          uv run ruff check .
+          uv run mypy .
       - name: Run test.py
         run: |
           uv run pytest
