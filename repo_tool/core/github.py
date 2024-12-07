@@ -65,6 +65,24 @@ class GitHub:
         """
         shutil.rmtree(REPO_DIR, ignore_errors=True)
 
+    def update(self, repo_url: str) -> None:
+        """
+        Update a repository.
+
+        Args:
+            repo_url (str): Repository URL.
+
+        Raises:
+            ValueError: Invalid repository URL
+        """
+        if not self.is_valid_repo_url(repo_url):
+            raise ValueError("Invalid repository URL")
+        repo_path = self.get_repo_path(repo_url)
+        if not os.path.exists(repo_path):
+            raise ValueError("Repository does not exist")
+        repo = Repo(repo_path)
+        repo.remotes.origin.pull()
+
     @staticmethod
     def get_repo_path(repo_url: str) -> Path:
         """
