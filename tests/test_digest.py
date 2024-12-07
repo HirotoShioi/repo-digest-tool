@@ -9,12 +9,11 @@ PROMPT = None
 
 
 def test_digest_file_generation() -> None:
-    repo_id = GitHub.calculate_repo_id(REPO_URL)
-    digest_path = Path(DIGEST_DIR) / f"{repo_id}.txt"
+    digest_path = Path(DIGEST_DIR) / "repo-digest-tool.txt"
     github = GitHub()
-
     github.clone(REPO_URL, branch=None, force=True)
-    generate_digest(repo_id, PROMPT)
+    repo_path = GitHub.get_repo_path(REPO_URL)
+    generate_digest(repo_path, PROMPT)
 
     assert digest_path.exists(), "Digest file should be generated."
 

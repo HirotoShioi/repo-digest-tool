@@ -7,9 +7,9 @@ from repo_tool.core.filter import filter_files_in_repo
 from repo_tool.core.summary import generate_summary
 
 
-def generate_digest(repo_id: str, prompt: Optional[str] = None) -> None:
+def generate_digest(repo_path: Path, prompt: Optional[str] = None) -> None:
     try:
-        file_list, repo_path = filter_files_in_repo(repo_id, prompt)
+        file_list = filter_files_in_repo(repo_path, prompt)
         if file_list:
             print("Generating summary and digest in parallel...")
             with concurrent.futures.ThreadPoolExecutor() as executor:

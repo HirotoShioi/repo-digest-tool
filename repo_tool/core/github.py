@@ -1,12 +1,15 @@
 import os
+import re
 import shutil
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 
 from git import GitCommandError, Repo
 
-from repo_tool.core.contants import REPO_DIR
 from repo_tool.core.logger import log_error
+
+REPO_DIR = "repositories"
 
 
 class GitHub:
@@ -17,7 +20,7 @@ class GitHub:
         self, repo_url: str, branch: Optional[str] = None, force: bool = False
     ) -> None:
         try:
-            repo_path = os.path.join(REPO_DIR, self.calculate_repo_id(repo_url))
+            repo_path = self.get_repo_path(repo_url)
             if force:
                 shutil.rmtree(repo_path, ignore_errors=True)
             if not os.path.exists(repo_path):
@@ -31,24 +34,58 @@ class GitHub:
             log_error(e)
             raise e
 
-    @staticmethod
-    def calculate_repo_id(repo_url: str) -> str:
-        return repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
+    # @staticmethod
+    # def calculate_repo_id(repo_url: str) -> str:
+    #     return repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
 
     @staticmethod
     def get_repo_path(repo_url: str) -> Path:
         if not GitHub.is_valid_repo_url(repo_url):
             raise ValueError("Invalid repository URL")
-        author = repo_url.split("/")[-2]
-        repo_id = repo_url.split("/")[-1].replace(".git", "")
-        return Path(REPO_DIR) / author / repo_id
+        # Parse URL to extract author and repo name
+        parsed_url = urlparse(repo_url)
+        repo_pattern = r"^/([\w-]+)/([\w.-]+)(\.git)?$"
+        match = re.match(repo_pattern, parsed_url.path)
+
+        if not match:
+            raise ValueError("Repository URL does not match the expected pattern.")
+
+        author, repo = match.groups()[:2]
+        return Path(REPO_DIR) / author / repo
 
     @staticmethod
     def is_valid_repo_url(repo_url: str) -> bool:
-        is_valid_url = repo_url.startswith("https://github.com/")
-        author = repo_url.split("/")[-2]
-        repo_id = repo_url.split("/")[-1].replace(".git", "")
-        return all([is_valid_url, author, repo_id])
+        """
+        Validate if the given URL is a valid GitHub repository URL.
+
+        Args:
+            repo_url: The repository URL to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
+        # Check URL structure
+        parsed_url = urlparse(repo_url)
+        if parsed_url.scheme != "https" or parsed_url.netloc != "github.com":
+            return False
+
+        # Match GitHub repository pattern (e.g., https://github.com/author/repo.git)
+        repo_pattern = r"^/([\w-]+)/([\w.-]+)(\.git)?$"
+        match = re.match(repo_pattern, parsed_url.path)
+        if not match:
+            return False
+
+        # Validate author and repository names
+        author, repo = match.groups()[:2]
+        if not author or not repo:
+            return False
+
+        # Additional checks for invalid characters (optional)
+        invalid_chars = re.compile(r"[^\w.-]")
+        if invalid_chars.search(author) or invalid_chars.search(repo):
+            return False
+
+        return True
 
     def replace_repo_url(self, repo_url: str) -> str:
         return repo_url.replace(

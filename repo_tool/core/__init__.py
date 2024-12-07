@@ -2,7 +2,7 @@
 Core functionality for repo-digest-tool
 """
 
-from .contants import DIGEST_DIR, REPO_DIR
+from .contants import DIGEST_DIR
 from .digest import generate_digest
 from .filter import filter_files_in_repo
 from .github import GitHub
@@ -17,7 +17,6 @@ __all__ = [
     "filter_files_with_llm",
     "filter_files_in_repo",
     "generate_digest",
-    "REPO_DIR",
     "DIGEST_DIR",
     "GitHub",
 ]
