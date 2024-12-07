@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 from typing import Optional
 
 from git import GitCommandError, Repo
@@ -33,6 +34,21 @@ class GitHub:
     @staticmethod
     def calculate_repo_id(repo_url: str) -> str:
         return repo_url.split("/")[-1].replace(".git", "").replace("/", "_")
+
+    @staticmethod
+    def get_repo_path(repo_url: str) -> Path:
+        if not GitHub.is_valid_repo_url(repo_url):
+            raise ValueError("Invalid repository URL")
+        author = repo_url.split("/")[-2]
+        repo_id = repo_url.split("/")[-1].replace(".git", "")
+        return Path(REPO_DIR) / author / repo_id
+
+    @staticmethod
+    def is_valid_repo_url(repo_url: str) -> bool:
+        is_valid_url = repo_url.startswith("https://github.com/")
+        author = repo_url.split("/")[-2]
+        repo_id = repo_url.split("/")[-1].replace(".git", "")
+        return all([is_valid_url, author, repo_id])
 
     def replace_repo_url(self, repo_url: str) -> str:
         return repo_url.replace(

@@ -33,7 +33,6 @@ This is a CLI application for managing repositories and generating digests, impl
   - `--force`: Force re-download of a repository.
   - `--branch`: Specify a branch for operations.
   - `--prompt`: Provide a custom prompt for digest generation.
-  - `--update`: Update a branch
   - `--checkout`: Checkout to specific branch
 
 ---
