@@ -6,7 +6,7 @@ from repo_tool.core.repository import calculate_repo_id
 load_dotenv()
 
 
-def main():
+def main() -> None:
     repo_url = "https://github.com/HirotoShioi/repo-digest-tool"
     branch = None
     repo_id = calculate_repo_id(repo_url)

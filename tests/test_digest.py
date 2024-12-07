@@ -8,7 +8,7 @@ REPO_URL = "https://github.com/HirotoShioi/repo-digest-tool"
 PROMPT = None
 
 
-def test_digest_file_generation():
+def test_digest_file_generation() -> None:
     repo_id = calculate_repo_id(REPO_URL)
     digest_path = Path(DIGEST_DIR) / f"{repo_id}.txt"
 
