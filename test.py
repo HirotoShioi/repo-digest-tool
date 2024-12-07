@@ -1,11 +1,12 @@
 from dotenv import load_dotenv
-from repo_tool import generate_digest, download_repo
+
+from repo_tool import download_repo, generate_digest
 from repo_tool.core.repository import calculate_repo_id
 
 load_dotenv()
 
 
-def main():
+def main() -> None:
     repo_url = "https://github.com/HirotoShioi/repo-digest-tool"
     branch = None
     repo_id = calculate_repo_id(repo_url)

@@ -1,9 +1,11 @@
-from typing import Optional
 import os
 import subprocess
+from typing import Optional
+
+from dotenv import load_dotenv
+
 from repo_tool.core.contants import REPO_DIR
 from repo_tool.core.logger import log_error
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -12,7 +14,7 @@ def download_repo(
     repo_url: str,
     repo_id: str,
     branch: Optional[str] = None,
-):
+) -> None:
     if not os.path.exists(REPO_DIR):
         os.makedirs(REPO_DIR, exist_ok=True)
     # if repo exists, skip cloning

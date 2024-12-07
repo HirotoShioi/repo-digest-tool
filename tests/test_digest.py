@@ -1,13 +1,14 @@
 from pathlib import Path
-from repo_tool import generate_digest, download_repo
-from repo_tool.core.repository import calculate_repo_id
+
+from repo_tool import download_repo, generate_digest
 from repo_tool.core.contants import DIGEST_DIR
+from repo_tool.core.repository import calculate_repo_id
 
 REPO_URL = "https://github.com/HirotoShioi/repo-digest-tool"
 PROMPT = None
 
 
-def test_digest_file_generation():
+def test_digest_file_generation() -> None:
     repo_id = calculate_repo_id(REPO_URL)
     digest_path = Path(DIGEST_DIR) / f"{repo_id}.txt"
 

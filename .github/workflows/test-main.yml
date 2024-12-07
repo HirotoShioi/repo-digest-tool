@@ -22,9 +22,18 @@ jobs:
           enable-cache: true
           version: "latest"
 
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
       - name: Install dependencies
         run: |
           uv sync
+
+      - name: Lint code
+        run: |
+          uv run ruff check repo_tool
 
       - name: Run test.py
         run: |

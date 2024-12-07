@@ -1,6 +1,4 @@
-# Configure logging
 import logging
-
 
 logging.basicConfig(
     filename="repo_tool.log",
@@ -9,5 +7,5 @@ logging.basicConfig(
 )
 
 
-def log_error(e: Exception):
+def log_error(e: Exception) -> None:
     logging.error(str(e))
