@@ -19,6 +19,17 @@ class GitHub:
     def clone(
         self, repo_url: str, branch: Optional[str] = None, force: bool = False
     ) -> None:
+        """
+        Clone a repository.
+
+        Args:
+            repo_url (str): Repository URL.
+            branch (Optional[str], optional): Branch to clone. Defaults to None.
+            force (bool, optional): Force re-clone a repository. Defaults to False.
+
+        Raises:
+            e: GitCommandError
+        """
         try:
             repo_path = self.get_repo_path(repo_url)
             if force:
@@ -34,8 +45,38 @@ class GitHub:
             log_error(e)
             raise e
 
+    def remove(self, repo_url: str) -> None:
+        """
+        Delete a repository.
+
+        Args:
+            repo_url (str): The repository URL.
+        """
+        repo_path = self.get_repo_path(repo_url)
+        print(repo_path)
+        shutil.rmtree(repo_path, ignore_errors=True)
+        author_path = repo_path.parent
+        if not os.listdir(author_path):
+            os.rmdir(author_path)
+
+    def clean(self) -> None:
+        """
+        Delete all repositories.
+        """
+        shutil.rmtree(REPO_DIR, ignore_errors=True)
+
     @staticmethod
     def get_repo_path(repo_url: str) -> Path:
+        """
+        Get the path of a repository.
+        The path is `repositories/author/repository_name`.
+
+        Args:
+            repo_url (str): The repository URL.
+
+        Returns:
+            Path: The path of the repository.
+        """
         if not GitHub.is_valid_repo_url(repo_url):
             raise ValueError("Invalid repository URL")
         # Parse URL to extract author and repo name
