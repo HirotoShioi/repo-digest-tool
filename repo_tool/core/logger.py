@@ -7,5 +7,5 @@ logging.basicConfig(
 )
 
 
-def log_error(e: Exception):
+def log_error(e: Exception) -> None:
     logging.error(str(e))

@@ -1,7 +1,7 @@
 import asyncio
 import os
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 from dotenv import load_dotenv
 from langchain.prompts import ChatPromptTemplate
@@ -26,7 +26,7 @@ class FilteredFiles(BaseModel):
 
 
 async def filter_files_batch(
-    file_batch: List[Path], prompt: str, llm_chain
+    file_batch: List[Path], prompt: str, llm_chain: Any
 ) -> List[Path]:
     """単一のバッチに対するファイルフィルタリングを実行"""
     file_info = [
@@ -89,7 +89,7 @@ You will receive a list of file paths and their associated sizes. Your task is t
     # LLMチェーンの作成
     llm = ChatOpenAI(
         temperature=0,
-        model_name="gpt-4o-mini",
+        model=default_model,
     ).with_structured_output(FilteredFiles)
     llm_chain = prompt_template | llm
 

@@ -21,6 +21,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "ruff>=0.8.2",
     "tiktoken>=0.8.0",
+    "types-aiofiles>=24.1.0.20240626",
 ]
 
 [tool.pytest.ini_options]

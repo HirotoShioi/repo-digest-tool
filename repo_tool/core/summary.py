@@ -2,7 +2,7 @@ import asyncio
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 import aiofiles
 import tiktoken
@@ -24,7 +24,7 @@ class FileInfo:
 
 
 # カスタムフィルターを定義
-def format_number(value):
+def format_number(value: int | float | str) -> str:
     """数値をカンマ区切りにフォーマット"""
     if isinstance(value, (int, float)):
         return f"{value:,}"  # カンマ区切り
@@ -34,7 +34,7 @@ def format_number(value):
 def generate_summary(
     repo_path: Path,
     file_list: List[Path],
-):
+) -> None:
     """
     ファイル統計のサマリーレポートを生成する
     """
@@ -90,11 +90,10 @@ def generate_summary(
             except Exception as e:
                 print(f"Error processing file {relative_path}: {e}")
                 continue
+    # Sort by token count
+    file_size_data.sort(key=lambda x: x["tokens"], reverse=True)  # type: ignore
 
-    # トークン数でソート
-    file_size_data.sort(key=lambda x: x["tokens"], reverse=True)
-
-    # Jinja2環境の設定
+    # Configure Jinja2 environment
     env = Environment(loader=FileSystemLoader("templates"))
     env.filters["format_number"] = format_number
     template = env.get_template("report.html")
@@ -128,11 +127,11 @@ def generate_summary(
     print(f"Report saved to {report_path}")
 
 
-async def process_files(file_infos: List[FileInfo]) -> Dict:
+async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
     """
     全ファイルの非同期処理と集計を行う
     """
-    extension_tokens = {}
+    extension_tokens: Dict[str, int] = {}
     total_size = 0
     file_sizes = []
     total_tokens = 0
@@ -165,7 +164,7 @@ async def process_files(file_infos: List[FileInfo]) -> Dict:
     }
 
 
-async def process_single_file(file_info: FileInfo) -> Dict:
+async def process_single_file(file_info: FileInfo) -> Optional[Dict[str, Any]]:
     """
     単一ファイルの非同期処理を行う補助関数
     """

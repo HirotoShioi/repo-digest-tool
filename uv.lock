@@ -920,6 +920,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "ruff" },
     { name = "tiktoken" },
+    { name = "types-aiofiles" },
 ]
 
 [package.metadata]
@@ -935,6 +936,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "ruff", specifier = ">=0.8.2" },
     { name = "tiktoken", specifier = ">=0.8.0" },
+    { name = "types-aiofiles", specifier = ">=24.1.0.20240626" },
 ]
 
 [[package]]
@@ -1070,6 +1072,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540 },
+]
+
+[[package]]
+name = "types-aiofiles"
+version = "24.1.0.20240626"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/13/e9/013940b017c313c2e15c64017268fdb0c25e0638621fb8a5d9ebe00fb0f4/types-aiofiles-24.1.0.20240626.tar.gz", hash = "sha256:48604663e24bc2d5038eac05ccc33e75799b0779e93e13d6a8f711ddc306ac08", size = 9357 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/ad/c4b3275d21c5be79487c4f6ed7cd13336997746fe099236cb29256a44a90/types_aiofiles-24.1.0.20240626-py3-none-any.whl", hash = "sha256:7939eca4a8b4f9c6491b6e8ef160caee9a21d32e18534a57d5ed90aee47c66b4", size = 9389 },
 ]
 
 [[package]]
