@@ -1,12 +1,12 @@
+import asyncio
+import os
 from pathlib import Path
 from typing import List
-import os
-from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from pydantic import BaseModel, Field
-from typing import List
+
 from dotenv import load_dotenv
-import asyncio
+from langchain.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
 load_dotenv()
 

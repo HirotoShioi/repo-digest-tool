@@ -1,9 +1,11 @@
-from typing import Optional
 import os
 import subprocess
+from typing import Optional
+
+from dotenv import load_dotenv
+
 from repo_tool.core.contants import REPO_DIR
 from repo_tool.core.logger import log_error
-from dotenv import load_dotenv
 
 load_dotenv()
 

@@ -1,8 +1,9 @@
+import concurrent.futures
 from pathlib import Path
 from typing import List, Optional
+
 from repo_tool.core.contants import DIGEST_DIR
 from repo_tool.core.filter import filter_files_in_repo
-import concurrent.futures
 from repo_tool.core.summary import generate_summary
 
 

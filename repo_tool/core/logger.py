@@ -1,6 +1,4 @@
-# Configure logging
 import logging
-
 
 logging.basicConfig(
     filename="repo_tool.log",
