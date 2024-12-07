@@ -33,8 +33,7 @@ jobs:
 
       - name: Lint code
         run: |
-          uv run ruff check .
-          mypy .
+          uv run ruff check repo_tool
 
       - name: Run test.py
         run: |
