@@ -66,11 +66,12 @@ class GitHub:
             repo_url (str): The repository URL.
         """
         repo_path = self.get_repo_path(repo_url)
-        print(repo_path)
         shutil.rmtree(repo_path, ignore_errors=True)
         author_path = repo_path.parent
-        if not os.listdir(author_path):
-            os.rmdir(author_path)
+
+        # Check if the author directory exists before attempting to list its contents
+        if os.path.exists(author_path) and not os.listdir(author_path):
+            shutil.rmtree(author_path, ignore_errors=True)
 
     def clean(self) -> None:
         """

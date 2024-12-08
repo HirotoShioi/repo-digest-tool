@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Generator
 
 import pytest
+from git import GitCommandError
 
 from repo_tool.core.github import REPO_DIR, GitHub
 
@@ -35,6 +36,28 @@ def test_clone_repository(clean_test_environment: Generator[None, None, None]) -
     assert (TEST_REPO_PATH / ".git").exists()  # Check if the repository is Git-managed
 
 
+def test_clone_repository_invalid_url(
+    clean_test_environment: Generator[None, None, None]
+) -> None:
+    """
+    Test cloning a repository with an invalid URL.
+    """
+    github = GitHub()
+    with pytest.raises(GitCommandError):
+        github.clone("https://github.com/octocat/invalid-repo")
+
+
+def test_update_nonexistent_repository(
+    clean_test_environment: Generator[None, None, None]
+) -> None:
+    """
+    Test updating a repository that does not exist locally.
+    """
+    github = GitHub()
+    with pytest.raises(ValueError, match="Repository does not exist"):
+        github.update(TEST_REPO_URL)
+
+
 def test_list_repositories(clean_test_environment: Generator[None, None, None]) -> None:
     """
     Test if cloned repositories are listed correctly.
@@ -49,6 +72,17 @@ def test_list_repositories(clean_test_environment: Generator[None, None, None]) 
     assert repository.url == TEST_REPO_URL  # Verify repository URL
 
 
+def test_list_repositories_empty_directory(
+    clean_test_environment: Generator[None, None, None]
+) -> None:
+    """
+    Test listing repositories when no repositories exist.
+    """
+    github = GitHub()
+    repositories = github.list()
+    assert len(repositories) == 0  # Should return an empty list
+
+
 def test_remove_repository(clean_test_environment: Generator[None, None, None]) -> None:
     """
     Test if a repository can be removed successfully.
@@ -59,6 +93,18 @@ def test_remove_repository(clean_test_environment: Generator[None, None, None]) 
     assert not TEST_REPO_PATH.exists()  # Check if the repository is removed
     author_path = Path(REPO_DIR) / TEST_REPO_AUTHOR
     assert not author_path.exists()  # Check if the author directory is removed
+
+
+def test_remove_nonexistent_repository(
+    clean_test_environment: Generator[None, None, None]
+) -> None:
+    """
+    Test removing a repository that does not exist.
+    """
+    github = GitHub()
+    github.remove(
+        "https://github.com/octocat/nonexistent-repo"
+    )  # Should not raise an exception
 
 
 def test_clean_all_repositories(
@@ -180,13 +226,23 @@ def test_remove_github_token_invalid_cases() -> None:
 
 def test_remove_github_token_edge_cases() -> None:
     """
-    Test removal of GitHub tokens for edge cases.
+    Test removing GitHub tokens for malformed token cases.
     """
     assert (
-        GitHub.remove_github_token("https://token@github.com/octo-cat/repo-name.git")
-        == "https://github.com/octo-cat/repo-name.git"
+        GitHub.remove_github_token("https://partial_token@github.com/octocat/repo")
+        == "https://github.com/octocat/repo"
     )
     assert (
-        GitHub.remove_github_token("https://ghp_abc123@github.com")
-        == "https://github.com"
-    )  # URL without repository name
+        GitHub.remove_github_token("https://token@github.com@github.com/octocat/repo")
+        == "https://github.com/octocat/repo"
+    )
+
+
+def test_get_repo_path_security_cases() -> None:
+    """
+    Test repository path generation for security edge cases.
+    """
+    with pytest.raises(ValueError, match="Invalid repository URL"):
+        GitHub.get_repo_path("https://github.com/../../malicious/repo")
+    with pytest.raises(ValueError, match="Invalid repository URL"):
+        GitHub.get_repo_path("https://github.com/octocat/hello-world?.git")
