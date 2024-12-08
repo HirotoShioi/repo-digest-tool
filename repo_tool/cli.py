@@ -1,8 +1,11 @@
+from datetime import datetime
 from typing import Optional
 from urllib.parse import urlparse
 
+import humanize
 import typer
 from git.exc import GitCommandError
+from rich import box
 from rich.console import Console
 from rich.table import Table
 from typer import Typer
@@ -59,7 +62,7 @@ def list() -> None:
         return
 
     # Create a table
-    table = Table()
+    table = Table(box=box.SIMPLE)
     table.add_column("Repository Name", justify="left")
     table.add_column("Author", justify="left")
     table.add_column("URL", justify="left")
@@ -69,13 +72,15 @@ def list() -> None:
 
     # Populate the table with repository data
     for repo in repos:
+        formatted_time = humanize.naturaltime(datetime.now() - repo.updated_at)
+        size = humanize.naturalsize(repo.size)
         table.add_row(
             repo.name,
             repo.author,
             repo.url,
             repo.branch or "N/A",
-            repo.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
-            str(repo.size),
+            formatted_time,
+            size,
         )
 
     # Print the table
