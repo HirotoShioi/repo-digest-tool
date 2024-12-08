@@ -130,8 +130,12 @@ def digest(
     """
     try:
         repo_path = GitHub.get_repo_path(repo_url)
-        github.checkout(repo_path, branch)
+        if not github.repo_exists(repo_url):
+            github.clone(repo_url, branch)
+        elif branch:
+            github.checkout(repo_path, branch)
         generate_digest(repo_path, prompt)
+        typer.secho("Digest generated successfully!", fg=typer.colors.GREEN)
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e

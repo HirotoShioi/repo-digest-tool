@@ -223,6 +223,16 @@ class GitHub:
             "https://github.com/", f"https://{self.github_token}@github.com/"
         )
 
+    def repo_exists(self, repo_url: str) -> bool:
+        """
+        Check if a repository exists.
+        """
+        repo_path = self.get_repo_path(repo_url)
+        return os.path.exists(repo_path)
+
     def checkout(self, repo_path: Path, branch: Optional[str] = None) -> None:
+        """
+        Checkout a branch in a repository.
+        """
         repo = Repo(repo_path)
         repo.git.checkout(branch if branch else repo.active_branch.name)
