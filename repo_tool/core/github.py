@@ -44,6 +44,7 @@ class GitHub:
             e: GitCommandError
         """
         try:
+            repo_url = GitHub.resolve_repo_url(repo_url)
             repo_path = self.get_repo_path(repo_url)
             if force:
                 shutil.rmtree(repo_path, ignore_errors=True)
@@ -89,6 +90,7 @@ class GitHub:
         Raises:
             ValueError: Invalid repository URL
         """
+        repo_url = GitHub.resolve_repo_url(repo_url)
         if not self.is_valid_repo_url(repo_url):
             raise ValueError("Invalid repository URL")
         repo_path = self.get_repo_path(repo_url)
@@ -157,6 +159,7 @@ class GitHub:
         Raises:
             ValueError: If the URL is invalid
         """
+        url = GitHub.resolve_repo_url(url)
         if not GitHub.is_valid_repo_url(url):
             raise ValueError("Invalid repository URL")
 
@@ -182,9 +185,45 @@ class GitHub:
         Returns:
             bool: True if URL is valid, False otherwise
         """
-        # URL must be HTTPS and match the GitHub repository pattern
-        pattern = r"^https://github\.com/[^/]+/[^/]+(?:\.git)?$"
-        return bool(re.match(pattern, url))
+        # First check basic URL structure
+        if not url.startswith("https://github.com/"):
+            return False
+
+        # Extract path after github.com/
+        path = url.replace("https://github.com/", "")
+
+        # Split into author and repo parts
+        parts = path.split("/")
+        if len(parts) != 2:
+            return False
+
+        author, repo = parts
+
+        # Remove .git extension if present
+        repo = repo.removesuffix(".git")
+
+        # Check for security issues and valid characters
+        if (
+            ".." in author
+            or ".." in repo  # Prevent directory traversal
+            or "?" in author
+            or "?" in repo  # Prevent query strings
+            or "*" in author
+            or "*" in repo  # Prevent wildcards
+            or "[" in author
+            or "[" in repo  # Prevent special characters
+            or "]" in author
+            or "]" in repo
+            or "\\" in author
+            or "\\" in repo
+            or not author
+            or not repo  # Ensure non-empty strings
+            or not re.match(r"^[a-zA-Z0-9][-\w.]*$", author)  # Validate author format
+            or not re.match(r"^[-\w.]+$", repo)  # Validate repo format
+        ):
+            return False
+
+        return True
 
     @staticmethod
     def remove_github_token(repo_url: str) -> str:
