@@ -53,7 +53,8 @@ class GitHub:
             e: GitCommandError
         """
         try:
-            repo_url = GitHub.resolve_repo_url(repo_url)
+            if GitHub.is_short_hand_url(repo_url):
+                repo_url = GitHub.resolve_repo_url(repo_url)
             repo_path = self.get_repo_path(repo_url)
             if force:
                 shutil.rmtree(repo_path, ignore_errors=True)
@@ -101,7 +102,8 @@ class GitHub:
         """
         if repo_url:
             # Update single repository
-            repo_url = self.resolve_repo_url(repo_url)
+            if GitHub.is_short_hand_url(repo_url):
+                repo_url = GitHub.resolve_repo_url(repo_url)
             self._update_single(repo_url)
             return [repo for repo in self.list() if repo.url == repo_url]
         else:
@@ -195,7 +197,8 @@ class GitHub:
         Raises:
             ValueError: If the URL is invalid
         """
-        url = GitHub.resolve_repo_url(url)
+        if GitHub.is_short_hand_url(url):
+            url = GitHub.resolve_repo_url(url)
         if not GitHub.is_valid_repo_url(url):
             raise ValueError("Invalid repository URL")
 
@@ -323,3 +326,11 @@ class GitHub:
             raise ValueError(
                 "Invalid short-form repository URL. Must match 'author/repo-name' format."
             )
+
+    @staticmethod
+    def is_short_hand_url(url: str) -> bool:
+        split_url = url.split("/")
+        return (
+            all(len(part) > 0 and part.isascii() for part in split_url)
+            and len(split_url) == 2
+        )
