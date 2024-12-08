@@ -1,5 +1,7 @@
 # Repo Digest Tool
 
+![スクリーンショット 2024-12-08 10 07 14](https://github.com/user-attachments/assets/e9e5d500-2ba6-40d5-b564-57dd23301e21)
+
 A CLI tool for managing GitHub repositories and generating digest summaries, implemented with Typer.
 
 ---
