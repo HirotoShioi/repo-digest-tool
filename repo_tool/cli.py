@@ -41,7 +41,7 @@ def add(
     try:
         typer.secho(f"Adding repository {repo_url}...")
         github.clone(repo_url, branch, force)
-        typer.secho(f"Repository {repo_url} added successfully!", fg=typer.colors.GREEN)
+        typer.secho(f"Repository {repo_url} was successfully added!")
     except GitCommandError as e:
         typer.secho(f"Git error: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e
@@ -93,7 +93,16 @@ def remove(repo_name: str = typer.Argument(..., help="Repository name")) -> None
     """
     Remove a repository.
     """
-    github.remove(repo_name)
+    try:
+        repo_exists = github.repo_exists(repo_name)
+        if not repo_exists:
+            typer.secho(f"Repository {repo_name} not found.", fg=typer.colors.RED)
+            return
+        github.remove(repo_name)
+        typer.secho(f"Repository {repo_name} removed successfully!")
+    except Exception as e:
+        typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
+        raise typer.Abort() from e
 
 
 @app.command(name="clean")
@@ -111,9 +120,7 @@ def update(repo_url: str = typer.Argument(..., help="Repository URL")) -> None:
     """
     try:
         github.update(repo_url)
-        typer.secho(
-            f"Repository {repo_url} updated successfully!", fg=typer.colors.GREEN
-        )
+        typer.secho(f"Repository {repo_url} updated successfully!")
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e
@@ -131,11 +138,14 @@ def digest(
     try:
         repo_path = GitHub.get_repo_path(repo_url)
         if not github.repo_exists(repo_url):
+            typer.secho(f"Repository {repo_url} not found. Cloning...")
             github.clone(repo_url, branch)
         elif branch:
             github.checkout(repo_path, branch)
         generate_digest(repo_path, prompt)
-        typer.secho("Digest generated successfully!", fg=typer.colors.GREEN)
+        typer.secho(
+            f"Digest generated successfully at digests/{repo_path.name}.txt",
+        )
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e

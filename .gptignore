@@ -25,3 +25,7 @@ pnpm-lock.yaml
 *.ico
 yarn.lock
 docs/**
+bun.lockb
+benchmarks/**
+*.test.ts
+*.test.tsx
