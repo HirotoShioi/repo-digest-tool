@@ -247,3 +247,55 @@ def test_get_repo_path_security_cases() -> None:
 
     with pytest.raises(ValueError, match="Invalid repository URL"):
         GitHub.get_repo_path("https://github.com/octocat/hello-world?.git")
+
+
+def test_resolve_repo_url() -> None:
+    # 有効な完全URL
+    assert (
+        GitHub.resolve_repo_url("https://github.com/author/repo")
+        == "https://github.com/author/repo"
+    )
+    assert (
+        GitHub.resolve_repo_url("https://github.com/author/repo.git")
+        == "https://github.com/author/repo.git"
+    )
+
+    # 有効な短縮形式
+    assert GitHub.resolve_repo_url("author/repo") == "https://github.com/author/repo"
+    assert (
+        GitHub.resolve_repo_url("author/repo.git")
+        == "https://github.com/author/repo.git"
+    )
+
+    # 無効な形式
+    try:
+        GitHub.resolve_repo_url("author//repo")
+    except ValueError as e:
+        assert (
+            str(e)
+            == "Invalid short-form repository URL. Must match 'author/repo-name' format."
+        )
+
+    try:
+        GitHub.resolve_repo_url("author/repo/extra")
+    except ValueError as e:
+        assert (
+            str(e)
+            == "Invalid short-form repository URL. Must match 'author/repo-name' format."
+        )
+
+    try:
+        GitHub.resolve_repo_url("author/re..po")
+    except ValueError as e:
+        assert (
+            str(e)
+            == "Invalid short-form repository URL. Must match 'author/repo-name' format."
+        )
+
+    try:
+        GitHub.resolve_repo_url("invalid-url")
+    except ValueError as e:
+        assert (
+            str(e)
+            == "Invalid short-form repository URL. Must match 'author/repo-name' format."
+        )

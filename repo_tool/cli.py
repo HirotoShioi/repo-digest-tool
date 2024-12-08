@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Optional
-from urllib.parse import urlparse
 
 import humanize
 import typer
@@ -18,14 +17,6 @@ app = Typer()
 github = GitHub()
 
 
-def is_valid_repo_url(url: str) -> bool:
-    """
-    Validate if the given URL is a valid GitHub repository URL.
-    """
-    parsed_url = urlparse(url)
-    return parsed_url.scheme == "https" and "github.com" in parsed_url.netloc
-
-
 @app.command(name="add")
 def add(
     repo_url: str = typer.Argument(..., help="GitHub repository URL"),
@@ -35,9 +26,6 @@ def add(
     """
     Add a GitHub repository to the tool.
     """
-    if not is_valid_repo_url(repo_url):
-        typer.secho("Invalid GitHub repository URL.", fg=typer.colors.RED)
-        raise typer.Abort()
     try:
         typer.secho(f"Adding repository {repo_url}...")
         github.clone(repo_url, branch, force)
@@ -114,13 +102,19 @@ def clean() -> None:
 
 
 @app.command(name="update")
-def update(repo_url: str = typer.Argument(..., help="Repository URL")) -> None:
+def update(
+    repo_url: Optional[str] = typer.Argument(None, help="Repository URL")
+) -> None:
     """
     Update a repository.
     """
     try:
-        github.update(repo_url)
-        typer.secho(f"Repository {repo_url} updated successfully!")
+        updated_repos = github.update(repo_url)
+        if len(updated_repos) == 0:
+            typer.secho("No repositories updated.", fg=typer.colors.YELLOW)
+        else:
+            for repo in updated_repos:
+                typer.secho(f"Updated repository: {repo.name}")
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e
