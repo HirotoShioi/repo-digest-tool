@@ -35,7 +35,7 @@ def add(
         typer.secho("Invalid GitHub repository URL.", fg=typer.colors.RED)
         raise typer.Abort()
     try:
-        typer.secho(f"Adding repository {repo_url}...", fg=typer.colors.YELLOW)
+        typer.secho(f"Adding repository {repo_url}...")
         github.clone(repo_url, branch, force)
         typer.secho(f"Repository {repo_url} added successfully!", fg=typer.colors.GREEN)
     except GitCommandError as e:
@@ -61,8 +61,8 @@ def list() -> None:
     # Create a table
     table = Table()
     table.add_column("Repository Name", justify="left")
-    table.add_column("URL", justify="left")
     table.add_column("Author", justify="left")
+    table.add_column("URL", justify="left")
     table.add_column("Branch", justify="left")
     table.add_column("Last Updated", justify="left", width=20)
     table.add_column("Size", justify="right")
@@ -71,8 +71,8 @@ def list() -> None:
     for repo in repos:
         table.add_row(
             repo.name,
-            repo.url,
             repo.author,
+            repo.url,
             repo.branch or "N/A",
             repo.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             str(repo.size),
@@ -80,6 +80,37 @@ def list() -> None:
 
     # Print the table
     console.print(table)
+
+
+@app.command(name="remove")
+def remove(repo_name: str = typer.Argument(..., help="Repository name")) -> None:
+    """
+    Remove a repository.
+    """
+    github.remove(repo_name)
+
+
+@app.command(name="clean")
+def clean() -> None:
+    """
+    Clean up all repositories.
+    """
+    github.clean()
+
+
+@app.command(name="update")
+def update(repo_url: str = typer.Argument(..., help="Repository URL")) -> None:
+    """
+    Update a repository.
+    """
+    try:
+        github.update(repo_url)
+        typer.secho(
+            f"Repository {repo_url} updated successfully!", fg=typer.colors.GREEN
+        )
+    except Exception as e:
+        typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
+        raise typer.Abort() from e
 
 
 if __name__ == "__main__":
