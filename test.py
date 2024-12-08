@@ -18,6 +18,8 @@ def main() -> None:
         print("Processing repository...")
         repo_path = GitHub.get_repo_path(repo_url)
         generate_digest(repo_path, prompt)
+        repos = github.list()
+        print(repos)
     except Exception as e:
         print("Error:", e)
 
