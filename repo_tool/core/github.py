@@ -154,51 +154,47 @@ class GitHub:
 
         Returns:
             Path: The path of the repository.
+
+        Raises:
+            ValueError: If the repository URL is invalid
         """
         if not GitHub.is_valid_repo_url(repo_url):
             raise ValueError("Invalid repository URL")
         # Parse URL to extract author and repo name
         parsed_url = urlparse(repo_url)
-        repo_pattern = r"^/([\w-]+)/([\w.-]+)(\.git)?$"
+        repo_pattern = r"^/(?!.*\.\.)([a-zA-Z0-9][-\w.]*)/([-\w.]+?)(?:\.git)?$"
         match = re.match(repo_pattern, parsed_url.path)
 
         if not match:
-            raise ValueError("Repository URL does not match the expected pattern.")
+            raise ValueError("Invalid repository URL")
 
-        author, repo = match.groups()[:2]
+        author, repo = match.groups()
         repo = repo.replace(".git", "")  # Remove .git from the repository name
         return Path(REPO_DIR) / author / repo
 
     @staticmethod
     def is_valid_repo_url(repo_url: str) -> bool:
-        """
-        Validate if the given URL is a valid GitHub repository URL.
-
-        Args:
-            repo_url: The repository URL to validate.
-
-        Returns:
-            bool: True if valid, False otherwise.
-        """
-        # Check URL structure
         parsed_url = urlparse(repo_url)
         if parsed_url.scheme != "https" or parsed_url.netloc != "github.com":
             return False
 
-        # Match GitHub repository pattern (e.g., https://github.com/author/repo.git)
-        repo_pattern = r"^/([\w-]+)/([\w.-]+)(\.git)?$"
+        # If query is present, it is an invalid URL
+        if parsed_url.query:
+            return False
+
+        repo_pattern = r"^/(?!.*\.\.)([a-zA-Z0-9][-\w.]*)/([-\w.]+?)(?:\.git)?$"
         match = re.match(repo_pattern, parsed_url.path)
         if not match:
             return False
 
-        # Validate author and repository names
-        author, repo = match.groups()[:2]
+        author, repo = match.groups()
         if not author or not repo:
             return False
 
-        # Additional checks for invalid characters (optional)
-        invalid_chars = re.compile(r"[^\w.-]")
-        if invalid_chars.search(author) or invalid_chars.search(repo):
+        if ".." in author or ".." in repo:
+            return False
+
+        if any(char in author + repo for char in "?*[]\\"):
             return False
 
         return True

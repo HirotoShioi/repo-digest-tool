@@ -244,5 +244,6 @@ def test_get_repo_path_security_cases() -> None:
     """
     with pytest.raises(ValueError, match="Invalid repository URL"):
         GitHub.get_repo_path("https://github.com/../../malicious/repo")
+
     with pytest.raises(ValueError, match="Invalid repository URL"):
         GitHub.get_repo_path("https://github.com/octocat/hello-world?.git")
