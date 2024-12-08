@@ -1,5 +1,5 @@
 """
-repo-digest-tool: リポジトリの内容を要約・分析するCLIツール
+repo-digest-tool: CLI tool to generate a summary of a repository
 """
 
 __version__ = "0.1.0"
