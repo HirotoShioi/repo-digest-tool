@@ -14,6 +14,7 @@ def main() -> None:
     try:
         print("Cloning repository...")
         github.clone(repo_url, branch)
+        github.update(repo_url)
 
         print("Processing repository...")
         repo_path = GitHub.get_repo_path(repo_url)

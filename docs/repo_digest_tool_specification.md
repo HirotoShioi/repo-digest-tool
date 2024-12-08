@@ -27,13 +27,62 @@ This is a CLI application for managing repositories and generating digests, impl
    └── update <repo_url>
    ```
 
-### Input Specifications
+---
 
-- **Options**
-  - `--force`: Force re-download of a repository.
-  - `--branch`: Specify a branch for operations.
-  - `--prompt`: Provide a custom prompt for digest generation.
-  - `--checkout`: Checkout to specific branch
+## CLI Command Descriptions
+
+The CLI commands and their functionalities are as follows:
+
+### `repo add <repo_url> [--branch <branch>] [--force]`
+
+- **Description**: Adds a repository to the local storage. Optionally, a specific branch can be checked out. The `--force` option re-downloads the repository if it already exists.
+- **Example**:
+  ```bash
+  repo add https://github.com/honojs/hono
+  repo add https://github.com/honojs/hono --branch develop --force
+  ```
+
+### `repo remove <repo_url>`
+
+- **Description**: Removes a repository from the local storage.
+- **Example**:
+  ```bash
+  repo remove https://github.com/honojs/hono
+  ```
+
+### `repo list`
+
+- **Description**: Lists all locally stored repositories, including details such as URL, branch, and last updated date.
+- **Example**:
+  ```bash
+  repo list
+  ```
+
+### `repo digest <repo_url> [--branch <branch>] [--prompt <prompt>] [--force]`
+
+- **Description**: Generates a digest for the specified repository. Optionally allows specifying a branch and a custom prompt for LLM-based filtering. The `--force` option regenerates the digest even if it exists.
+- **Example**:
+  ```bash
+  repo digest https://github.com/honojs/hono
+  repo digest https://github.com/honojs/hono --prompt "Focus on APIs"
+  ```
+
+### `repo clear [--all | --author <author>]`
+
+- **Description**: Clears repositories from local storage. The `--all` option removes all repositories, while `--author` selectively removes repositories by the specified author.
+- **Example**:
+  ```bash
+  repo clear --all
+  repo clear --author honojs
+  ```
+
+### `repo update <repo_url>`
+
+- **Description**: Updates the specified repository by pulling the latest changes.
+- **Example**:
+  ```bash
+  repo update https://github.com/honojs/hono
+  ```
 
 ---
 
@@ -44,22 +93,26 @@ repo-digest-tool/
 ├── repo_tool/                  # Main application code
 │   ├── __init__.py             # Package initialization
 │   ├── cli.py                  # CLI entry point
-│   ├── core/
-│   │   ├── repository.py       # Repository operations (add/remove/list)
+│   ├── core/                   # Core functionalities
+│   │   ├── __init__.py         # Submodule initialization
+│   │   ├── contants.py         # Constants definition
 │   │   ├── digest.py           # Digest generation logic
-│   │   ├── metadata.py         # Metadata management
-│   │   ├── utils.py            # Utility functions
-│   │   └── __init__.py         # Submodule initialization
-│   └── config.py               # Configuration management
+│   │   ├── filter.py           # File filtering logic
+│   │   ├── github.py           # GitHub operations
+│   │   ├── llm.py              # LLM-related functionalities
+│   │   ├── logger.py           # Logging features
+│   │   └── summary.py          # Summary report generation
+│   ├── config.py               # Configuration management
 ├── tests/                      # Test code
-│   ├── test_cli.py             # CLI unit tests
-│   ├── test_repository.py      # Repository operations tests
-│   ├── test_digest.py          # Digest generation tests
-│   └── conftest.py             # pytest shared settings
-├── repo/                       # Repository storage directory
+│   ├── github_test.py          # Tests for GitHub operations
+│   ├── test_digest.py          # Tests for digest generation
+│   └── conftest.py             # Shared pytest settings
+├── repositories/               # Repository storage directory (generated at runtime)
 │   └── (Generated at runtime)
-├── digests/                    # Digest storage directory
+├── digests/                    # Digest storage directory (generated at runtime)
 │   └── (Generated at runtime)
+├── templates/                  # Templates for reports
+│   └── report.html             # HTML template
 ├── .gitignore                  # Git ignore settings
 ├── pyproject.toml              # Python project configuration file
 ├── README.md                   # Project overview and usage
@@ -69,116 +122,50 @@ repo-digest-tool/
 
 ---
 
-## How to Run the CLI
+## Templates
 
-### 1. Direct Execution Locally
+### Purpose of `templates/report.html`
 
-Run `repo_tool/cli.py` directly:
+The `templates/report.html` file is used to generate HTML reports summarizing repository statistics and digest results. It serves as the presentation layer for digest outputs, formatted for readability.
+
+---
+
+## LLM Functionality
+
+The tool leverages a Language Learning Model (LLM) to filter files based on relevance. This is particularly useful for large repositories where only specific types of files are needed.
+
+### How LLM Filtering Works:
+
+1. **Input Prompt**: Users can provide a custom prompt describing the filtering criteria.
+2. **File Evaluation**: The LLM processes a list of file paths and their metadata to determine relevance.
+3. **Batch Processing**: Files are evaluated in batches for efficiency.
+
+### Use Cases:
+
+- Filtering out CI/CD files, configuration files, and binaries.
+- Selecting only files relevant for API documentation, tutorials, or code reviews.
+
+### Example Prompts:
+
+- "Focus on API implementation and tests."
+- "Exclude CI/CD files and binary outputs. Include Python and Markdown files."
+
+### Advantages:
+
+- **Precision**: Filters files based on user-defined criteria.
+- **Adaptability**: Handles different repository structures and use cases.
+
+### Example Workflow:
 
 ```bash
-python repo_tool/cli.py add https://github.com/honojs/hono
+repo digest https://github.com/honojs/hono --prompt "Focus on API implementation"
 ```
 
-### 2. Run as a Package
+Output:
 
-#### Setup Instructions
-
-1. **Configure `pyproject.toml`**
-
-   ```toml
-   [project]
-   name = "repo-digest-tool"
-   version = "0.1.0"
-   description = "A CLI tool for managing repositories and generating digests."
-   authors = ["Hiroto Shoi"]
-   dependencies = ["typer[all]", "gitpython"]
-
-   [build-system]
-   requires = ["setuptools", "wheel"]
-   build-backend = "setuptools.build_meta"
-
-   [project.scripts]
-   repo = "repo_tool.cli:app"
-   ```
-
-2. **Install Locally**
-
-   ```bash
-   pip install -e .
-   ```
-
-3. **Run the CLI**
-   ```bash
-   repo add https://github.com/honojs/hono
-   repo list
-   repo digest https://github.com/honojs/hono
-   ```
-
-### 3. Quick Execution During Development
-
-Run as a Python module:
-
-```bash
-python -m repo_tool.cli add https://github.com/honojs/hono
+```
+Filtered 100 files to 20 relevant files based on the given prompt.
+Digest generated: digests/hono_digest.txt
 ```
 
 ---
-
-## Development Roadmap
-
-### **Phase 1: Basic Functionality**
-
-- **Duration**: 1–2 weeks
-- **Tasks**:
-  1. Implement `add`, `remove`, and `list` commands.
-  2. Initialize directory structures (`repo`, `digests`).
-
-### **Phase 2: Digest Generation**
-
-- **Duration**: 1–2 weeks
-- **Tasks**:
-  1. Implement the `digest` command.
-  2. Develop flexible digest generation logic that supports prompts.
-  3. Add error handling and debugging logs.
-
-### **Phase 3: Testing and Documentation**
-
-- **Duration**: 1 week
-- **Tasks**:
-  1. Set up unit tests using `pytest`.
-  2. Create detailed CLI command help documentation.
-  3. Add usage examples in `README.md`.
-
-### **Phase 4: Extensions and Optimization**
-
-- **Duration**: 2+ weeks
-- **Tasks**:
-  1. Add an update feature (`git pull`).
-  2. Implement automatic removal of old cache.
-  3. Consider supporting other repository services (GitLab, Bitbucket).
-
----
-
-## Additional Considerations
-
-1. **Repository State Management**
-   - Save metadata (e.g., registration date, last update date, size).
-   - Recover corrupted repositories.
-2. **Lightweight Updates via `git pull`**
-   - Allow updates without re-cloning repositories.
-3. **Batch Operations**
-   - Enable bulk deletion or updates.
-4. **Cache Management**
-   - Remove old repositories or digests.
-5. **Error Handling**
-   - Provide detailed error messages.
-6. **Logging**
-   - Record operation history and errors.
-
----
-
-## Scalability
-
-- Support for other repository services (e.g., GitLab, Bitbucket).
-- Improved filtering for specific directories or file extensions.
-- Enhanced digest generation logic.
