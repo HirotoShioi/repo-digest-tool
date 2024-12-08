@@ -2,6 +2,7 @@ import datetime
 import os
 import re
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -23,6 +24,14 @@ class Repository:
     name: str
     author: str
     size: int = 0
+
+    def has_update(self) -> bool:
+        repo = Repo(self.path)
+        origin = repo.remotes.origin
+        origin.fetch()
+        local_commit = repo.head.commit.hexsha
+        remote_commit: str = origin.refs[repo.active_branch.name].commit.hexsha
+        return local_commit != remote_commit
 
 
 class GitHub:
@@ -80,24 +89,51 @@ class GitHub:
         """
         shutil.rmtree(REPO_DIR, ignore_errors=True)
 
-    def update(self, repo_url: str) -> None:
+    def update(self, repo_url: Optional[str] = None) -> List[Repository]:
         """
-        Update a repository.
+        Update one or all repositories.
 
         Args:
-            repo_url (str): Repository URL.
+            repo_url (Optional[str]): Specific repository URL to update. If None, updates all repositories.
 
-        Raises:
-            ValueError: Invalid repository URL
+        Returns:
+            List[Repository]: List of updated repositories
         """
-        repo_url = GitHub.resolve_repo_url(repo_url)
-        if not self.is_valid_repo_url(repo_url):
-            raise ValueError("Invalid repository URL")
+        if repo_url:
+            # Update single repository
+            repo_url = self.resolve_repo_url(repo_url)
+            self._update_single(repo_url)
+            return [repo for repo in self.list() if repo.url == repo_url]
+        else:
+            # Update all repositories in parallel
+            repositories = self.list()
+            repositories = [repo for repo in repositories if repo.has_update()]
+            if not repositories:
+                return repositories
+
+            print(f"Updating {len(repositories)} repositories...")
+            with ThreadPoolExecutor() as executor:
+                futures = [
+                    executor.submit(self._update_single, repo.url)
+                    for repo in repositories
+                ]
+                for future in futures:
+                    try:
+                        future.result()  # Wait for each task to complete
+                    except Exception as e:
+                        print(f"Error updating repository: {e}")
+            return repositories
+
+    def _update_single(self, repo_url: str) -> None:
+        """
+        Update a single repository.
+        """
         repo_path = self.get_repo_path(repo_url)
         if not os.path.exists(repo_path):
-            raise ValueError("Repository does not exist")
+            raise ValueError(f"Repository does not exist: {repo_url}")
         repo = Repo(repo_path)
         repo.remotes.origin.pull()
+        print(f"Updated repository: {repo_url}")
 
     def list(self) -> List[Repository]:
         """

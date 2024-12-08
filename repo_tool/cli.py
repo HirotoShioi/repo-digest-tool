@@ -102,13 +102,19 @@ def clean() -> None:
 
 
 @app.command(name="update")
-def update(repo_url: str = typer.Argument(..., help="Repository URL")) -> None:
+def update(
+    repo_url: Optional[str] = typer.Argument(None, help="Repository URL")
+) -> None:
     """
     Update a repository.
     """
     try:
-        github.update(repo_url)
-        typer.secho(f"Repository {repo_url} updated successfully!")
+        updated_repos = github.update(repo_url)
+        if len(updated_repos) == 0:
+            typer.secho("No repositories updated.", fg=typer.colors.YELLOW)
+        else:
+            for repo in updated_repos:
+                typer.secho(f"Updated repository: {repo.name}")
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e
