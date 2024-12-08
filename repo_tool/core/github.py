@@ -11,7 +11,7 @@ from git import GitCommandError, Repo
 
 from repo_tool.core.logger import log_error
 
-REPO_DIR = "repositories"
+REPO_DIR = "repo"
 
 
 @dataclass
@@ -144,60 +144,47 @@ class GitHub:
             return []
 
     @staticmethod
-    def get_repo_path(repo_url: str) -> Path:
+    def get_repo_path(url: str) -> Path:
         """
-        Get the path of a repository.
-        The path is `repositories/author/repository_name`.
+        Generate the local repository path from a GitHub URL.
 
         Args:
-            repo_url (str): The repository URL.
+            url: GitHub repository URL
 
         Returns:
-            Path: The path of the repository.
+            Path object representing the local repository path
 
         Raises:
-            ValueError: If the repository URL is invalid
+            ValueError: If the URL is invalid
         """
-        if not GitHub.is_valid_repo_url(repo_url):
+        if not GitHub.is_valid_repo_url(url):
             raise ValueError("Invalid repository URL")
-        # Parse URL to extract author and repo name
-        parsed_url = urlparse(repo_url)
-        repo_pattern = r"^/(?!.*\.\.)([a-zA-Z0-9][-\w.]*)/([-\w.]+?)(?:\.git)?$"
-        match = re.match(repo_pattern, parsed_url.path)
 
+        # Extract author and repo name from URL
+        # Remove .git extension if present
+        match = re.match(r"https://github\.com/([^/]+)/([^/]+?)(?:\.git)?$", url)
         if not match:
             raise ValueError("Invalid repository URL")
 
-        author, repo = match.groups()
-        repo = repo.replace(".git", "")  # Remove .git from the repository name
-        return Path(REPO_DIR) / author / repo
+        author, repo_name = match.groups()
+
+        # Create path using the REPO_DIR constant
+        return Path(REPO_DIR) / author / repo_name
 
     @staticmethod
-    def is_valid_repo_url(repo_url: str) -> bool:
-        parsed_url = urlparse(repo_url)
-        if parsed_url.scheme != "https" or parsed_url.netloc != "github.com":
-            return False
+    def is_valid_repo_url(url: str) -> bool:
+        """
+        Validate if the given URL is a valid GitHub repository URL.
 
-        # If query is present, it is an invalid URL
-        if parsed_url.query:
-            return False
+        Args:
+            url: URL to validate
 
-        repo_pattern = r"^/(?!.*\.\.)([a-zA-Z0-9][-\w.]*)/([-\w.]+?)(?:\.git)?$"
-        match = re.match(repo_pattern, parsed_url.path)
-        if not match:
-            return False
-
-        author, repo = match.groups()
-        if not author or not repo:
-            return False
-
-        if ".." in author or ".." in repo:
-            return False
-
-        if any(char in author + repo for char in "?*[]\\"):
-            return False
-
-        return True
+        Returns:
+            bool: True if URL is valid, False otherwise
+        """
+        # URL must be HTTPS and match the GitHub repository pattern
+        pattern = r"^https://github\.com/[^/]+/[^/]+(?:\.git)?$"
+        return bool(re.match(pattern, url))
 
     @staticmethod
     def remove_github_token(repo_url: str) -> str:
@@ -236,3 +223,28 @@ class GitHub:
         """
         repo = Repo(repo_path)
         repo.git.checkout(branch if branch else repo.active_branch.name)
+
+    @staticmethod
+    def resolve_repo_url(repo_url: str) -> str:
+        """
+        Resolves a short-form GitHub repository URL (e.g., "author/repo-name")
+        to a full URL (e.g., "https://github.com/author/repo-name").
+
+        Args:
+            repo_url (str): The short-form or full repository URL.
+
+        Returns:
+            str: The full repository URL.
+        """
+        if repo_url.startswith("https://github.com"):
+            # 完全なURLはそのまま返す
+            return repo_url
+
+        # 正規表現で短縮形式を検証
+        short_url_pattern = r"^(?!.*\.\.)[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,38}/[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,100}(\.git)?$"
+        if re.match(short_url_pattern, repo_url):
+            return f"https://github.com/{repo_url}"
+        else:
+            raise ValueError(
+                "Invalid short-form repository URL. Must match 'author/repo-name' format."
+            )
