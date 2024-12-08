@@ -10,7 +10,7 @@ def main() -> None:
     branch = None
     prompt = None
     github = GitHub()
-    # prompt = "I'm interested in the code that is related to react. Please include examples as well as any documentation that is relevant to react."
+    prompt = "I want to know how to use the repository."
     try:
         print("Cloning repository...")
         github.clone(repo_url, branch)
