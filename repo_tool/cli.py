@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 from typer import Typer
 
+from repo_tool.core.digest import generate_digest
 from repo_tool.core.github import GitHub
 
 app = Typer()
@@ -113,6 +114,24 @@ def update(repo_url: str = typer.Argument(..., help="Repository URL")) -> None:
         typer.secho(
             f"Repository {repo_url} updated successfully!", fg=typer.colors.GREEN
         )
+    except Exception as e:
+        typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
+        raise typer.Abort() from e
+
+
+@app.command(name="digest")
+def digest(
+    repo_url: str = typer.Argument(..., help="Repository URL"),
+    branch: Optional[str] = typer.Option(None, help="Branch to generate digest for"),
+    prompt: Optional[str] = typer.Option(None, help="Prompt to generate digest with"),
+) -> None:
+    """
+    Generate a digest for a repository.
+    """
+    try:
+        repo_path = GitHub.get_repo_path(repo_url)
+        github.checkout(repo_path, branch)
+        generate_digest(repo_path, prompt)
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)
         raise typer.Abort() from e

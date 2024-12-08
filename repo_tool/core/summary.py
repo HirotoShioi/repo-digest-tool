@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import aiofiles
 import tiktoken
+import typer
 from jinja2 import Environment, FileSystemLoader
 
 from repo_tool.core.contants import DIGEST_DIR
@@ -122,7 +123,7 @@ def generate_summary(
     report_path = f"digests/{repo_path.name}_report.html"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"Report saved to {report_path}")
+    typer.secho(f"Report saved to {report_path}", fg=typer.colors.GREEN)
 
 
 async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:

@@ -222,3 +222,7 @@ class GitHub:
         return repo_url.replace(
             "https://github.com/", f"https://{self.github_token}@github.com/"
         )
+
+    def checkout(self, repo_path: Path, branch: Optional[str] = None) -> None:
+        repo = Repo(repo_path)
+        repo.git.checkout(branch if branch else repo.active_branch.name)

@@ -11,7 +11,6 @@ def generate_digest(repo_path: Path, prompt: Optional[str] = None) -> None:
     try:
         file_list = filter_files_in_repo(repo_path, prompt)
         if file_list:
-            print("Generating summary and digest in parallel...")
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 # 両方のタスクを同時に実行
                 futures = [
