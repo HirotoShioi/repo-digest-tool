@@ -67,12 +67,14 @@ def split_into_batches(items: List[Any], batch_size: int) -> List[List[Any]]:
     return [items[i : i + batch_size] for i in range(0, len(items), batch_size)]
 
 
-# Instantiate LLM outside of the function for performance
-llm = ChatOpenAI(
-    temperature=default_temperature, model=default_model
-).with_structured_output(FilteredFiles)
-prompt_template = ChatPromptTemplate.from_template(template)
-llm_chain = prompt_template | llm
+llm_chain = None
+if os.getenv("OPENAI_API_KEY"):
+    llm = ChatOpenAI(
+        temperature=default_temperature,
+        model=default_model,
+    ).with_structured_output(FilteredFiles)
+    prompt_template = ChatPromptTemplate.from_template(template)
+    llm_chain = prompt_template | llm
 
 
 async def filter_files_batch(file_batch: List[Path], prompt: str) -> List[Path]:
@@ -84,6 +86,8 @@ async def filter_files_batch(file_batch: List[Path], prompt: str) -> List[Path]:
         for file in file_batch
         if file.is_file()
     ]
+    if not llm_chain:
+        raise RuntimeError("OPENAI_API_KEY is not set.")
     # Invoke LLM chain synchronously
     result = await llm_chain.ainvoke(
         {
