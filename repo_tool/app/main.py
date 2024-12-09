@@ -10,6 +10,16 @@ def get_repositories() -> list[Repository]:
     return github.list()
 
 
+# Add custom CSS to reduce the padding
+# Load custom CSS from file
+def load_css(file_path: str) -> None:
+    with open(file_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+# Load the external CSS file
+css_file_path = "./repo_tool/app/static/styles.css"  # Adjust this path as needed
+load_css(css_file_path)
 # App title
 st.title("Repo Digest Viewer")
 

@@ -1,0 +1,6 @@
+/* styles.css */
+
+/* Remove padding on the sides */
+.block-container {
+  max-width: 53rem;
+}
