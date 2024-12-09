@@ -1,6 +1,6 @@
 import asyncio
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -21,6 +21,37 @@ class FileInfo:
 
     file_path: Path
     repo_path: Path
+
+
+@dataclass
+class FileStats:
+    file_count: int
+    total_size: float
+    average_size: float
+    max_size: float
+    min_size: float
+    context_length: int
+    extension_tokens: Dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
+class Summary:
+    repository: str
+    total_files: int
+    total_size_kb: float
+    average_file_size_kb: float
+    max_file_size_kb: float
+    min_file_size_kb: float
+    file_types: Dict[str, int]
+    context_length: int
+
+
+@dataclass
+class FileData:
+    name: str
+    path: str
+    extension: str
+    tokens: int
 
 
 # カスタムフィルターを定義
@@ -45,16 +76,16 @@ def generate_summary(
     stats = asyncio.run(process_files(file_infos))
 
     # サマリーの生成
-    summary = {
-        "repository": repo_path.name,
-        "total_files": stats["file_count"],
-        "total_size_kb": round(stats["total_size"], precision),
-        "average_file_size_kb": round(stats["average_size"], precision),
-        "max_file_size_kb": round(stats["max_size"], precision),
-        "min_file_size_kb": round(stats["min_size"], precision),
-        "file_types": stats["extension_tokens"],
-        "context_length": stats["context_length"],
-    }
+    summary = Summary(
+        repository=repo_path.name,
+        total_files=stats.file_count,
+        total_size_kb=round(stats.total_size, precision),
+        average_file_size_kb=round(stats.average_size, precision),
+        max_file_size_kb=round(stats.max_size, precision),
+        min_file_size_kb=round(stats.min_size, precision),
+        file_types=stats.extension_tokens,
+        context_length=stats.context_length,
+    )
     # レポートの生成
     # ファイルサイズデータの取得
     file_size_data = []
@@ -78,12 +109,12 @@ def generate_summary(
                     tokens = len(encoding.encode(content))
 
                 file_size_data.append(
-                    {
-                        "name": relative_path.name,
-                        "path": str(relative_path),
-                        "extension": relative_path.suffix.lower() or "no_extension",
-                        "tokens": tokens,
-                    }
+                    FileData(
+                        name=relative_path.name,
+                        path=str(relative_path),
+                        extension=relative_path.suffix.lower() or "no_extension",
+                        tokens=tokens,
+                    )
                 )
             except Exception as e:
                 print(f"Error processing file {relative_path}: {e}")
@@ -103,18 +134,18 @@ def generate_summary(
         file_types_labels=[
             ext
             for ext, _ in sorted(
-                summary["file_types"].items(), key=lambda x: x[1], reverse=True
+                summary.file_types.items(), key=lambda x: x[1], reverse=True
             )[:data_size]
         ],
         file_types_data=[
             count
             for _, count in sorted(
-                summary["file_types"].items(), key=lambda x: x[1], reverse=True
+                summary.file_types.items(), key=lambda x: x[1], reverse=True
             )[:data_size]
         ],
-        file_sizes_labels=[item["name"] for item in file_size_data[:data_size]],
-        file_sizes_data=[item["tokens"] for item in file_size_data[:data_size]],
-        file_sizes_paths=[item["path"] for item in file_size_data[:data_size]],
+        file_sizes_labels=[item.name for item in file_size_data[:data_size]],
+        file_sizes_data=[item.tokens for item in file_size_data[:data_size]],
+        file_sizes_paths=[item.path for item in file_size_data[:data_size]],
         all_files=file_size_data,  # 全ファイルデータを確実に渡す
     )
 
@@ -125,7 +156,7 @@ def generate_summary(
     print(f"Report saved to {report_path}")
 
 
-async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
+async def process_files(file_infos: List[FileInfo]) -> FileStats:
     """
     全ファイルの非同期処理と集計を行う
     """
@@ -151,15 +182,15 @@ async def process_files(file_infos: List[FileInfo]) -> Dict[str, Any]:
         extension_tokens[ext] = extension_tokens.get(ext, 0) + result["tokens"]
 
     file_count = len(processed_files)
-    return {
-        "file_count": file_count,
-        "total_size": total_size,
-        "average_size": total_size / file_count if file_count > 0 else 0,
-        "max_size": max(file_sizes, default=0),
-        "min_size": min(file_sizes, default=0),
-        "extension_tokens": extension_tokens,
-        "context_length": context_length,
-    }
+    return FileStats(
+        file_count=file_count,
+        total_size=total_size,
+        average_size=total_size / file_count if file_count > 0 else 0,
+        max_size=max(file_sizes, default=0),
+        min_size=min(file_sizes, default=0),
+        extension_tokens=extension_tokens,
+        context_length=context_length,
+    )
 
 
 async def process_single_file(file_info: FileInfo) -> Optional[Dict[str, Any]]:
