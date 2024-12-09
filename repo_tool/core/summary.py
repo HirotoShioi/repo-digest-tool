@@ -54,14 +54,12 @@ class Summary:
     context_length: int
     file_data: List[FileData]
 
-    def generate_report(
-        self, template_path: str, output_path: str, data_size: int = 20
-    ) -> None:
+    def generate_report(self, data_size: int = 20) -> None:
         """
         HTMLレポートを生成して保存する
         """
         # Jinja2 環境を設定
-        env = Environment(loader=FileSystemLoader(template_path))
+        env = Environment(loader=FileSystemLoader("templates"))
         env.filters["format_number"] = format_number
         template = env.get_template("report.html")
 
@@ -88,9 +86,10 @@ class Summary:
         )
 
         # HTMLレポートを保存
-        with open(output_path, "w", encoding="utf-8") as f:
+        report_path = f"digests/{self.repository}_report.html"
+        with open(report_path, "w", encoding="utf-8") as f:
             f.write(html_content)
-        print(f"Report saved to {output_path}")
+        print(f"Report saved to {report_path}")
 
 
 # カスタムフィルターを定義
