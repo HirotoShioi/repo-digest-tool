@@ -40,7 +40,7 @@ class GitHub:
 
     def clone(
         self, repo_url: str, branch: Optional[str] = None, force: bool = False
-    ) -> None:
+    ) -> Repository:
         """
         Clone a repository.
 
@@ -68,6 +68,14 @@ class GitHub:
         except GitCommandError as e:
             log_error(e)
             raise e
+        return Repository(
+            url=repo_url,
+            branch=branch if branch else None,
+            path=repo_path,
+            updated_at=datetime.datetime.now(),
+            name=repo_path.name,
+            author=repo_path.parent.name,
+        )
 
     def remove(self, repo_url: str) -> None:
         """
