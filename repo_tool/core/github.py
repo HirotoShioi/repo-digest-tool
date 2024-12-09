@@ -2,6 +2,7 @@ import datetime
 import os
 import re
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -11,7 +12,7 @@ from git import GitCommandError, Repo
 
 from repo_tool.core.logger import log_error
 
-REPO_DIR = "repositories"
+REPO_DIR = "repo"
 
 
 @dataclass
@@ -23,6 +24,14 @@ class Repository:
     name: str
     author: str
     size: int = 0
+
+    def has_update(self) -> bool:
+        repo = Repo(self.path)
+        origin = repo.remotes.origin
+        origin.fetch()
+        local_commit = repo.head.commit.hexsha
+        remote_commit: str = origin.refs[repo.active_branch.name].commit.hexsha
+        return local_commit != remote_commit
 
 
 class GitHub:
@@ -44,6 +53,8 @@ class GitHub:
             e: GitCommandError
         """
         try:
+            if GitHub.is_short_hand_url(repo_url):
+                repo_url = GitHub.resolve_repo_url(repo_url)
             repo_path = self.get_repo_path(repo_url)
             if force:
                 shutil.rmtree(repo_path, ignore_errors=True)
@@ -79,23 +90,52 @@ class GitHub:
         """
         shutil.rmtree(REPO_DIR, ignore_errors=True)
 
-    def update(self, repo_url: str) -> None:
+    def update(self, repo_url: Optional[str] = None) -> List[Repository]:
         """
-        Update a repository.
+        Update one or all repositories.
 
         Args:
-            repo_url (str): Repository URL.
+            repo_url (Optional[str]): Specific repository URL to update. If None, updates all repositories.
 
-        Raises:
-            ValueError: Invalid repository URL
+        Returns:
+            List[Repository]: List of updated repositories
         """
-        if not self.is_valid_repo_url(repo_url):
-            raise ValueError("Invalid repository URL")
+        if repo_url:
+            # Update single repository
+            if GitHub.is_short_hand_url(repo_url):
+                repo_url = GitHub.resolve_repo_url(repo_url)
+            self._update_single(repo_url)
+            return [repo for repo in self.list() if repo.url == repo_url]
+        else:
+            # Update all repositories in parallel
+            repositories = self.list()
+            repositories = [repo for repo in repositories if repo.has_update()]
+            if not repositories:
+                return repositories
+
+            print(f"Updating {len(repositories)} repositories...")
+            with ThreadPoolExecutor() as executor:
+                futures = [
+                    executor.submit(self._update_single, repo.url)
+                    for repo in repositories
+                ]
+                for future in futures:
+                    try:
+                        future.result()  # Wait for each task to complete
+                    except Exception as e:
+                        print(f"Error updating repository: {e}")
+            return repositories
+
+    def _update_single(self, repo_url: str) -> None:
+        """
+        Update a single repository.
+        """
         repo_path = self.get_repo_path(repo_url)
         if not os.path.exists(repo_path):
-            raise ValueError("Repository does not exist")
+            raise ValueError(f"Repository does not exist: {repo_url}")
         repo = Repo(repo_path)
         repo.remotes.origin.pull()
+        print(f"Updated repository: {repo_url}")
 
     def list(self) -> List[Repository]:
         """
@@ -144,57 +184,82 @@ class GitHub:
             return []
 
     @staticmethod
-    def get_repo_path(repo_url: str) -> Path:
+    def get_repo_path(url: str) -> Path:
         """
-        Get the path of a repository.
-        The path is `repositories/author/repository_name`.
+        Generate the local repository path from a GitHub URL.
 
         Args:
-            repo_url (str): The repository URL.
+            url: GitHub repository URL
 
         Returns:
-            Path: The path of the repository.
+            Path object representing the local repository path
 
         Raises:
-            ValueError: If the repository URL is invalid
+            ValueError: If the URL is invalid
         """
-        if not GitHub.is_valid_repo_url(repo_url):
+        if GitHub.is_short_hand_url(url):
+            url = GitHub.resolve_repo_url(url)
+        if not GitHub.is_valid_repo_url(url):
             raise ValueError("Invalid repository URL")
-        # Parse URL to extract author and repo name
-        parsed_url = urlparse(repo_url)
-        repo_pattern = r"^/(?!.*\.\.)([a-zA-Z0-9][-\w.]*)/([-\w.]+?)(?:\.git)?$"
-        match = re.match(repo_pattern, parsed_url.path)
 
+        # Extract author and repo name from URL
+        # Remove .git extension if present
+        match = re.match(r"https://github\.com/([^/]+)/([^/]+?)(?:\.git)?$", url)
         if not match:
             raise ValueError("Invalid repository URL")
 
-        author, repo = match.groups()
-        repo = repo.replace(".git", "")  # Remove .git from the repository name
-        return Path(REPO_DIR) / author / repo
+        author, repo_name = match.groups()
+
+        # Create path using the REPO_DIR constant
+        return Path(REPO_DIR) / author / repo_name
 
     @staticmethod
-    def is_valid_repo_url(repo_url: str) -> bool:
-        parsed_url = urlparse(repo_url)
-        if parsed_url.scheme != "https" or parsed_url.netloc != "github.com":
+    def is_valid_repo_url(url: str) -> bool:
+        """
+        Validate if the given URL is a valid GitHub repository URL.
+
+        Args:
+            url: URL to validate
+
+        Returns:
+            bool: True if URL is valid, False otherwise
+        """
+        # First check basic URL structure
+        if not url.startswith("https://github.com/"):
             return False
 
-        # If query is present, it is an invalid URL
-        if parsed_url.query:
+        # Extract path after github.com/
+        path = url.replace("https://github.com/", "")
+
+        # Split into author and repo parts
+        parts = path.split("/")
+        if len(parts) != 2:
             return False
 
-        repo_pattern = r"^/(?!.*\.\.)([a-zA-Z0-9][-\w.]*)/([-\w.]+?)(?:\.git)?$"
-        match = re.match(repo_pattern, parsed_url.path)
-        if not match:
-            return False
+        author, repo = parts
 
-        author, repo = match.groups()
-        if not author or not repo:
-            return False
+        # Remove .git extension if present
+        repo = repo.removesuffix(".git")
 
-        if ".." in author or ".." in repo:
-            return False
-
-        if any(char in author + repo for char in "?*[]\\"):
+        # Check for security issues and valid characters
+        if (
+            ".." in author
+            or ".." in repo  # Prevent directory traversal
+            or "?" in author
+            or "?" in repo  # Prevent query strings
+            or "*" in author
+            or "*" in repo  # Prevent wildcards
+            or "[" in author
+            or "[" in repo  # Prevent special characters
+            or "]" in author
+            or "]" in repo
+            or "\\" in author
+            or "\\" in repo
+            or not author
+            or not repo  # Ensure non-empty strings
+            or not re.match(r"^[a-zA-Z0-9][-\w.]*$", author)  # Validate author format
+            or not re.match(r"^[-\w.]+$", repo)  # Validate repo format
+        ):
             return False
 
         return True
@@ -236,3 +301,36 @@ class GitHub:
         """
         repo = Repo(repo_path)
         repo.git.checkout(branch if branch else repo.active_branch.name)
+
+    @staticmethod
+    def resolve_repo_url(repo_url: str) -> str:
+        """
+        Resolves a short-form GitHub repository URL (e.g., "author/repo-name")
+        to a full URL (e.g., "https://github.com/author/repo-name").
+
+        Args:
+            repo_url (str): The short-form or full repository URL.
+
+        Returns:
+            str: The full repository URL.
+        """
+        if repo_url.startswith("https://github.com"):
+            # 完全なURLはそのまま返す
+            return repo_url
+
+        # 正規表現で短縮形式を検証
+        short_url_pattern = r"^(?!.*\.\.)[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,38}/[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,100}(\.git)?$"
+        if re.match(short_url_pattern, repo_url):
+            return f"https://github.com/{repo_url}"
+        else:
+            raise ValueError(
+                "Invalid short-form repository URL. Must match 'author/repo-name' format."
+            )
+
+    @staticmethod
+    def is_short_hand_url(url: str) -> bool:
+        split_url = url.split("/")
+        return (
+            all(len(part) > 0 and part.isascii() for part in split_url)
+            and len(split_url) == 2
+        )
