@@ -1,4 +1,8 @@
+import shutil
 from pathlib import Path
+from typing import Generator
+
+import pytest
 
 from repo_tool import generate_digest
 from repo_tool.core.contants import DIGEST_DIR
@@ -8,10 +12,25 @@ REPO_URL = "https://github.com/HirotoShioi/repo-digest-tool"
 PROMPT = None
 
 
+@pytest.fixture(autouse=True)
+def cleanup() -> Generator[None, None, None]:
+    # Setup - ensure clean state
+    if Path(DIGEST_DIR).exists():
+        shutil.rmtree(DIGEST_DIR)
+    Path(DIGEST_DIR).mkdir(parents=True, exist_ok=True)
+
+    yield
+
+    # Teardown
+    if Path(DIGEST_DIR).exists():
+        shutil.rmtree(DIGEST_DIR)
+
+
 def test_digest_file_generation() -> None:
     digest_path = Path(DIGEST_DIR) / "repo-digest-tool.txt"
     github = GitHub()
     github.clone(REPO_URL, branch=None, force=True)
+
     repo_path = GitHub.get_repo_path(REPO_URL)
     generate_digest(repo_path, PROMPT)
 
@@ -31,3 +50,6 @@ def test_digest_file_generation() -> None:
     assert (
         file_size <= MAX_DIGEST_SIZE_MB
     ), f"Digest file size should be less than {MAX_DIGEST_SIZE_MB}MB"
+
+    summary_path = Path(DIGEST_DIR) / "repo-digest-tool_report.html"
+    assert summary_path.exists(), "Summary file should be generated."

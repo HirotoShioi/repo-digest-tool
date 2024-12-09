@@ -12,7 +12,7 @@ from git import GitCommandError, Repo
 
 from repo_tool.core.logger import log_error
 
-REPO_DIR = "repo"
+REPO_DIR = "repositories"
 
 
 @dataclass
