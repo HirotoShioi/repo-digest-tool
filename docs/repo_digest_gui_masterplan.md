@@ -1,53 +1,65 @@
+### 更新された **masterplan.md**
 
-# masterplan.md
+以下は、新しい画面構成を反映した **masterplan.md** の更新版です。
 
-## App Overview
-- **Name**: Repo Digest Viewer  
+---
+
+## **masterplan.md**
+
+### **App Overview**
+
+- **Name**: Repo Digest Viewer
 - **Objective**:  
-  Provide an intuitive UI to explore, filter, and generate a digest file summarizing the contents of local Git repositories. The app focuses on simplifying repository analysis and improving user experience.
+  Provide an intuitive UI to manage local repositories, visualize repository content, and generate digest files. This app focuses on simplifying repository management and offering actionable insights through visualization and filtering.
 
 ---
 
-## Target Audience
-- Software engineers and project managers.  
-- Users who want to quickly understand the structure and content of Git repositories.
+### **Target Audience**
+
+- Software engineers and project managers.
+- Users who want to efficiently manage and understand the structure and content of Git repositories.
 
 ---
 
-## Core Features
-1. **Repository Selection**:
-   - List local repositories and allow the user to select one for processing.
-2. **Data Visualization**:
-   - Display file statistics such as file size distribution and extension breakdown via charts.
-   - Highlight top N files based on size or token count.
-3. **Filtering**:
-   - Filter files by extension, size range, or token count.
-4. **Digest Generation**:
-   - Generate a single digest file summarizing selected files' content.
-   - Provide a download link for the generated file.
-5. **Error Handling**:
-   - Log and display errors for files that fail to process.
+### **Core Features**
+
+1. **Repository Management** (Management Page):
+   - View a list of locally available repositories.
+   - Add new repositories by cloning from a Git URL.
+   - Delete existing repositories.
+   - Update repositories to pull the latest changes.
+2. **Repository Details** (Details Page):
+   - View repository metadata (file count, total size, last updated, etc.).
+   - Visualize file distribution by size and type using charts.
+   - Filter files by extension, size range, and other criteria.
+   - Generate a digest file summarizing selected files.
+   - Download the digest file.
 
 ---
 
-## Technical Stack
+### **Technical Stack**
+
 - **Frontend**: Streamlit
 - **Backend**: Python
   - Data handling: Pandas
   - File operations: pathlib
+  - Git operations: GitPython
   - Charting: Altair
 - **Dependencies**:
   - `streamlit`
   - `pandas`
   - `altair`
+  - `gitpython`
 
 ---
 
-## Conceptual Data Model
+### **Conceptual Data Model**
+
 ```yaml
 Repository:
   - name: string
   - path: string
+  - last_updated: datetime
   - files: List[File]
 
 File:
@@ -55,25 +67,37 @@ File:
   - path: string
   - size: int (in bytes)
   - extension: string
-  - tokens: int (optional)
 ```
 
 ---
 
-## UI Design Principles
-1. **Intuitive Navigation**:
-   - Use a sidebar for setting filters and a main panel for data visualization.
-2. **Visual Feedback**:
-   - Include progress bars and success/error notifications for user actions.
-3. **Flexibility**:
-   - Allow users to dynamically adjust filters and instantly see updated results.
+### **UI Design**
+
+#### **Repository Management Page**
+
+- **Purpose**: Manage repositories.
+- **Components**:
+  - List of repositories with details (name, path, last updated).
+  - Buttons for:
+    - Adding a repository (clone from Git URL).
+    - Deleting a repository.
+    - Updating a repository.
+
+#### **Repository Details Page**
+
+- **Purpose**: Explore repository contents and generate digests.
+- **Components**:
+  - Repository metadata (total files, total size, etc.).
+  - File distribution charts (size and type).
+  - Filters:
+    - By extension.
+    - By file size range.
+  - Digest generation and download.
 
 ---
 
-## Integration with Existing Repository
+### **Directory Structure**
 
-### 1. Streamlit Directory Structure
-Add a new `app/` directory to your repository for Streamlit-related code:
 ```plaintext
 repo-digest-tool/
 ├── app/
@@ -82,102 +106,62 @@ repo-digest-tool/
 │   │   ├── filters.py        # UI for filtering options
 │   │   ├── charts.py         # Chart rendering logic
 │   │   └── tables.py         # Table rendering logic
-│   └── utils/                # Utility functions
-│       ├── file_operations.py  # File loading and processing
-│       ├── data_loader.py     # Repository data handling
-│       └── session_manager.py  # Session state management
-├── repo_tool/                # Existing CLI code
-├── templates/                # Digest templates (HTML/Text)
-├── requirements.txt          # Streamlit dependencies added
-├── README.md                 # Updated usage instructions
+│   ├── repository/           # Repository-specific utilities
+│   │   ├── operations.py     # Add, remove, update repository
+│   │   ├── details.py        # Retrieve repository metadata
+│   │   └── digest.py         # Generate digest files
+│   └── utils/                # Shared utilities
+│       └── file_loader.py    # Load and read files
+├── repo_tool/                # Existing CLI logic
+│   ├── core/
+│   └── cli.py
+├── templates/                # Templates for reports
+├── requirements.txt          # Python dependencies
+├── README.md                 # Project documentation
 └── .streamlit/               # Streamlit configurations
 ```
 
-### 2. Refactoring CLI Code
-Convert CLI logic into reusable functions to be called from Streamlit.
+---
 
-Example:
-```python
-# repo_tool/core/digest.py
-def generate_digest_from_repo(repo_path: str, prompt: Optional[str] = None) -> str:
-    # Existing digest generation logic
-    digest_path = f"{repo_path}_digest.txt"
-    generate_digest(repo_path, prompt)
-    return digest_path
-```
+### **Development Phases**
 
-Streamlit usage:
-```python
-# app/utils/file_operations.py
-from repo_tool.core.digest import generate_digest_from_repo
+#### **Phase 1: Repository Management Page**
 
-def generate_digest_ui(repo_path: str, prompt: Optional[str]) -> str:
-    return generate_digest_from_repo(repo_path, prompt)
-```
+- List repositories.
+- Add, delete, and update repositories.
+
+#### **Phase 2: Repository Details Page**
+
+- Show repository metadata.
+- Display file distribution charts.
+
+#### **Phase 3: Filtering and Digest Generation**
+
+- Add file filters.
+- Implement digest file generation and download.
+
+#### **Phase 4: UI Refinements**
+
+- Improve user feedback (progress bars, notifications).
+- Enhance design and layout for better usability.
 
 ---
 
-## High-Level Development Phases
+### **Challenges and Solutions**
 
-### Phase 1: Initial Features
-- Add repository selection in the sidebar.
-- Display basic repository stats (e.g., file count, total size).
-
-### Phase 2: Data Visualization
-- Show file size and extension breakdown using charts.
-- Highlight top N files based on size or token count.
-
-### Phase 3: Filtering and Digest Generation
-- Add filtering options for file extensions, size, and token count.
-- Implement digest file generation and provide a download link.
-
-### Phase 4: UI Refinements
-- Add progress bars and notifications for better user feedback.
-- Enhance theme and responsiveness.
-
----
-
-## Potential Challenges and Solutions
 1. **Handling Large Repositories**:
-   - Use asynchronous or batched processing for file loading and filtering.
-   - Display progress with Streamlit's `st.progress()`.
+   - Batch processing and caching for better performance.
+   - Asynchronous file loading with progress feedback.
 2. **Error Handling**:
-   - Log errors and notify users for files that fail to process.
-   - Allow users to download error logs.
-3. **User Experience**:
-   - Keep the UI responsive and provide immediate feedback on user actions.
+   - Log errors for repository operations and file processing.
+   - Provide clear feedback to users.
+3. **Extensibility**:
+   - Modularize the codebase for adding new features (e.g., additional visualization).
 
 ---
 
-## Future Extensions
-- Use LLMs to summarize file contents.
-- Extend compatibility to other platforms like GitLab or Bitbucket.
-- Add project-level statistics for better insights.
+### **Future Extensions**
 
----
-
-## Updated README Example
-```markdown
-## Streamlit App Usage
-
-### Starting the App
-Run the following command to start the Streamlit app:
-```bash
-streamlit run app/main.py
-```
-
-Open your browser and navigate to `http://localhost:8501`.
-
-### Features
-1. Select a local repository for analysis.
-2. Visualize file statistics with charts.
-3. Filter files by extension, size, or token count.
-4. Generate a digest file summarizing selected files.
-5. Download the digest file directly from the app.
-
-### Requirements
-Install dependencies using:
-```bash
-pip install -r requirements.txt
-```
-```
+- Add compatibility with other platforms (GitLab, Bitbucket).
+- Integrate file content summarization using LLMs.
+- Extend repository insights with detailed metrics and history tracking.
