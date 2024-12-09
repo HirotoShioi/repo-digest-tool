@@ -143,7 +143,7 @@ def generate_summary(
                 print(f"Error processing file {relative_path}: {e}")
                 continue
     # Sort by token count
-    file_size_data.sort(key=lambda x: x["tokens"], reverse=True)  # type: ignore
+    file_size_data.sort(key=lambda x: x.tokens, reverse=True)
 
     file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
     # 非同期処理の実行と結果の取得

@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 from repo_tool import generate_digest
@@ -12,7 +13,9 @@ def test_digest_file_generation() -> None:
     digest_path = Path(DIGEST_DIR) / "repo-digest-tool.txt"
     github = GitHub()
     github.clone(REPO_URL, branch=None, force=True)
+    shutil.rmtree(DIGEST_DIR)
     repo_path = GitHub.get_repo_path(REPO_URL)
+    print(repo_path)
     generate_digest(repo_path, PROMPT)
 
     assert digest_path.exists(), "Digest file should be generated."
@@ -31,3 +34,5 @@ def test_digest_file_generation() -> None:
     assert (
         file_size <= MAX_DIGEST_SIZE_MB
     ), f"Digest file size should be less than {MAX_DIGEST_SIZE_MB}MB"
+    summary_path = Path(DIGEST_DIR) / "repo-digest-tool_report.html"
+    assert summary_path.exists(), "Summary file should be generated."
