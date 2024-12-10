@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import humanize
 import streamlit as st
 
 from repo_tool.core import GitHub, Repository
@@ -68,27 +71,55 @@ if page == "Repository Management":
             st.warning("Please enter a valid Git URL.")
 
     # Display existing repositories
-    st.write("### Existing Repositories")
+    st.write("### Repositories")
     repos = st.session_state.repos
     if not repos:
         st.warning("No repositories found.")
+    else:
+        # Add search filter
+        search_term = st.text_input(
+            "Search repositories",
+            placeholder="Filter by name, URL, or author...",
+            key="search_repos",
+        ).lower()
 
-    # Display repositories in a table with delete buttons
-    for repo in repos:
-        col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 2, 2])
-        col1.write(repo.name)
-        col2.write(repo.url)
-        col3.write(repo.author)
-        col4.write(repo.updated_at)
+        # Filter repositories based on search term
+        filtered_repos = repos
+        if search_term:
+            filtered_repos = [
+                repo
+                for repo in repos
+                if search_term in repo.name.lower()
+                or search_term in repo.url.lower()
+                or search_term in repo.author.lower()
+            ]
 
-        # Add a delete button for each repository
-        if col5.button("Delete", key=f"delete-{repo.name}"):
-            success, message = delete_repository(repo.url)
-            if success:
-                st.session_state.repos = (
-                    get_repositories()
-                )  # Refresh the list immediately
-                st.toast(message, icon="✅")
-                st.rerun()  # Force Streamlit to rerun the app
-            else:
-                st.error(message)
+        if not filtered_repos:
+            st.info("No repositories match your search.")
+        else:
+            # Create columns for the table header
+            cols = st.columns([2, 3, 2, 2, 1])  # Added column for delete button
+            cols[0].write("**Name**")
+            cols[1].write("**URL**")
+            cols[2].write("**Author**")
+            cols[3].write("**Last Updated**")
+            cols[4].write("**Actions**")
+
+            # Display repository data
+            for repo in filtered_repos:
+                cols = st.columns([2, 3, 2, 2, 1])  # Same column layout as header
+                cols[0].write(repo.name)
+                cols[1].write(repo.url)
+                cols[2].write(repo.author)
+                cols[3].write(humanize.naturaltime(datetime.now() - repo.updated_at))
+                # Add delete button in the last column
+                if cols[4].button("Delete", key=f"delete-{repo.name}"):
+                    success, message = delete_repository(repo.url)
+                    if success:
+                        st.session_state.repos = (
+                            get_repositories()
+                        )  # Refresh the list immediately
+                        st.toast(message, icon="✅")
+                        st.rerun()
+                    else:
+                        st.error(message)

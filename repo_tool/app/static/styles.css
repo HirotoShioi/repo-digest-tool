@@ -2,5 +2,40 @@
 
 /* Remove padding on the sides */
 .block-container {
-  max-width: 56rem;
+  max-width: 59rem;
+}
+
+/* Table styles */
+.stMarkdown {
+  margin-bottom: 0.5rem;
+}
+
+/* Make the columns look more like a table */
+[data-testid="column"] {
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.25rem 0;
+}
+
+/* Headers */
+[data-testid="column"] strong {
+  color: #1f2937;
+}
+
+/* Search input styles */
+[data-testid="stTextInput"] input {
+  border-radius: 4px;
+}
+
+/* Headers */
+h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Container padding */
+.main .block-container {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
