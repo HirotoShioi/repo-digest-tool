@@ -58,7 +58,7 @@ if page == "Repository Management":
         if repo_url:
             success, message = clone_repository(repo_url)
             if success:
-                st.success(message)
+                st.toast(message, icon="✅")
                 st.session_state.repos = (
                     get_repositories()
                 )  # Refresh the repository list
@@ -88,7 +88,7 @@ if page == "Repository Management":
                 st.session_state.repos = (
                     get_repositories()
                 )  # Refresh the list immediately
-                st.success(message)
+                st.toast(message, icon="✅")
                 st.rerun()  # Force Streamlit to rerun the app
             else:
                 st.error(message)
