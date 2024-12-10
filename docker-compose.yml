@@ -1,10 +1,17 @@
 services:
   api:
     build: .
+    command: fastapi dev --host 0.0.0.0 --port 8000 repo_tool/api
+    develop:
+      watch:
+        - action: sync
+          path: ./repo_tool
+          target: /app/repo_tool
+        - action: rebuild
+          path: pyproject.toml
     ports:
       - "8000:8000"
     volumes:
-      - ./repo_tool:/app/repo_tool
       - ./repositories:/app/repositories
       - ./digests:/app/digests
       - ./.gptinclude:/app/.gptinclude

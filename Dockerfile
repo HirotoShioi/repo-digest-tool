@@ -46,4 +46,3 @@ ENV PYTHONPATH=/app
 ENV REPO_PATH=/app/repositories
 ENV DIGEST_PATH=/app/digests
 
-CMD ["fastapi", "dev", "--host", "0.0.0.0", "--port", "8000", "--reload", "repo_tool/api"]

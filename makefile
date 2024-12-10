@@ -7,7 +7,7 @@ docker-build:
 	docker-compose build
 
 docker-up:
-	docker-compose up
+	docker compose up --watch
 
 docker-down:
 	docker-compose down
