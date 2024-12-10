@@ -86,7 +86,7 @@ class DigestRequest(BaseModel):
 
 
 @router.post("/summary", response_model=Summary)
-def get_summary_by_repository(request: DigestRequest) -> Summary:
+def get_summary_of_repository(request: DigestRequest) -> Summary:
     if not github.repo_exists(request.url):
         raise HTTPException(status_code=404, detail="Repository not found")
     repo_path = GitHub.get_repo_path(request.url)
@@ -96,7 +96,7 @@ def get_summary_by_repository(request: DigestRequest) -> Summary:
 
 
 @router.post("/digest", response_model=str)
-def get_digest_by_repository(request: DigestRequest) -> str:
+def get_digest_of_repository(request: DigestRequest) -> str:
     repo_path = GitHub.get_repo_path(request.url)
     filtered_files = filter_files_in_repo(repo_path, request.prompt)
     digest = generate_digest_content(repo_path, filtered_files)

@@ -7,6 +7,8 @@ services:
       - ./repo_tool:/app/repo_tool
       - ./repositories:/app/repositories
       - ./digests:/app/digests
+      - ./.gptinclude:/app/.gptinclude
+      - ./.gptignore:/app/.gptignore
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1

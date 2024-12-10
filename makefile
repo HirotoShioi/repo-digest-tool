@@ -1,7 +1,7 @@
 .PHONY: run-app docker-build docker-up docker-down docker-logs docker-shell clean
 
 run-app:
-	uvicorn repo_tool.api:app --reload
+	fastapi dev repo_tool/api
 
 docker-build:
 	docker-compose build
