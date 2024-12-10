@@ -11,7 +11,7 @@ from repo_tool.core.summary import Summary, generate_summary
 
 app = FastAPI()
 
-load_dotenv()
+load_dotenv(override=True)
 
 github = GitHub()
 
