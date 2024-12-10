@@ -2,14 +2,10 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS builder
 
 WORKDIR /app
-
-# Create non-root user for the final stage
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
 
 # Install Python dependencies
 COPY pyproject.toml uv.lock README.md ./
@@ -23,14 +19,13 @@ FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
+# Create non-root user for the final stage
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 # Install git in the final stage
 RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
-
-# Copy non-root user from builder
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
 
 # Copy the virtual environment from builder
 COPY --from=builder /app/.venv /app/.venv
@@ -51,5 +46,4 @@ ENV PYTHONPATH=/app
 ENV REPO_PATH=/app/repositories
 ENV DIGEST_PATH=/app/digests
 
-# Run the FastAPI application with hot reload
-CMD ["uvicorn", "repo_tool.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["fastapi", "dev", "--host", "0.0.0.0", "--port", "8000", "repo_tool/api"]
