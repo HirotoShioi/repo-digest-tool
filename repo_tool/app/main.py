@@ -11,20 +11,20 @@ def get_repositories() -> list[Repository]:
 
 
 # Function to delete a repository
-def delete_repository(repo_name: str) -> str:
+def delete_repository(repo_name: str) -> tuple[bool, str]:
     try:
         github.remove(repo_name)
-        return f"Repository '{repo_name}' deleted successfully!"
+        return True, f"Repository '{repo_name}' deleted successfully!"
     except Exception as e:
-        return f"Error deleting repository: {e}"
+        return False, f"Error deleting repository: {e}"
 
 
-def clone_repository(repo_url: str) -> str:
+def clone_repository(repo_url: str) -> tuple[bool, str]:
     try:
         github.clone(repo_url)
-        return f"Repository '{repo_url}' cloned successfully!"
+        return True, f"Repository '{repo_url}' cloned successfully!"
     except Exception as e:
-        return f"Error cloning repository: {e}"
+        return False, f"Error cloning repository: {e}"
 
 
 # Add custom CSS to reduce the padding
@@ -56,8 +56,8 @@ if page == "Repository Management":
     repo_url = st.text_input("Enter Git URL of the repository to clone:")
     if st.button("Clone Repository"):
         if repo_url:
-            message = clone_repository(repo_url)
-            if "successfully" in message:
+            success, message = clone_repository(repo_url)
+            if success:
                 st.success(message)
                 st.session_state.repos = (
                     get_repositories()
@@ -83,11 +83,12 @@ if page == "Repository Management":
 
         # Add a delete button for each repository
         if col5.button("Delete", key=f"delete-{repo.name}"):
-            message = delete_repository(repo.url)
-            if "successfully" in message:
-                st.success(message)
+            success, message = delete_repository(repo.url)
+            if success:
                 st.session_state.repos = (
                     get_repositories()
-                )  # Refresh the repository list
+                )  # Refresh the list immediately
+                st.success(message)
+                st.rerun()  # Force Streamlit to rerun the app
             else:
                 st.error(message)
