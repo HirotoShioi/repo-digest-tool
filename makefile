@@ -1,3 +1,2 @@
-
 run-app:
-	streamlit run repo_tool/app/main.py
+	python -m repo_tool.app.main

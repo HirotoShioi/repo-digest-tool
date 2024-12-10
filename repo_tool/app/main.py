@@ -1,31 +1,30 @@
-import streamlit as st
+import gradio as gr  # type: ignore
 
-from repo_tool.app.pages.repository_management import (
-    get_repositories,
-    show_repository_management_page,
-)
+from repo_tool.app.pages.repository_management import get_repositories
+from repo_tool.core import Repository
 
 
-# Add custom CSS to reduce the padding
-def load_css(file_path: str) -> None:
-    with open(file_path) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+def init_repositories() -> list[Repository]:
+    """Initialize repositories state"""
+    return get_repositories()
 
 
-# Load the external CSS file
-css_file_path = "./repo_tool/app/static/styles.css"
-load_css(css_file_path)
+def show_repository_management() -> gr.Dataframe:
+    """Repository management interface"""
+    repos = init_repositories()
+    # Display repositories in a table format
+    return gr.Dataframe(
+        value=[[repo.name, repo.url, repo.branch] for repo in repos],
+        headers=["Name", "URL", "Branch"],
+    )
 
-# App title
-st.title("Repo Digest Viewer")
 
-# Sidebar for navigation
-page = st.sidebar.selectbox("Choose a page", ["Repository Management"])
+# Create Gradio interface
+with gr.Blocks(title="Repo Digest Viewer", theme=gr.themes.Soft()) as app:
+    gr.Markdown("# Repo Digest Viewer")
 
-# Initialize session state for repositories
-if "repos" not in st.session_state:
-    st.session_state.repos = get_repositories()  # type: ignore
+    with gr.Tab("Repository Management"):
+        show_repository_management()
 
-# Show selected page
-if page == "Repository Management":
-    show_repository_management_page()  # type: ignore
+if __name__ == "__main__":
+    app.launch()

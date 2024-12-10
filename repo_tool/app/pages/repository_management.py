@@ -1,18 +1,19 @@
 from datetime import datetime
+from typing import List, Tuple
 
+import gradio as gr  # type: ignore
 import humanize
-import streamlit as st
 
 from repo_tool.core import GitHub, Repository
 
 github = GitHub()
 
 
-def get_repositories() -> list[Repository]:
+def get_repositories() -> List[Repository]:
     return github.list()
 
 
-def delete_repository(repo_name: str) -> tuple[bool, str]:
+def delete_repository(repo_name: str) -> Tuple[bool, str]:
     try:
         github.remove(repo_name)
         return True, f"Repository '{repo_name}' deleted successfully!"
@@ -20,7 +21,7 @@ def delete_repository(repo_name: str) -> tuple[bool, str]:
         return False, f"Error deleting repository: {e}"
 
 
-def clone_repository(repo_url: str) -> tuple[bool, str]:
+def clone_repository(repo_url: str) -> Tuple[bool, str]:
     try:
         github.clone(repo_url)
         return True, f"Repository '{repo_url}' cloned successfully!"
@@ -28,72 +29,93 @@ def clone_repository(repo_url: str) -> tuple[bool, str]:
         return False, f"Error cloning repository: {e}"
 
 
-def show_repository_management_page() -> None:
-    st.subheader("Manage Repositories")
+def filter_repositories(search_term: str, repos: List[Repository]) -> List[Repository]:
+    if not search_term:
+        return repos
 
-    # Add repository section
-    st.write("### Add a Repository")
-    repo_url = st.text_input("Enter Git URL of the repository to clone:")
-    if st.button("Clone Repository"):
-        if repo_url:
-            success, message = clone_repository(repo_url)
+    search_term = search_term.lower()
+    return [
+        repo
+        for repo in repos
+        if search_term in repo.name.lower()
+        or search_term in repo.url.lower()
+        or search_term in repo.author.lower()
+    ]
+
+
+def format_repository_table(repos: List[Repository]) -> List[List[str]]:
+    """Format repository data for the table component"""
+    return [
+        [
+            repo.name,
+            repo.url,
+            repo.author,
+            humanize.naturaltime(datetime.now() - repo.updated_at),
+        ]
+        for repo in repos
+    ]
+
+
+def create_repository_management_tab() -> gr.Blocks:
+    with gr.Blocks() as repository_tab:
+        gr.Markdown("## Repository Management")
+
+        # Add repository section
+        with gr.Group():
+            gr.Markdown("### Add a Repository")
+            repo_url_input = gr.Textbox(
+                label="Git Repository URL",
+                placeholder="Enter the repository URL to clone",
+            )
+            clone_btn = gr.Button("Clone Repository")
+            clone_status = gr.Markdown()
+
+        # Repository list section
+        with gr.Group():
+            gr.Markdown("### Repositories")
+            search_input = gr.Textbox(
+                label="Search repositories",
+                placeholder="Filter by name, URL, or author...",
+            )
+
+            # Repository table
+            repo_table = gr.Dataframe(
+                headers=["Name", "URL", "Author", "Last Updated"],
+                interactive=False,
+                wrap=True,
+            )
+
+            refresh_btn = gr.Button("Refresh List")
+
+        def handle_clone(url: str) -> str:
+            if not url:
+                return "Please enter a valid Git URL."
+
+            success, message = clone_repository(url)
             if success:
-                st.toast(message, icon="✅")
-                st.session_state.repos = (
-                    get_repositories()
-                )  # Refresh the repository list
-            else:
-                st.error(message)
-        else:
-            st.warning("Please enter a valid Git URL.")
+                # Refresh the table data
+                repos = get_repositories()
+                repo_table.update(value=format_repository_table(repos))
+                return f"✅ {message}"
+            return f"❌ {message}"
 
-    # Display existing repositories
-    st.write("### Repositories")
-    repos = st.session_state.repos
-    if not repos:
-        st.warning("No repositories found.")
-    else:
-        # Add search filter
-        search_term = st.text_input(
-            "Search repositories",
-            placeholder="Filter by name, URL, or author...",
-            key="search_repos",
-        ).lower()
+        def update_table(search_term: str = "") -> List[List[str]]:
+            repos = get_repositories()
+            filtered_repos = filter_repositories(search_term, repos)
+            return format_repository_table(filtered_repos)
 
-        # Filter repositories based on search term
-        filtered_repos = repos
-        if search_term:
-            filtered_repos = [
-                repo
-                for repo in repos
-                if search_term in repo.name.lower()
-                or search_term in repo.url.lower()
-                or search_term in repo.author.lower()
-            ]
+        # Event handlers
+        clone_btn.click(
+            fn=handle_clone, inputs=[repo_url_input], outputs=[clone_status]
+        )
 
-        if not filtered_repos:
-            st.info("No repositories match your search.")
-        else:
-            # Create columns for the table header
-            cols = st.columns([2, 3, 2, 2, 1])
-            cols[0].write("**Name**")
-            cols[1].write("**URL**")
-            cols[2].write("**Author**")
-            cols[3].write("**Last Updated**")
-            cols[4].write("**Actions**")
+        search_input.change(
+            fn=update_table, inputs=[search_input], outputs=[repo_table]
+        )
 
-            # Display repository data
-            for repo in filtered_repos:
-                cols = st.columns([2, 3, 2, 2, 1])
-                cols[0].write(repo.name)
-                cols[1].write(repo.url)
-                cols[2].write(repo.author)
-                cols[3].write(humanize.naturaltime(datetime.now() - repo.updated_at))
-                if cols[4].button("Delete", key=f"delete-{repo.name}"):
-                    success, message = delete_repository(repo.url)
-                    if success:
-                        st.session_state.repos = get_repositories()
-                        st.toast(message, icon="✅")
-                        st.rerun()
-                    else:
-                        st.error(message)
+        refresh_btn.click(fn=update_table, inputs=[search_input], outputs=[repo_table])
+
+        # Initial table load
+        repo_table.update(value=format_repository_table(get_repositories()))
+
+    return repository_tab
