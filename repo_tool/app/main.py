@@ -43,6 +43,10 @@ st.title("Repo Digest Viewer")
 # Sidebar for navigation
 page = st.sidebar.selectbox("Choose a page", ["Repository Management"])
 
+# Initialize session state for repositories
+if "repos" not in st.session_state:
+    st.session_state.repos = get_repositories()
+
 # Repository Management Page
 if page == "Repository Management":
     st.subheader("Manage Repositories")
@@ -55,6 +59,9 @@ if page == "Repository Management":
             message = clone_repository(repo_url)
             if "successfully" in message:
                 st.success(message)
+                st.session_state.repos = (
+                    get_repositories()
+                )  # Refresh the repository list
             else:
                 st.error(message)
         else:
@@ -62,36 +69,25 @@ if page == "Repository Management":
 
     # Display existing repositories
     st.write("### Existing Repositories")
-    repos = get_repositories()
+    repos = st.session_state.repos
     if not repos:
         st.warning("No repositories found.")
 
-    # Search input
-    search_query = st.text_input("Search repositories by name or author:", "")
-    filtered_repos = [
-        repo
-        for repo in repos
-        if search_query.lower() in repo.name.lower()
-        or search_query.lower() in repo.author.lower()
-    ]
+    # Display repositories in a table with delete buttons
+    for repo in repos:
+        col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 2, 2])
+        col1.write(repo.name)
+        col2.write(repo.url)
+        col3.write(repo.author)
+        col4.write(repo.updated_at)
 
-    if filtered_repos:
-        # Display repositories in a table with delete buttons
-        for repo in filtered_repos:
-            col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 2, 2])
-            col1.write(repo.name)
-            col2.write(repo.url)
-            col3.write(repo.author)
-            col4.write(repo.updated_at)
-
-            # Add a delete button for each repository
-            if col5.button("Delete", key=f"delete-{repo.name}"):
-                # Show confirmation dialog
-                if st.warning(f"Are you sure you want to delete {repo.name}?"):
-                    message = delete_repository(repo.url)
-                    if "successfully" in message:
-                        st.success(message)
-                    else:
-                        st.error(message)
-    else:
-        st.warning("No repositories match your search query.")
+        # Add a delete button for each repository
+        if col5.button("Delete", key=f"delete-{repo.name}"):
+            message = delete_repository(repo.url)
+            if "successfully" in message:
+                st.success(message)
+                st.session_state.repos = (
+                    get_repositories()
+                )  # Refresh the repository list
+            else:
+                st.error(message)
