@@ -1,0 +1,26 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./repo_tool:/app/repo_tool
+      - ./repositories:/app/repositories
+      - ./digests:/app/digests
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+
+volumes:
+  repositories:
+  digests: 

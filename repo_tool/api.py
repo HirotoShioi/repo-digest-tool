@@ -82,6 +82,8 @@ class DigestRequest(BaseModel):
 
 @app.post("/summary", response_model=Summary)
 def get_summary_by_repository(request: DigestRequest) -> Summary:
+    if not github.repo_exists(request.url):
+        raise HTTPException(status_code=404, detail="Repository not found")
     repo_path = GitHub.get_repo_path(request.url)
     filtered_files = filter_files_in_repo(repo_path, request.prompt)
     summary = generate_summary(repo_path, filtered_files)
