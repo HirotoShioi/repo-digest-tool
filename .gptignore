@@ -29,4 +29,3 @@ bun.lockb
 benchmarks/**
 *.test.ts
 *.test.tsx
-uv.lock
