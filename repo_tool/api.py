@@ -44,25 +44,34 @@ def clone_repository(request: CloneRequest) -> Optional[Repository]:
     return result
 
 
-@app.delete("/repositories/{author}/{repository_name}", response_model=Response)
-def delete_repository(author: str, repository_name: str) -> Response:
-    github.remove(f"{author}/{repository_name}")
+class DeleteRequest(BaseModel):
+    url: Optional[str] = None
+
+
+@app.delete("/repositories", response_model=Response)
+def delete_repository(request: DeleteRequest) -> Response:
+    if request.url:
+        github.remove(request.url)
+    else:
+        github.clean()
     return Response(status="success")
+
+
+class UpdateRequest(BaseModel):
+    url: Optional[str] = None
+    branch: Optional[str] = None
 
 
 @app.put("/repositories", response_model=Response)
-def update_repositories() -> Response:
-    github.update()
-    return Response(status="success")
-
-
-@app.put("/repositories/{author}/{repository_name}", response_model=Response)
-def update_repository(author: str, repository_name: str) -> Response:
-    if not github.repo_exists(f"{author}/{repository_name}"):
-        raise HTTPException(
-            status_code=404, detail="Repository not found"
-        )  # noqa: F821
-    github.update(f"{author}/{repository_name}")
+def update_repository(request: UpdateRequest) -> Response:
+    if request.url:
+        if not github.repo_exists(request.url):
+            raise HTTPException(
+                status_code=404, detail="Repository not found"
+            )  # noqa: F821
+        github.update(request.url)
+    else:
+        github.update()
     return Response(status="success")
 
 
@@ -85,8 +94,3 @@ def get_digest_by_repository(request: DigestRequest) -> str:
     filtered_files = filter_files_in_repo(repo_path, request.prompt)
     digest = generate_digest_content(repo_path, filtered_files)
     return digest
-
-
-@app.get("/digest")
-def get_digest() -> str:
-    return "digest"
