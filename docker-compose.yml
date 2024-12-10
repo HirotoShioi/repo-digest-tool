@@ -10,6 +10,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
     deploy:
       resources:
         limits:
