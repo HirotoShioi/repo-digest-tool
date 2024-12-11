@@ -1,4 +1,3 @@
-import React from "react";
 import { Trash2, RefreshCw, FolderGit2, ChevronRight } from "lucide-react";
 import type { Repository } from "../types";
 import { formatSize, formatDate } from "../utils/formatters";

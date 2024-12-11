@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FileText, Download, Filter } from "lucide-react";
 import type { Repository, FileStats, FileFilter } from "../types";
 
@@ -9,7 +9,6 @@ interface RepositoryDetailsProps {
 }
 
 export function RepositoryDetails({
-  repository,
   fileStats,
   onGenerateDigest,
 }: RepositoryDetailsProps) {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { SearchFilter } from "@/components/SearchFilter";
 import { AddRepositoryDialog } from "@/components/AddRepositoryDialog";
