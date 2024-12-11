@@ -1,4 +1,10 @@
-import { Trash2, RefreshCw, FolderGit2, ChevronRight } from "lucide-react";
+import {
+  Trash2,
+  RefreshCw,
+  FolderGit2,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import type { Repository } from "../types";
 import { formatSize, formatDate } from "../utils/formatters";
 import { Button } from "./ui/button";
@@ -21,7 +27,8 @@ export function RepositoryCard({
   isSelected,
 }: RepositoryCardProps) {
   const { mutate: deleteRepository } = useDeleteRepository();
-  const { mutate: updateRepository } = useUpdateRepository();
+  const { mutate: updateRepository, isPending: isUpdating } =
+    useUpdateRepository();
   function handleDelete() {
     deleteRepository({ repositoryIdOrUrl: repository.url });
   }
@@ -53,8 +60,13 @@ export function RepositoryCard({
                   }}
                   size="icon"
                   variant="ghost"
+                  disabled={isUpdating}
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  {isUpdating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Update repository</TooltipContent>

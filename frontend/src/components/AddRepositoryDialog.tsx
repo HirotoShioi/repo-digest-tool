@@ -11,7 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCloneRepository } from "@/services/repositories/mutations";
-
+import { useToast } from "@/hooks/use-toast";
+import { LoadingButton } from "@/components/LoadingButton";
 interface AddRepositoryDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,7 +23,8 @@ export function AddRepositoryDialog({
   onClose,
 }: AddRepositoryDialogProps) {
   const [url, setUrl] = useState("");
-  const { mutate: cloneRepository } = useCloneRepository();
+  const { toast } = useToast();
+  const { mutate: cloneRepository, isPending } = useCloneRepository();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +35,11 @@ export function AddRepositoryDialog({
           onSuccess: () => {
             setUrl("");
             onClose();
+            toast({
+              title: "Repository cloned successfully",
+              description: "The repository has been added to your list.",
+              variant: "success",
+            });
           },
         }
       );
@@ -75,7 +82,13 @@ export function AddRepositoryDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Clone Repository</Button>
+            <LoadingButton
+              type="submit"
+              isLoading={isPending}
+              loadingText="Cloning..."
+            >
+              Clone Repository
+            </LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>
