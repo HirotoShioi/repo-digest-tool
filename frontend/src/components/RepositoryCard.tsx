@@ -14,6 +14,7 @@ import {
   useDeleteRepository,
   useUpdateRepository,
 } from "@/services/repositories/mutations";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface RepositoryCardProps {
   repository: Repository;
@@ -35,8 +36,17 @@ export function RepositoryCard({
   function handleUpdate() {
     updateRepository({ repositoryIdOrUrl: repository.url });
   }
+  // prefetch repository details using useQueryClient
+  const queryClient = useQueryClient();
+  function prefetchRepositoryDetails() {
+    queryClient.prefetchQuery({
+      queryKey: ["repository", repository.author, repository.name],
+      queryFn: () => getRepositoryById(repository.author, repository.name),
+    });
+  }
   return (
     <Card
+      onMouseEnter={() => prefetchRepositoryDetails()}
       onClick={() => onSelect(repository)}
       className={`hover:shadow-lg transition-all cursor-pointer
         ${isSelected ? "ring-2 ring-primary" : ""}`}
@@ -115,4 +125,7 @@ export function RepositoryCard({
       </CardContent>
     </Card>
   );
+}
+function getRepositoryById(author: string, name: string): any {
+  throw new Error("Function not implemented.");
 }

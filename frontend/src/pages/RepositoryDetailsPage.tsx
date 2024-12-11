@@ -10,11 +10,15 @@ export function RepositoryDetailsPage() {
     return <div>Repository not found</div>;
   }
   const navigate = useNavigate();
-  const { data: repository } = useGetRepositoryById({
+  const { data: repository, isLoading } = useGetRepositoryById({
     author,
     name,
   });
   const { fileStats, generateDigest } = useFileStats(author, name);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!repository) {
     return (
