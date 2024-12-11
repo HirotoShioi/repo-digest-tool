@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
-import { SearchFilter } from "@/components/SearchFilter";
 import { AddRepositoryDialog } from "@/components/AddRepositoryDialog";
 import { RepositoryList } from "@/components/RepositoryList";
 import { useRepositories } from "@/hooks/useRepositories";
 import { Repository } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function RepositoriesPage() {
   const navigate = useNavigate();
@@ -25,18 +26,20 @@ export function RepositoriesPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-6">
-        <div className="flex-1">
-          <SearchFilter value={searchQuery} onChange={setSearchQuery} />
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <div className="flex-1 justify-center items-center">
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search repositories..."
+          />
         </div>
-        <button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
+        <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="w-5 h-5" />
           Add Repository
-        </button>
+        </Button>
       </div>
 
       <RepositoryList

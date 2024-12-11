@@ -1,6 +1,9 @@
 import { Trash2, RefreshCw, FolderGit2, ChevronRight } from "lucide-react";
 import type { Repository } from "../types";
 import { formatSize, formatDate } from "../utils/formatters";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface RepositoryCardProps {
   repository: Repository;
@@ -18,63 +21,80 @@ export function RepositoryCard({
   isSelected,
 }: RepositoryCardProps) {
   return (
-    <div
+    <Card
       onClick={() => onSelect(repository)}
-      className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all cursor-pointer
-        ${isSelected ? "ring-2 ring-blue-500" : ""}`}
+      className={`hover:shadow-lg transition-all cursor-pointer
+        ${isSelected ? "ring-2 ring-primary" : ""}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <FolderGit2 className="w-6 h-6 text-blue-600" />
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {repository.name}
-            </h3>
-            <p className="text-sm text-gray-500">{repository.url}</p>
+      <CardHeader className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <FolderGit2 className="w-6 h-6 text-primary" />
+            <div>
+              <h3 className="text-lg font-semibold">{repository.name}</h3>
+              <p className="text-sm text-muted-foreground">{repository.url}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdate(repository.id);
+                  }}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Update repository</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(repository.id);
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete repository</TooltipContent>
+            </Tooltip>
+
+            <ChevronRight
+              className={`w-5 h-5 transition-transform ${
+                isSelected ? "rotate-90" : ""
+              }`}
+            />
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onUpdate(repository.id);
-            }}
-            className="p-2 text-gray-600 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
-            title="Update repository"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(repository.id);
-            }}
-            className="p-2 text-gray-600 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
-            title="Delete repository"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-          <ChevronRight
-            className={`w-5 h-5 transition-transform ${
-              isSelected ? "rotate-90" : ""
-            }`}
-          />
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="bg-muted p-3 rounded-md">
+            <p className="text-muted-foreground">Files</p>
+            <p className="font-semibold">{repository.fileCount}</p>
+          </div>
+          <div className="bg-muted p-3 rounded-md">
+            <p className="text-muted-foreground">Size</p>
+            <p className="font-semibold">{formatSize(repository.size)}</p>
+          </div>
+          <div className="bg-muted p-3 rounded-md">
+            <p className="text-muted-foreground">Last Updated</p>
+            <p className="font-semibold">
+              {formatDate(repository.lastUpdated)}
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-        <div className="bg-gray-50 p-3 rounded-md">
-          <p className="text-gray-500">Files</p>
-          <p className="font-semibold">{repository.fileCount}</p>
-        </div>
-        <div className="bg-gray-50 p-3 rounded-md">
-          <p className="text-gray-500">Size</p>
-          <p className="font-semibold">{formatSize(repository.size)}</p>
-        </div>
-        <div className="bg-gray-50 p-3 rounded-md">
-          <p className="text-gray-500">Last Updated</p>
-          <p className="font-semibold">{formatDate(repository.lastUpdated)}</p>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
