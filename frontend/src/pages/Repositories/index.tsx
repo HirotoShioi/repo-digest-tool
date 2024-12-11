@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetRepositories } from "@/services/repositories/queries";
 
-export function RepositoriesPage() {
+function RepositoriesPage() {
   const navigate = useNavigate();
   const { data: repositories } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,3 +57,5 @@ export function RepositoriesPage() {
     </div>
   );
 }
+
+export default RepositoriesPage;

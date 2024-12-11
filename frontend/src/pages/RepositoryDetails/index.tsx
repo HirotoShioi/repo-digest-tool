@@ -4,7 +4,7 @@ import { RepositoryDetails } from "@/components/RepositoryDetails";
 import { useFileStats } from "@/hooks/useFileStats";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 
-export function RepositoryDetailsPage() {
+function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
   if (!author || !name) {
     return <div>Repository not found</div>;
@@ -52,3 +52,5 @@ export function RepositoryDetailsPage() {
     </div>
   );
 }
+
+export default RepositoryDetailsPage;

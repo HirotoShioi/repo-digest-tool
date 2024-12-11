@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
-import { RepositoriesPage } from "./pages/RepositoriesPage";
-import { RepositoryDetailsPage } from "./pages/RepositoryDetailsPage";
+import RepositoriesPage from "./pages/Repositories";
+import RepositoryDetailsPage from "./pages/RepositoryDetails";
 import { Layout } from "./components/Layout";
 
 function App() {
