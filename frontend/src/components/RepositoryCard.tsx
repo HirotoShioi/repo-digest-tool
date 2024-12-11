@@ -80,8 +80,8 @@ export function RepositoryCard({
       <CardContent className="p-4 pt-0">
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="bg-muted p-3 rounded-md">
-            <p className="text-muted-foreground">Files</p>
-            <p className="font-semibold">{repository.size}</p>
+            <p className="text-muted-foreground">Author</p>
+            <p className="font-semibold">{repository.author}</p>
           </div>
           <div className="bg-muted p-3 rounded-md">
             <p className="text-muted-foreground">Size</p>

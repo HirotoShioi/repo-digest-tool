@@ -10,7 +10,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export function Provider({ children }: { children: React.ReactNode }) {
+function Provider({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
       <QueryClientProvider client={queryClient}>
@@ -20,3 +20,5 @@ export function Provider({ children }: { children: React.ReactNode }) {
     </TooltipProvider>
   );
 }
+
+export default Provider;

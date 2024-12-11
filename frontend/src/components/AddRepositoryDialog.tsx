@@ -9,26 +9,32 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCloneRepository } from "@/services/repositories/mutations";
 
 interface AddRepositoryDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (url: string) => void;
 }
 
 export function AddRepositoryDialog({
   isOpen,
   onClose,
-  onAdd,
 }: AddRepositoryDialogProps) {
   const [url, setUrl] = useState("");
+  const { mutate: cloneRepository } = useCloneRepository();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
-      onAdd(url.trim());
-      setUrl("");
-      onClose();
+      cloneRepository(
+        { repositoryIdOrUrl: url.trim() },
+        {
+          onSuccess: () => {
+            setUrl("");
+            onClose();
+          },
+        }
+      );
     }
   };
 
