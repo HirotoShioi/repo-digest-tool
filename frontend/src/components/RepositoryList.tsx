@@ -4,16 +4,12 @@ import { RepositoryCard } from "./RepositoryCard";
 interface RepositoryListProps {
   repositories: Repository[];
   selectedRepo: Repository | null;
-  onDelete: (id: string) => void;
-  onUpdate: (id: string) => void;
   onSelect: (repository: Repository) => void;
 }
 
 export function RepositoryList({
   repositories,
   selectedRepo,
-  onDelete,
-  onUpdate,
   onSelect,
 }: RepositoryListProps) {
   return (
@@ -22,8 +18,6 @@ export function RepositoryList({
         <RepositoryCard
           key={repo.id}
           repository={repo}
-          onDelete={onDelete}
-          onUpdate={onUpdate}
           onSelect={onSelect}
           isSelected={selectedRepo?.id === repo.id}
         />

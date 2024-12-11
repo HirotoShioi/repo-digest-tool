@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { AddRepositoryDialog } from "@/components/AddRepositoryDialog";
 import { RepositoryList } from "@/components/RepositoryList";
-import { useRepositories } from "@/hooks/useRepositories";
 import { Repository } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,6 @@ import { useGetRepositories } from "@/services/repositories/queries";
 
 export function RepositoriesPage() {
   const navigate = useNavigate();
-  const { deleteRepository, updateRepository } = useRepositories();
   const { data: repositories } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -49,8 +47,6 @@ export function RepositoriesPage() {
       <RepositoryList
         repositories={filteredRepositories}
         selectedRepo={null}
-        onDelete={deleteRepository}
-        onUpdate={updateRepository}
         onSelect={handleSelectRepository}
       />
 

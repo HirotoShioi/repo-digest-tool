@@ -4,22 +4,30 @@ import { formatSize, formatDate } from "../utils/formatters";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import {
+  useDeleteRepository,
+  useUpdateRepository,
+} from "@/services/repositories/mutations";
 
 interface RepositoryCardProps {
   repository: Repository;
-  onDelete: (id: string) => void;
-  onUpdate: (id: string) => void;
   onSelect: (repository: Repository) => void;
   isSelected: boolean;
 }
 
 export function RepositoryCard({
   repository,
-  onDelete,
-  onUpdate,
   onSelect,
   isSelected,
 }: RepositoryCardProps) {
+  const { mutate: deleteRepository } = useDeleteRepository();
+  const { mutate: updateRepository } = useUpdateRepository();
+  function handleDelete() {
+    deleteRepository({ repositoryIdOrUrl: repository.url });
+  }
+  function handleUpdate() {
+    updateRepository({ repositoryIdOrUrl: repository.url });
+  }
   return (
     <Card
       onClick={() => onSelect(repository)}
@@ -41,7 +49,7 @@ export function RepositoryCard({
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onUpdate(repository.id);
+                    handleUpdate();
                   }}
                   size="icon"
                   variant="ghost"
@@ -57,7 +65,7 @@ export function RepositoryCard({
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(repository.id);
+                    handleDelete();
                   }}
                   size="icon"
                   variant="ghost"

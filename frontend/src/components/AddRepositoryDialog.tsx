@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,9 @@ export function AddRepositoryDialog({
               <GitBranch className="w-5 h-5" />
               Add New Repository
             </div>
+            <DialogDescription>
+              Add a new repository to your list.
+            </DialogDescription>
           </DialogTitle>
         </DialogHeader>
 
