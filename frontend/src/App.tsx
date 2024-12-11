@@ -1,8 +1,19 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { RepositoriesPage } from './pages/RepositoriesPage';
+import { RepositoryDetailsPage } from './pages/RepositoryDetailsPage';
+import { Layout } from './components/Layout';
+
 function App() {
   return (
-    <div>
-      <h1>Hello World</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<RepositoriesPage />} />
+          <Route path="repository/:id" element={<RepositoryDetailsPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
