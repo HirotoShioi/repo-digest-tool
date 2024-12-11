@@ -1,16 +1,20 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { RepositoryDetails } from "@/components/RepositoryDetails";
-import { useRepositories } from "@/hooks/useRepositories";
 import { useFileStats } from "@/hooks/useFileStats";
+import { useGetRepositoryById } from "@/services/repositories/queries";
 
 export function RepositoryDetailsPage() {
-  const { id } = useParams<{ id: string }>();
+  const { author, name } = useParams<{ author: string; name: string }>();
+  if (!author || !name) {
+    return <div>Repository not found</div>;
+  }
   const navigate = useNavigate();
-  const { getRepository } = useRepositories();
-  const { fileStats, generateDigest } = useFileStats(id);
-
-  const repository = getRepository(id);
+  const { data: repository } = useGetRepositoryById({
+    author,
+    name,
+  });
+  const { fileStats, generateDigest } = useFileStats(author, name);
 
   if (!repository) {
     return (

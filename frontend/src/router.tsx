@@ -9,7 +9,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<RepositoriesPage />} />
-          <Route path="repository/:id" element={<RepositoryDetailsPage />} />
+          <Route
+            path="repository/:author/:name"
+            element={<RepositoryDetailsPage />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

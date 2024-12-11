@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FileStats, FileFilter } from '../types';
 
-export function useFileStats(repositoryId: string | undefined) {
+export function useFileStats(author: string, name: string) {
   const [fileStats] = useState<FileStats[]>([
     { extension: '.js', count: 25, totalSize: 156000 },
     { extension: '.ts', count: 15, totalSize: 89000 },
@@ -10,7 +10,7 @@ export function useFileStats(repositoryId: string | undefined) {
   ]);
 
   const generateDigest = (filter: FileFilter) => {
-    console.log('Generating digest for repository:', repositoryId, 'with filter:', filter);
+    console.log('Generating digest for repository:', author, name, 'with filter:', filter);
   };
 
   return {
