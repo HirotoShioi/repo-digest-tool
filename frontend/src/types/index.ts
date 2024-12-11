@@ -1,21 +1,26 @@
-export interface Repository {
+type Repository = {
   id: string;
   name: string;
+  author: string;
+  path: string;
+  updatedAt: Date;
+  branch: string | null;
   url: string;
-  lastUpdated: Date;
   size: number;
-  fileCount: number;
 }
 
-export interface FileStats {
+
+type FileStats = {
   extension: string;
   count: number;
   totalSize: number;
 }
 
-export interface FileFilter {
+type FileFilter = {
   extensions: string[];
   minSize?: number;
   maxSize?: number;
   searchQuery: string;
 }
+
+export type { Repository, FileStats, FileFilter };

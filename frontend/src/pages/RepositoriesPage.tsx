@@ -22,7 +22,7 @@ export function RepositoriesPage() {
   );
 
   const handleSelectRepository = (repository: Repository) => {
-    navigate(`/repository/${repository.id}`);
+    navigate(`/repository/${repository.author}/${repository.name}`);
   };
 
   return (

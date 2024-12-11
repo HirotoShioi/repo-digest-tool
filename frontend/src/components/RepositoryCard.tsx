@@ -81,7 +81,7 @@ export function RepositoryCard({
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="bg-muted p-3 rounded-md">
             <p className="text-muted-foreground">Files</p>
-            <p className="font-semibold">{repository.fileCount}</p>
+            <p className="font-semibold">{repository.size}</p>
           </div>
           <div className="bg-muted p-3 rounded-md">
             <p className="text-muted-foreground">Size</p>
@@ -89,9 +89,7 @@ export function RepositoryCard({
           </div>
           <div className="bg-muted p-3 rounded-md">
             <p className="text-muted-foreground">Last Updated</p>
-            <p className="font-semibold">
-              {formatDate(repository.lastUpdated)}
-            </p>
+            <p className="font-semibold">{formatDate(repository.updatedAt)}</p>
           </div>
         </div>
       </CardContent>

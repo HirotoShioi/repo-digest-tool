@@ -17,6 +17,7 @@ REPO_DIR = "repositories"
 
 @dataclass
 class Repository:
+    id: str
     url: str
     branch: Optional[str]
     path: Path
@@ -89,6 +90,7 @@ class GitHub:
                 repo_name = path_parts[1]
 
                 return Repository(
+                    id=f"{author}/{repo_name}",
                     url=repo_url,
                     branch=branch if branch else None,
                     path=repo_path,
@@ -195,6 +197,7 @@ class GitHub:
                     size = repo_path.stat().st_size
                     repositories.append(
                         Repository(
+                            id=f"{author}/{name}",
                             url=GitHub.remove_github_token(repo.remotes.origin.url),
                             branch=repo.active_branch.name,
                             path=repo_path,
