@@ -126,11 +126,16 @@ def get_summary_of_repository(request: CreateSummaryParams) -> Summary:
 class CreateDigestParams(BaseModel):
     url: str = Field(..., description="The URL of the repository to create a digest")
     prompt: Optional[str] = Field(None, description="The prompt to create a digest")
+    branch: Optional[str] = Field(None, description="The branch to generate digest for")
 
 
 @router.post("/digest", response_model=str)
 def get_digest_of_repository(request: CreateDigestParams) -> str:
     repo_path = GitHub.get_repo_path(request.url)
+    if not github.repo_exists(request.url):
+        github.clone(request.url, request.branch)
+    elif request.branch:
+        github.checkout(repo_path, request.branch)
     filtered_files = filter_files_in_repo(repo_path, request.prompt)
     digest = generate_digest_content(repo_path, filtered_files)
     return digest
