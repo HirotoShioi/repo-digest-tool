@@ -36,7 +36,10 @@ export function RepositoriesPage() {
             placeholder="Search repositories..."
           />
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="bg-green-700 hover:bg-green-800"
+        >
           <Plus className="w-5 h-5" />
           Add Repository
         </Button>
