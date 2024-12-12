@@ -2,31 +2,32 @@ import {
   Trash2,
   RefreshCw,
   FolderGit2,
-  ChevronRight,
   Loader2,
 } from "lucide-react";
 import type { Repository } from "@/types";
 import { formatSize, formatDate } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   useDeleteRepository,
   useUpdateRepository,
 } from "@/services/repositories/mutations";
 import { usePrefetchRepositoryById } from "@/services/repositories/queries";
+import { useNavigate } from "react-router";
 
 interface RepositoryCardProps {
   repository: Repository;
-  onSelect: (repository: Repository) => void;
-  isSelected: boolean;
 }
 
 export function RepositoryCard({
   repository,
-  onSelect,
-  isSelected,
 }: RepositoryCardProps) {
+  const navigate = useNavigate();
   const { mutate: deleteRepository } = useDeleteRepository();
   const { mutate: updateRepository, isPending: isUpdating } =
     useUpdateRepository();
@@ -44,9 +45,8 @@ export function RepositoryCard({
   return (
     <Card
       onMouseEnter={() => prefetch()}
-      onClick={() => onSelect(repository)}
-      className={`hover:shadow-lg transition-all cursor-pointer
-        ${isSelected ? "ring-2 ring-primary" : ""}`}
+      onClick={() => navigate(`/${repository.author}/${repository.name}`)}
+      className={`hover:shadow-lg transition-all cursor-pointer`}
     >
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
@@ -95,12 +95,6 @@ export function RepositoryCard({
               </TooltipTrigger>
               <TooltipContent>Delete repository</TooltipContent>
             </Tooltip>
-
-            <ChevronRight
-              className={`w-5 h-5 transition-transform ${
-                isSelected ? "rotate-90" : ""
-              }`}
-            />
           </div>
         </div>
       </CardHeader>

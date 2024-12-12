@@ -105,9 +105,9 @@ export interface paths {
         };
         /** Get Settings */
         get: operations["get_settings_settings_get"];
-        put?: never;
         /** Update Settings */
-        post: operations["update_settings_settings_post"];
+        put: operations["update_settings_settings_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -531,7 +531,7 @@ export interface operations {
             };
         };
     };
-    update_settings_settings_post: {
+    update_settings_settings_put: {
         parameters: {
             query?: never;
             header?: never;

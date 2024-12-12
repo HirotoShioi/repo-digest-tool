@@ -11,11 +11,11 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<RepositoriesPage />} />
           <Route
-            path="repository/:author/:name"
+            path="/:author/:name"
             element={<RepositoryDetailsPage />}
           />
           <Route
-            path="/repository/:author/:name/settings"
+            path="/:author/:name/settings"
             element={<SettingsPage />}
           />
         </Route>

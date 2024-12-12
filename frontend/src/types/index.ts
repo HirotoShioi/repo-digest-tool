@@ -48,4 +48,9 @@ type Summary = {
   fileData: FileData[];
 }
 
-export type { Repository, FileStats, FileFilter, Summary, FileTypeAggregation, FileData };
+type Settings = {
+  includePatterns: string[];
+  excludePatterns: string[];
+}
+
+export type { Repository, FileStats, FileFilter, Summary, FileTypeAggregation, FileData, Settings };

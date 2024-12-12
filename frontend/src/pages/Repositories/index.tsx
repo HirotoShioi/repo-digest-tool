@@ -1,15 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
 import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
 import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
-import { Repository } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetRepositories } from "@/services/repositories/queries";
 
 function RepositoriesPage() {
-  const navigate = useNavigate();
   const { data: repositories } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -19,10 +16,6 @@ function RepositoriesPage() {
       repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       repo.url.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleSelectRepository = (repository: Repository) => {
-    navigate(`/repository/${repository.author}/${repository.name}`);
-  };
 
   return (
     <div className="space-y-8">
@@ -46,8 +39,6 @@ function RepositoriesPage() {
 
       <RepositoryList
         repositories={filteredRepositories}
-        selectedRepo={null}
-        onSelect={handleSelectRepository}
       />
 
       <AddRepositoryDialog

@@ -187,7 +187,7 @@ def get_settings() -> Settings:
     )
 
 
-@router.post("/settings")
+@router.put("/settings")
 def update_settings(request: Settings) -> Settings:
     settings = get_filter_settings()
     settings.include_list = request.include_files

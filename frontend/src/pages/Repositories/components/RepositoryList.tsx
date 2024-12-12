@@ -3,14 +3,10 @@ import { RepositoryCard } from "./RepositoryCard";
 
 interface RepositoryListProps {
   repositories: Repository[];
-  selectedRepo: Repository | null;
-  onSelect: (repository: Repository) => void;
 }
 
 export function RepositoryList({
   repositories,
-  selectedRepo,
-  onSelect,
 }: RepositoryListProps) {
   return (
     <div className="space-y-4">
@@ -18,8 +14,6 @@ export function RepositoryList({
         <RepositoryCard
           key={repo.id}
           repository={repo}
-          onSelect={onSelect}
-          isSelected={selectedRepo?.id === repo.id}
         />
       ))}
       {repositories.length === 0 && (
