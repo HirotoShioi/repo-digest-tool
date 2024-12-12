@@ -1,5 +1,6 @@
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -42,17 +43,19 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-xl font-semibold">
-        Context length distribution by file type
-      </h2>
-      <span className="text-sm text-gray-500 block">
-        (Total context length for each file type, sorted by size)
-      </span>
+    <Card className="bg-white shadow-md rounded-lg p-2">
+      <CardHeader className="p-4">
+        <CardTitle>Context length distribution by file type</CardTitle>
+        <CardDescription>
+          Total context length for each file type, sorted by size
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
       <div className="chart-container">
         <Pie data={chartData} />
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

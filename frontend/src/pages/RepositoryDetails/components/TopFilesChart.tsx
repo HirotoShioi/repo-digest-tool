@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // 必要な構成要素を登録
 ChartJS.register(
@@ -76,14 +77,16 @@ function TopFilesChart({ fileData }: TopFilesChartParams) {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">
-        Top 20 Files by Context Length
-      </h2>
+    <Card className="bg-white shadow-md rounded-lg p-2">
+      <CardHeader className="p-4">
+        <CardTitle>Top 20 Files by Context Length</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
       <div className="chart-container">
         <Bar data={chartData} options={chartOptions as any} />
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

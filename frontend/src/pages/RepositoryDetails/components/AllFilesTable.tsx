@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { FileData } from "@/types";
 import { formatNumber } from "@/utils/formatters";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AllFilesTableParams {
   fileData: FileData[];
@@ -50,8 +51,11 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
   const totalCount = filteredFiles.length;
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 mt-8">
-      <h2 className="text-xl font-semibold mb-4">All Files</h2>
+    <Card className="bg-white shadow-md rounded-lg p-2 mt-8">
+      <CardHeader className="p-4">
+        <CardTitle>All Files</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
 
       {/* Search and Display Controls */}
       <div className="flex flex-wrap gap-4 mb-4">
@@ -114,9 +118,10 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
       {/* Pagination Info */}
       <div className="mt-4 text-sm text-gray-600">
         Showing <span id="displayedCount">{displayedCount}</span> of{" "}
-        <span id="totalCount">{totalCount}</span> files
-      </div>
-    </div>
+          <span id="totalCount">{totalCount}</span> files
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

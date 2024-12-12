@@ -8,6 +8,7 @@ import { useState } from "react";
 import { FilterSettingDialog } from "./components/FilterSettingDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
+import { LoadingButton } from "@/components/LoadingButton";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
@@ -30,7 +31,7 @@ function RepositoryDetailsPage() {
     repositoryName: name,
   });
 
-  const { mutate: generateDigest } = useGenerateDigest();
+  const { mutate: generateDigest, isPending: isDigestLoading } = useGenerateDigest();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -58,12 +59,15 @@ function RepositoryDetailsPage() {
           {repository.name}
         </h1>
         <div className="flex items-center gap-2">
-          <Button
+          <LoadingButton
+            isLoading={isDigestLoading}
+            variant="outline"
+            loadingText="Generating..."
             onClick={() => generateDigest({ author, repositoryName: name })}
           >
             <Download className="w-4 h-4" />
-            Digest
-          </Button>
+            Get Digest
+          </LoadingButton>
           <Button
             size="lg"
             onClick={() => setOpen(true)}

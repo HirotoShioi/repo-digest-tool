@@ -1,3 +1,4 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
     Table,
     TableBody,
@@ -33,8 +34,11 @@ interface DigestStatisticsParams {
 
 function DigestStatistics({ summary }: DigestStatisticsParams) {
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Digest Statistics</h2>
+    <Card className="bg-white shadow-md rounded-lg p-2">
+      <CardHeader className="p-4">
+        <CardTitle>Digest Statistics</CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
       <Table className="w-full">
         <TableBody>
           <TableRow>
@@ -87,7 +91,8 @@ function DigestStatistics({ summary }: DigestStatisticsParams) {
           </TableRow>
         </TableBody>
       </Table>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
