@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from 'react';
 import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FilterSettingDialogProps {
   open: boolean;
@@ -23,16 +23,26 @@ interface FilterSettingDialogProps {
 }
 
 export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogProps) {
-  const {data: filterSettings} = useGetSettings()
-  const [excludePatterns, setExcludePatterns] =
-    useState<string[]>(filterSettings?.excludePatterns || []);
-  const [includePatterns, setIncludePatterns] = useState<string[]>(filterSettings?.includePatterns || []);
+  const { data: filterSettings } = useGetSettings();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const [excludePatterns, setExcludePatterns] = useState<string[]>([]);
+  const [includePatterns, setIncludePatterns] = useState<string[]>([]);
   const [maxFileSize, setMaxFileSize] = useState<number>(10);
   const [newExcludePattern, setNewExcludePattern] = useState("");
   const [newIncludePattern, setNewIncludePattern] = useState("");
 
-  // Same functions as Settings/index.tsx
-  const addPattern = (type: "exclude" | "include") => {
+  // データ取得後、一度だけローカルステートに反映
+  useEffect(() => {
+    if (filterSettings) {
+      setExcludePatterns(filterSettings.excludePatterns || []);
+      setIncludePatterns(filterSettings.includePatterns || []);
+      // maxFileSizeがserverから来るならここでセット
+    }
+  }, [filterSettings]);
+
+  function addPattern(type: "exclude" | "include") {
     if (type === "exclude") {
       const trimmedPattern = newExcludePattern.trim();
       if (trimmedPattern) {
@@ -46,70 +56,76 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
         setNewIncludePattern("");
       }
     }
-  };
+  }
 
-  const removePattern = (pattern: string, type: "exclude" | "include") => {
+  function removePattern(pattern: string, type: "exclude" | "include") {
     if (type === "exclude") {
       setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
     } else {
       setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
     }
-  };
+  }
 
-  const { mutate: updateSettings } = useUpdateSettings()
-  const { toast } = useToast()
-  const handleSave = async () => {
-    updateSettings({
-      includePatterns: includePatterns,
-      excludePatterns: excludePatterns,
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Settings updated",
-          variant: "default",
-          description: "Your settings have been updated successfully",
-        });
-        onOpenChange(false);
+  const { mutate: updateSettings } = useUpdateSettings();
+
+  async function handleSave() {
+    updateSettings(
+      {
+        includePatterns,
+        excludePatterns,
       },
-    });
-  };
+      {
+        onSuccess: (newData) => {
+          // サーバー更新成功後にキャッシュ更新
+          queryClient.setQueryData(['settings'], newData);
+          toast({
+            title: "Settings updated",
+            variant: "default",
+            description: "Your settings have been updated successfully",
+          });
+          onOpenChange(false);
+        },
+      }
+    );
+  }
 
-  const PatternList = ({
+  function PatternList({
     patterns,
     type,
   }: {
     patterns: string[];
     type: "exclude" | "include";
-  }) => (
-    <ScrollArea className="h-[150px] rounded-md border p-4">
-      <div className="flex flex-wrap gap-2">
-        {patterns.map((pattern) => (
-          <Badge
-            key={pattern}
-            variant="secondary"
-            className="flex items-center gap-1"
-          >
-            {pattern}
-            <button
-              onClick={() => removePattern(pattern, type)}
-              className="ml-1 hover:text-destructive"
-              aria-label={`Remove ${pattern} pattern`}
+  }) {
+    return (
+      <ScrollArea className="h-[150px] rounded-md border p-4">
+        <div className="flex flex-wrap gap-2">
+          {patterns.map((pattern) => (
+            <Badge
+              key={pattern}
+              variant="secondary"
+              className="flex items-center gap-1"
             >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-      </div>
-    </ScrollArea>
-  );
+              {pattern}
+              <button
+                onClick={() => removePattern(pattern, type)}
+                className="ml-1 hover:text-destructive"
+                aria-label={`Remove ${pattern} pattern`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      </ScrollArea>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Filter Settings</DialogTitle>
-          <DialogDescription>
-          </DialogDescription>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
         <div className="space-y-8">
           <div className="space-y-4">
