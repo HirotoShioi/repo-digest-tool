@@ -23,9 +23,10 @@ LICENSE
 *.sketch
 pnpm-lock.yaml
 *.ico
-yarn.lock
 docs/**
 bun.lockb
 benchmarks/**
 *.test.ts
 *.test.tsx
+examples/**
+yarn.lock

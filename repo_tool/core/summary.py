@@ -24,6 +24,13 @@ class FileInfo:
 
 
 @dataclass
+class FileType:
+    extension: str
+    count: int
+    tokens: int
+
+
+@dataclass
 class FileStats:
     file_count: int
     total_size: float
@@ -31,7 +38,7 @@ class FileStats:
     max_size: float
     min_size: float
     context_length: int
-    extension_tokens: Dict[str, int] = field(default_factory=dict)
+    extension_tokens: List[FileType] = field(default_factory=list)
 
 
 @dataclass
@@ -50,7 +57,7 @@ class Summary:
     average_file_size_kb: float
     max_file_size_kb: float
     min_file_size_kb: float
-    file_types: Dict[str, int]
+    file_types: List[FileType]
     context_length: int
     file_data: List[FileData]
 
@@ -63,26 +70,20 @@ class Summary:
         env.filters["format_number"] = format_number
         template = env.get_template("report.html")
 
-        # レンダリング用データの準備
+        # ファイルタイプをトークン数でソート
+        sorted_file_types = sorted(
+            self.file_types, key=lambda x: x.tokens, reverse=True
+        )[:data_size]
+
         html_content = template.render(
             repo_name=self.repository,
             summary=self,
-            file_types_labels=[
-                ext
-                for ext, _ in sorted(
-                    self.file_types.items(), key=lambda x: x[1], reverse=True
-                )[:data_size]
-            ],
-            file_types_data=[
-                count
-                for _, count in sorted(
-                    self.file_types.items(), key=lambda x: x[1], reverse=True
-                )[:data_size]
-            ],
+            file_types_labels=[ft.extension for ft in sorted_file_types],
+            file_types_data=[ft.tokens for ft in sorted_file_types],
             file_sizes_labels=[item.name for item in self.file_data[:data_size]],
             file_sizes_data=[item.tokens for item in self.file_data[:data_size]],
             file_sizes_paths=[item.path for item in self.file_data[:data_size]],
-            all_files=self.file_data,  # 全ファイルデータを確実に渡す
+            all_files=self.file_data,
         )
 
         # HTMLレポートを保存
@@ -168,7 +169,7 @@ async def process_files(file_infos: List[FileInfo]) -> FileStats:
     """
     全ファイルの非同期処理と集計を行う
     """
-    extension_tokens: Dict[str, int] = {}
+    extension_data: Dict[str, Dict[str, int]] = {}  # 一時的な集計用辞書
     total_size = 0
     file_sizes = []
     context_length = 0
@@ -187,7 +188,16 @@ async def process_files(file_infos: List[FileInfo]) -> FileStats:
         file_sizes.append(result["size"])
 
         ext = result["extension"]
-        extension_tokens[ext] = extension_tokens.get(ext, 0) + result["tokens"]
+        if ext not in extension_data:
+            extension_data[ext] = {"count": 0, "tokens": 0}
+        extension_data[ext]["count"] += 1
+        extension_data[ext]["tokens"] += result["tokens"]
+
+    # 辞書からFileTypeのリストに変換
+    extension_tokens = [
+        FileType(extension=ext, count=data["count"], tokens=data["tokens"])
+        for ext, data in extension_data.items()
+    ]
 
     file_count = len(processed_files)
     return FileStats(

@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 from repo_tool import GitHub, generate_digest
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 def main() -> None:

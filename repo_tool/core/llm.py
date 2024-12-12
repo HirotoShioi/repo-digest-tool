@@ -9,7 +9,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Configuration constants
 default_model = "gpt-4o-mini"

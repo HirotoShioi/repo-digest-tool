@@ -5,4 +5,5 @@ digests/
 .env
 repo_tool.log
 __pycache__/
-repositories/
+/repositories/
+.vite/
