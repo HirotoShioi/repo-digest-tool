@@ -1,59 +1,38 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
+interface SettingDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+// Move defaultPatterns from Settings/index.tsx
 const defaultPatterns = [
   "__pycache__/",
   "*.pyc",
-  "*.log",
-  ".git/*",
-  ".gptignore",
-  "LICENSE",
-  ".github/*",
-  ".tox/*",
-  ".mypy_cache/*",
-  "*.whl",
-  "*.tar",
-  "*.tar.gz",
-  ".gitignore",
-  "*.env*",
-  "*.png",
-  "*.jpeg",
-  "*.jpg",
-  "*bin/*",
-  "*.svg",
-  "*.pdf",
-  "*.mp4",
-  "*.webp",
-  "*.sketch",
-  "pnpm-lock.yaml",
-  "*.ico",
-  "yarn.lock",
-  "docs/**",
-  "bun.lockb",
-  "benchmarks/**",
-  "*.test.ts",
-  "*.test.tsx",
+  // ... (same patterns as in Settings/index.tsx)
 ];
 
-function SettingsPage() {
+export function SettingDialog({ open, onOpenChange }: SettingDialogProps) {
   const [excludePatterns, setExcludePatterns] =
     useState<string[]>(defaultPatterns);
   const [includePatterns, setIncludePatterns] = useState<string[]>([]);
   const [maxFileSize, setMaxFileSize] = useState<number>(10);
   const [newPattern, setNewPattern] = useState("");
 
-  useEffect(() => {
-    // Here you would typically fetch the current settings from an API or local storage
-    // For now, we'll use the default patterns
-  }, []);
-
+  // Same functions as Settings/index.tsx
   const addPattern = (type: "exclude" | "include") => {
     const trimmedPattern = newPattern.trim();
     if (trimmedPattern) {
@@ -75,11 +54,11 @@ function SettingsPage() {
   };
 
   const handleSave = async () => {
-    // Here you would typically save the settings to an API or local storage
+    // Save logic here
     console.log("Exclude Patterns:", excludePatterns);
     console.log("Include Patterns:", includePatterns);
     console.log("Max File Size:", maxFileSize);
-    // TODO: Implement actual save functionality
+    onOpenChange(false);
   };
 
   const PatternList = ({
@@ -89,7 +68,7 @@ function SettingsPage() {
     patterns: string[];
     type: "exclude" | "include";
   }) => (
-    <ScrollArea className="h-[200px] rounded-md border p-4">
+    <ScrollArea className="h-[150px] rounded-md border p-4">
       <div className="flex flex-wrap gap-2">
         {patterns.map((pattern) => (
           <Badge
@@ -112,15 +91,20 @@ function SettingsPage() {
   );
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Filter Settings</h1>
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Exclude Patterns</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 mb-4">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Filter Settings</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">Exclude Patterns</h3>
+              <p className="text-sm text-muted-foreground">
+                Specify patterns for files and directories to exclude from processing
+              </p>
+            </div>
+            <div className="flex gap-2 mb-2">
               <Input
                 placeholder="Add new exclude pattern (e.g. *.log)"
                 value={newPattern}
@@ -132,15 +116,16 @@ function SettingsPage() {
               </Button>
             </div>
             <PatternList patterns={excludePatterns} type="exclude" />
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Include Patterns</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 mb-4">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">Include Patterns</h3>
+              <p className="text-sm text-muted-foreground">
+                Specify patterns for files that should always be included
+              </p>
+            </div>
+            <div className="flex gap-2 mb-2">
               <Input
                 placeholder="Add new include pattern (e.g. *.md)"
                 value={newPattern}
@@ -152,30 +137,29 @@ function SettingsPage() {
               </Button>
             </div>
             <PatternList patterns={includePatterns} type="include" />
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>File Size Limit</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">File Size Limit</h3>
+              <p className="text-sm text-muted-foreground">
+                Set the maximum file size that will be processed (in MB)
+              </p>
+            </div>
             <Input
               type="number"
               value={maxFileSize}
               onChange={(e) => setMaxFileSize(Number(e.target.value))}
-              className="w-full"
+              className="max-w-xs"
               placeholder="Maximum file size (MB)"
             />
-          </CardContent>
-        </Card>
+          </div>
 
-        <Button onClick={handleSave} className="w-full">
-          Save Settings
-        </Button>
-      </div>
-    </div>
+          <Button onClick={handleSave} className="w-full">
+            Save Settings
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
-
-export default SettingsPage;

@@ -5,15 +5,15 @@ import AllFilesTable from "./AllFilesTable";
 import { Summary } from "@/types";
 import { FileText, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { useState } from "react";
+import { SettingDialog } from "./SettingDialog";
 
 interface ReportParams {
   summary: Summary;
-  author: string;
-  repositoryName: string;
 }
 
-function Report({ summary, author, repositoryName }: ReportParams) {
+function Report({ summary }: ReportParams) {
+  const [open, setOpen] = useState(false);
   const {
     repository,
     fileTypes,
@@ -28,11 +28,9 @@ function Report({ summary, author, repositoryName }: ReportParams) {
           <FileText className="w-6 h-6" />
           {repository}
         </h1>
-        <Button variant="outline" size="sm" asChild>
-          <Link to={`/${author}/${repositoryName}/settings`}>
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </Link>
+        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+          <Settings className="w-4 h-4 mr-2" />
+          Settings
         </Button>
       </div>
 
@@ -44,6 +42,7 @@ function Report({ summary, author, repositoryName }: ReportParams) {
 
       <TopFilesChart fileData={fileData} />
       <AllFilesTable fileData={fileData} />
+      <SettingDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

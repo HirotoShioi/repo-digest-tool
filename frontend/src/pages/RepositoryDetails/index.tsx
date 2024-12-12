@@ -38,7 +38,7 @@ function RepositoryDetailsPage() {
 
   return (
     <>
-      <Report summary={summary} author={author} repositoryName={name} />
+      <Report summary={summary} />
     </>
   );
 }
