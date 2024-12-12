@@ -9,7 +9,6 @@ interface ReportParams {
 
 function Report({ summary}: ReportParams) {
   const {
-    repository,
     fileTypes,
     fileData,
   } = summary;

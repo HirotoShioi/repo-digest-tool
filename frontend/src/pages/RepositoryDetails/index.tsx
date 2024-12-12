@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Settings } from "lucide-react";
 import { useState } from "react";
 import { FilterSettingDialog } from "./components/FilterSettingDialog";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
@@ -18,7 +19,7 @@ function RepositoryDetailsPage() {
     author,
     name,
   });
-  const { data: summary, refetch, isLoading: isSummaryLoading } = useGetSummary({
+  const { data: summary, refetch, isLoading: isSummaryLoading, isFetching } = useGetSummary({
     author,
     repositoryName: name,
   });
@@ -53,15 +54,19 @@ function RepositoryDetailsPage() {
           Filter
         </Button>
         <FilterSettingDialog open={open} onOpenChange={setOpen} onSave={() => {
-          refetch({
-            
-          });
+          refetch({});
         }} />
       </div>
-      {summary && !isSummaryLoading ? (
+      {isFetching && !isSummaryLoading ? (
+        <LoadingSpinner minHeight={500} size={48} label="Updating repository analysis..." />
+      ) : isSummaryLoading ? (
+        <LoadingSpinner minHeight={500} size={48} label="Loading repository analysis..." />
+      ) : summary ? (
         <Report summary={summary} />
       ) : (
-        <div>Loading...</div>
+        <div className="text-center py-8 text-gray-600">
+          No analysis data available
+        </div>
       )}
     </>
   );

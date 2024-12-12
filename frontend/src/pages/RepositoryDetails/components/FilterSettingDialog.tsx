@@ -15,6 +15,7 @@ import {
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
+import { Minimatch } from "minimatch";
 
 interface FilterSettingDialogProps {
   open: boolean;
@@ -23,9 +24,15 @@ interface FilterSettingDialogProps {
 }
 
 function isValidGlob(pattern: string): boolean {
-  // 簡易的な例: パターンが空でなく、"*"を含む場合を有効とみなす
-  // 実際にはpicomatchやmicromatch等を使って検証するべき
-  return pattern.length > 0 && pattern.includes("*");
+  if (!pattern || pattern.trim().length === 0) return false;
+  
+  try {
+    // Minimatchインスタンスを作成してパターンを検証
+    new Minimatch(pattern);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export function FilterSettingDialog({ open, onOpenChange, onSave }: FilterSettingDialogProps) {
