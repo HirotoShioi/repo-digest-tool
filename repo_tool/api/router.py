@@ -1,7 +1,10 @@
+import os
+import tempfile
 from typing import List, Optional
 
 from dotenv import load_dotenv
 from fastapi import HTTPException
+from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
@@ -103,7 +106,7 @@ def update_repository(request: UpdateRepositoryParams) -> Response:
     return Response(status="success")
 
 
-class CreateSummaryParams(BaseModel):
+class GenerateSummaryParams(BaseModel):
     url: str = Field(..., description="The URL of the repository to create a summary")
     prompt: Optional[str] = Field(None, description="The prompt to create a summary")
 
@@ -114,7 +117,7 @@ class CreateSummaryParams(BaseModel):
     summary="Create a summary of a repository",
     description="Create a summary of a repository",
 )
-def get_summary_of_repository(request: CreateSummaryParams) -> Summary:
+def get_summary_of_repository(request: GenerateSummaryParams) -> Summary:
     if not github.repo_exists(request.url):
         raise HTTPException(status_code=404, detail="Repository not found")
     repo_path = GitHub.get_repo_path(request.url)
@@ -123,19 +126,44 @@ def get_summary_of_repository(request: CreateSummaryParams) -> Summary:
     return summary
 
 
-class CreateDigestParams(BaseModel):
+class GenerateDigestParams(BaseModel):
     url: str = Field(..., description="The URL of the repository to create a digest")
     prompt: Optional[str] = Field(None, description="The prompt to create a digest")
     branch: Optional[str] = Field(None, description="The branch to generate digest for")
 
 
-@router.post("/digest", response_model=str)
-def get_digest_of_repository(request: CreateDigestParams) -> str:
+@router.post(
+    "/digest",
+    response_class=FileResponse,
+    summary="Create a digest of a repository",
+    description="Create a digest of a repository. This will create a digest of the repository and return it as a file.",
+)
+def get_digest_of_repository(request: GenerateDigestParams) -> FileResponse:
     repo_path = GitHub.get_repo_path(request.url)
     if not github.repo_exists(request.url):
         github.clone(request.url, request.branch)
     elif request.branch:
         github.checkout(repo_path, request.branch)
+
     filtered_files = filter_files_in_repo(repo_path, request.prompt)
     digest = generate_digest_content(repo_path, filtered_files)
-    return digest
+
+    # Create temporary file
+    fd, temp_path = tempfile.mkstemp(suffix=".txt")
+    try:
+        with os.fdopen(fd, "w") as tmp:
+            tmp.write(digest)
+
+        # Get repository name for the filename
+        repo_name = request.url.rstrip("/").split("/")[-1]
+        filename = f"{repo_name}_digest.txt"
+
+        return FileResponse(
+            path=temp_path,
+            filename=filename,
+            media_type="text/plain",
+            background=None,  # This ensures the temp file is removed after the response
+        )
+    except Exception as e:
+        os.unlink(temp_path)  # Clean up the temp file in case of error
+        raise HTTPException(status_code=500, detail=str(e))

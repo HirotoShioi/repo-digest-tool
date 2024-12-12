@@ -85,7 +85,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Get Digest Of Repository */
+        /**
+         * Create a digest of a repository
+         * @description Create a digest of a repository. This will create a digest of the repository and return it as a file.
+         */
         post: operations["get_digest_of_repository_digest_post"];
         delete?: never;
         options?: never;
@@ -109,32 +112,6 @@ export interface components {
              * @description The branch to clone (default: main)
              */
             branch?: string | null;
-        };
-        /** CreateDigestParams */
-        CreateDigestParams: {
-            /**
-             * Url
-             * @description The URL of the repository to create a digest
-             */
-            url: string;
-            /**
-             * Prompt
-             * @description The prompt to create a digest
-             */
-            prompt?: string | null;
-        };
-        /** CreateSummaryParams */
-        CreateSummaryParams: {
-            /**
-             * Url
-             * @description The URL of the repository to create a summary
-             */
-            url: string;
-            /**
-             * Prompt
-             * @description The prompt to create a summary
-             */
-            prompt?: string | null;
         };
         /** DeleteRepositoryParams */
         DeleteRepositoryParams: {
@@ -163,6 +140,37 @@ export interface components {
             count: number;
             /** Tokens */
             tokens: number;
+        };
+        /** GenerateDigestParams */
+        GenerateDigestParams: {
+            /**
+             * Url
+             * @description The URL of the repository to create a digest
+             */
+            url: string;
+            /**
+             * Prompt
+             * @description The prompt to create a digest
+             */
+            prompt?: string | null;
+            /**
+             * Branch
+             * @description The branch to generate digest for
+             */
+            branch?: string | null;
+        };
+        /** GenerateSummaryParams */
+        GenerateSummaryParams: {
+            /**
+             * Url
+             * @description The URL of the repository to create a summary
+             */
+            url: string;
+            /**
+             * Prompt
+             * @description The prompt to create a summary
+             */
+            prompt?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -417,7 +425,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateSummaryParams"];
+                "application/json": components["schemas"]["GenerateSummaryParams"];
             };
         };
         responses: {
@@ -450,7 +458,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateDigestParams"];
+                "application/json": components["schemas"]["GenerateDigestParams"];
             };
         };
         responses: {
@@ -459,9 +467,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": string;
-                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

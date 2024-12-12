@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-types": "openapi-typescript http://0.0.0.0:8000/openapi.json -o src/lib/api/schema.d.ts"

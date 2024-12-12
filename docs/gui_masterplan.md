@@ -156,7 +156,3 @@ repo-digest-tool/
 - Provide advanced repository analytics.
 
 ---
-
-```
-
-```
