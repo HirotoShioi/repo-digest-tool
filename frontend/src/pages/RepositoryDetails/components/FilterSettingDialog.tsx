@@ -22,6 +22,12 @@ interface FilterSettingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function isValidGlob(pattern: string): boolean {
+  // 簡易的な例: パターンが空でなく、"*"を含む場合を有効とみなす
+  // 実際にはpicomatchやmicromatch等を使って検証するべき
+  return pattern.length > 0 && pattern.includes("*");
+}
+
 export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogProps) {
   const { data: filterSettings } = useGetSettings();
   const queryClient = useQueryClient();
@@ -45,19 +51,40 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
   function addPattern(type: "exclude" | "include") {
     if (type === "exclude") {
       const trimmedPattern = newExcludePattern.trim();
-      if (trimmedPattern) {
+      if (
+        trimmedPattern &&
+        isValidGlob(trimmedPattern) &&
+        !excludePatterns.includes(trimmedPattern)
+      ) {
         setExcludePatterns((prev) => [...prev, trimmedPattern]);
         setNewExcludePattern("");
+      } else {
+        // ここでユーザーにエラー表示するなど
+        toast({
+          title: "Invalid Pattern",
+          description: "Pattern is empty, invalid or already exists.",
+          variant: "destructive",
+        });
       }
     } else {
       const trimmedPattern = newIncludePattern.trim();
-      if (trimmedPattern) {
+      if (
+        trimmedPattern &&
+        isValidGlob(trimmedPattern) &&
+        !includePatterns.includes(trimmedPattern)
+      ) {
         setIncludePatterns((prev) => [...prev, trimmedPattern]);
         setNewIncludePattern("");
+      } else {
+        toast({
+          title: "Invalid Pattern",
+          description: "Pattern is empty, invalid or already exists.",
+          variant: "destructive",
+        });
       }
     }
   }
-
+  
   function removePattern(pattern: string, type: "exclude" | "include") {
     if (type === "exclude") {
       setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
@@ -65,6 +92,7 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
       setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
     }
   }
+  
 
   const { mutate: updateSettings } = useUpdateSettings();
 
