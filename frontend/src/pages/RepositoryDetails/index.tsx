@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { RepositoryDetails } from "@/components/RepositoryDetails";
+import { RepositoryDetails } from "@/pages/RepositoryDetails/components/RepositoryDetails";
 import { useFileStats } from "@/hooks/useFileStats";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 

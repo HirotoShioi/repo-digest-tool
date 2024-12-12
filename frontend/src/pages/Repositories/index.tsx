@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Plus } from "lucide-react";
-import { AddRepositoryDialog } from "@/components/AddRepositoryDialog";
-import { RepositoryList } from "@/components/RepositoryList";
+import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
+import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
 import { Repository } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

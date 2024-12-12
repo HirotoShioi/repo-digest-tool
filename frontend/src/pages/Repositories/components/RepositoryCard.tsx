@@ -5,11 +5,11 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import type { Repository } from "../types";
-import { formatSize, formatDate } from "../utils/formatters";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader } from "./ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import type { Repository } from "@/types";
+import { formatSize, formatDate } from "@/utils/formatters";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useDeleteRepository,
   useUpdateRepository,

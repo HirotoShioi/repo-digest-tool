@@ -1,4 +1,4 @@
-import type { Repository } from "../types";
+import type { Repository } from "../../../types";
 import { RepositoryCard } from "./RepositoryCard";
 
 interface RepositoryListProps {
