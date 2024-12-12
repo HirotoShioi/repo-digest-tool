@@ -3,10 +3,11 @@ import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
 import Report from "./components/Report";
 import { Button } from "@/components/ui/button";
-import { FileText, Settings } from "lucide-react";
+import { Download, FileText, Settings } from "lucide-react";
 import { useState } from "react";
 import { FilterSettingDialog } from "./components/FilterSettingDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { useGenerateDigest } from "@/services/digest/mutations";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
@@ -19,10 +20,17 @@ function RepositoryDetailsPage() {
     author,
     name,
   });
-  const { data: summary, refetch, isLoading: isSummaryLoading, isFetching } = useGetSummary({
+  const {
+    data: summary,
+    refetch,
+    isLoading: isSummaryLoading,
+    isFetching,
+  } = useGetSummary({
     author,
     repositoryName: name,
   });
+
+  const { mutate: generateDigest } = useGenerateDigest();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -49,18 +57,42 @@ function RepositoryDetailsPage() {
           <FileText className="w-6 h-6" />
           {repository.name}
         </h1>
-        <Button size="lg" onClick={() => setOpen(true)} className="bg-green-600 hover:bg-green-700">
-          <Settings className="w-4 h-4" />
-          Filter
-        </Button>
-        <FilterSettingDialog open={open} onOpenChange={setOpen} onSave={() => {
-          refetch({});
-        }} />
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => generateDigest({ author, repositoryName: name })}
+          >
+            <Download className="w-4 h-4" />
+            Digest
+          </Button>
+          <Button
+            size="lg"
+            onClick={() => setOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Settings className="w-4 h-4" />
+            Filter
+          </Button>
+          <FilterSettingDialog
+            open={open}
+            onOpenChange={setOpen}
+            onSave={() => {
+              refetch({});
+            }}
+          />
+        </div>
       </div>
       {isFetching && !isSummaryLoading ? (
-        <LoadingSpinner minHeight={500} size={48} label="Updating repository analysis..." />
+        <LoadingSpinner
+          minHeight={500}
+          size={48}
+          label="Updating repository analysis..."
+        />
       ) : isSummaryLoading ? (
-        <LoadingSpinner minHeight={500} size={48} label="Loading repository analysis..." />
+        <LoadingSpinner
+          minHeight={500}
+          size={48}
+          label="Loading repository analysis..."
+        />
       ) : summary ? (
         <Report summary={summary} />
       ) : (
