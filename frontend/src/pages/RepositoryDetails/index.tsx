@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft } from "lucide-react";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
 import Report from "./components/Report";
