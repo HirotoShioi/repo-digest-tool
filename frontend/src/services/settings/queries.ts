@@ -13,6 +13,10 @@ function toSettings(data: components["schemas"]["Settings"]): Settings {
 function useGetSettings() {
   return useQuery({
     queryKey: ["settings"],
+    initialData: {
+      includePatterns: [],
+      excludePatterns: [],
+    },
     queryFn: async () => {
       const response = await client.GET("/settings");
       if (!response.data) {

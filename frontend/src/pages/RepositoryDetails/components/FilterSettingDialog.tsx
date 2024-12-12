@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useGetSettings } from "@/services/settings/queries";
+import { useUpdateSettings } from "@/services/settings/mutations";
 
 interface FilterSettingDialogProps {
   open: boolean;
@@ -26,20 +28,27 @@ const defaultPatterns = [
 ];
 
 export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogProps) {
-  const [excludePatterns, setExcludePatterns] =
-    useState<string[]>(defaultPatterns);
-  const [includePatterns, setIncludePatterns] = useState<string[]>([]);
-  const [maxFileSize, setMaxFileSize] = useState<number>(10);
+  const {data: filterSettings} = useGetSettings()
+  const excludePatterns = filterSettings?.excludePatterns || defaultPatterns
+  const includePatterns = filterSettings?.includePatterns || []
   const [newPattern, setNewPattern] = useState("");
+  const [maxFileSize, setMaxFileSize] = useState(10);
+  const { mutate: updateSettings } = useUpdateSettings()
 
   // Same functions as Settings/index.tsx
   const addPattern = (type: "exclude" | "include") => {
     const trimmedPattern = newPattern.trim();
     if (trimmedPattern) {
       if (type === "exclude") {
-        setExcludePatterns((prev) => [...prev, trimmedPattern]);
+        updateSettings({
+          ...filterSettings,
+          excludePatterns: [...excludePatterns, trimmedPattern],
+        });
       } else {
-        setIncludePatterns((prev) => [...prev, trimmedPattern]);
+        updateSettings({
+          ...filterSettings,
+          includePatterns: [...includePatterns, trimmedPattern],
+        });
       }
       setNewPattern("");
     }
@@ -47,9 +56,15 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
 
   const removePattern = (pattern: string, type: "exclude" | "include") => {
     if (type === "exclude") {
-      setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
+      updateSettings({
+        ...filterSettings,
+        excludePatterns: excludePatterns.filter((p) => p !== pattern),
+      });
     } else {
-      setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
+      updateSettings({
+        ...filterSettings,
+        includePatterns: includePatterns.filter((p) => p !== pattern),
+      });
     }
   };
 
