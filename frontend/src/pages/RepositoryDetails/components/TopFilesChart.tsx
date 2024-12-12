@@ -1,17 +1,21 @@
-import React from "react";
+import { FileData } from "@/types";
+import { formatNumber } from "@/utils/formatters";
 import { Bar } from "react-chartjs-2";
 
 
 interface TopFilesChartParams {
-    labels: string[];
-    data: number[];
+    fileData: FileData[];
 }
 
-function formatNumber(number: number) {
-    return number.toLocaleString();
-}
+function TopFilesChart({ fileData }: TopFilesChartParams) {
 
-const TopFilesChart: React.FC<TopFilesChartParams> = ({ labels, data }) => {
+    // Sort fileData by tokens in descending order and take top 20
+    const sortedFiles = [...fileData].sort((a, b) => b.tokens - a.tokens).slice(0,20);
+
+
+    const labels = sortedFiles.map(file => file.name);
+    const data = sortedFiles.map(file => file.tokens);
+
   const chartData = {
     labels: labels,
     datasets: [

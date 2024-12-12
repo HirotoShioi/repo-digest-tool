@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Table,
     TableBody,
@@ -6,24 +5,33 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatNumber } from "@/utils/formatters";
+
+
+type FileTypeAggregation = {
+    extension: string;
+    count: number;
+    tokens: number;
+};
+
+type Summary = {
+  repository: string;
+  totalFiles: number;
+  totalSizeKb: number;
+  averageFileSizeKb: number;
+  maxFileSizeKb: number;
+  minFileSizeKb: number;
+  fileTypes: FileTypeAggregation[];
+  contextLength: number;
+};
 
 
 interface DigestStatisticsParams {
-    summary: {
-        contextLength: number;
-        totalFiles: number;
-        totalSizeKb: number;
-        averageFileSizeKb: number;
-        maxFileSizeKb: number;
-        minFileSizeKb: number;
-    };
+    summary: Summary;
 }
 
-function formatNumber(number: number) {
-    return number.toLocaleString();
-}
 
-const DigestStatistics: React.FC<DigestStatisticsParams> = ({ summary }) => {
+function DigestStatistics({ summary }: DigestStatisticsParams) {
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
       <h2 className="text-xl font-semibold mb-4">Digest Statistics</h2>

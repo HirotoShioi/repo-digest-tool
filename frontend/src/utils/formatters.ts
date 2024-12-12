@@ -17,3 +17,10 @@ export function formatDate(date: Date): string {
     timeStyle: 'short'
   }).format(date);
 }
+
+export function formatNumber(number: number) {
+  if (typeof number === 'number') {
+      return number.toLocaleString();
+  }
+  return String(number)
+};

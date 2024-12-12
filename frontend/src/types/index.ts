@@ -23,4 +23,29 @@ type FileFilter = {
   searchQuery: string;
 }
 
-export type { Repository, FileStats, FileFilter };
+type FileTypeAggregation = {
+  extension: string;
+  count: number;
+  tokens: number;
+}
+
+type FileData = {
+  name: string;
+  path: string;
+  extension: string;
+  tokens: number;
+}
+
+type Summary = {
+  repository: string;
+  totalFiles: number;
+  totalSizeKb: number;
+  averageFileSizeKb: number;
+  maxFileSizeKb: number;
+  minFileSizeKb: number;
+  fileTypes: FileTypeAggregation[];
+  contextLength: number;
+  fileData: FileData[];
+}
+
+export type { Repository, FileStats, FileFilter, Summary, FileTypeAggregation, FileData };

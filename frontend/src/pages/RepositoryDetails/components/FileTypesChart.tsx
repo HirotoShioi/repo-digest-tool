@@ -1,13 +1,21 @@
-import React from "react";
 import { Pie } from "react-chartjs-2";
 
+type FileTypeAggregation = {
+    extension: string;
+    count: number;
+    tokens: number;
+};
+
+
 interface FileTypesChartParams {
-    labels: string[];
-    data: number[];
+    fileTypes: FileTypeAggregation[];
 }
 
 
-const FileTypesChart: React.FC<FileTypesChartParams> = ({ labels, data }) => {
+function FileTypesChart({ fileTypes }: FileTypesChartParams) {
+    const labels = fileTypes.map(fileType => fileType.extension);
+    const data = fileTypes.map(fileType => fileType.tokens);
+
   const chartData = {
     labels: labels,
     datasets: [

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -10,27 +10,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileData } from "@/types";
+import { formatNumber } from "@/utils/formatters";
 
 
 interface AllFilesTableParams {
-    allFiles: {
-        name: string;
-        path: string;
-        tokens: number;
-    }[];
+    fileData: FileData[];
 }
 
-function formatNumber(number: number) {
-    return number.toLocaleString();
-}
 
-const AllFilesTable: React.FC<AllFilesTableParams> = ({ allFiles }) => {
+function AllFilesTable({ fileData }: AllFilesTableParams) {
   const [searchText, setSearchText] = useState("");
   const [displayCount, setDisplayCount] = useState(20);
 
   const filteredFiles = useMemo(() => {
     const normalizedSearchText = searchText.toLowerCase();
-    return allFiles.filter((file) => {
+    return fileData.filter((file) => {
       const fileName = file.name.toLowerCase();
       const filePath = file.path.toLowerCase();
       return (
@@ -38,7 +33,7 @@ const AllFilesTable: React.FC<AllFilesTableParams> = ({ allFiles }) => {
         filePath.includes(normalizedSearchText)
       );
     });
-  }, [allFiles, searchText]);
+  }, [fileData, searchText]);
 
   const displayedFiles = useMemo(() => {
     if (displayCount === -1) {
@@ -102,7 +97,7 @@ const AllFilesTable: React.FC<AllFilesTableParams> = ({ allFiles }) => {
               <TableRow key={index} className="hover:bg-gray-50">
                 <TableCell>{file.name}</TableCell>
                 <TableCell>{file.path}</TableCell>
-                <TableCell>{file.path.split(".").pop() || "None"}</TableCell>
+                <TableCell>{file.extension || "None"}</TableCell>
                 <TableCell>{formatNumber(file.tokens)}</TableCell>
               </TableRow>
             ))}
