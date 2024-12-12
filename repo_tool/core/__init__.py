@@ -4,7 +4,7 @@ Core functionality for repo-digest-tool
 
 from .contants import DIGEST_DIR
 from .digest import generate_digest
-from .filter import filter_files_in_repo
+from .filter import filter_files_in_repo, get_filter_settings
 from .github import GitHub, Repository
 from .llm import filter_files_with_llm
 from .logger import log_error
@@ -20,4 +20,5 @@ __all__ = [
     "DIGEST_DIR",
     "GitHub",
     "Repository",
+    "get_filter_settings",
 ]

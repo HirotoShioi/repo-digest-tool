@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -20,11 +20,14 @@ export function Layout() {
               <div className="flex items-center gap-8">
                 <NavigationMenuItem>
                   <NavigationMenuLink
-                    className={cn(navigationMenuTriggerStyle(), "font-semibold")}
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "font-semibold"
+                    )}
                     href="/"
                     onClick={(e) => {
                       e.preventDefault();
-                      navigate('/');
+                      navigate("/");
                     }}
                   >
                     <FileText className="w-5 h-5 mr-2" />
@@ -37,7 +40,7 @@ export function Layout() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-4">
         <Outlet />
       </div>
     </div>

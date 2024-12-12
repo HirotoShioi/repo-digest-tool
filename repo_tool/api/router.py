@@ -9,7 +9,7 @@ from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 
 from repo_tool.core.digest import generate_digest_content
-from repo_tool.core.filter import filter_files_in_repo
+from repo_tool.core.filter import filter_files_in_repo, get_filter_settings
 from repo_tool.core.github import GitHub, Repository
 from repo_tool.core.summary import Summary, generate_summary
 
@@ -167,3 +167,32 @@ def get_digest_of_repository(request: GenerateDigestParams) -> FileResponse:
     except Exception as e:
         os.unlink(temp_path)  # Clean up the temp file in case of error
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class Settings(BaseModel):
+    include_files: List[str] = Field(
+        ..., description="The files to include in the digest"
+    )
+    exclude_files: List[str] = Field(
+        ..., description="The files to exclude from the digest"
+    )
+
+
+@router.get("/settings")
+def get_settings() -> Settings:
+    settings = get_filter_settings()
+    return Settings(
+        include_files=settings.include_list,
+        exclude_files=settings.ignore_list,
+    )
+
+
+@router.post("/settings")
+def update_settings(request: Settings) -> Settings:
+    settings = get_filter_settings()
+    settings.include_list = request.include_files
+    settings.ignore_list = request.exclude_files
+    return Settings(
+        include_files=settings.include_list,
+        exclude_files=settings.ignore_list,
+    )

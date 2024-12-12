@@ -1,28 +1,24 @@
 import { Pie } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 type FileTypeAggregation = {
-    extension: string;
-    count: number;
-    tokens: number;
+  extension: string;
+  count: number;
+  tokens: number;
 };
 
-
 interface FileTypesChartParams {
-    fileTypes: FileTypeAggregation[];
+  fileTypes: FileTypeAggregation[];
 }
 
-
 function FileTypesChart({ fileTypes }: FileTypesChartParams) {
-    const labels = fileTypes.map(fileType => fileType.extension);
-    const data = fileTypes.map(fileType => fileType.tokens);
+  // tokens (context length) で降順ソート
+  const sortedFileTypes = [...fileTypes].sort((a, b) => b.tokens - a.tokens);
+
+  const labels = sortedFileTypes.map((fileType) => fileType.extension);
+  const data = sortedFileTypes.map((fileType) => fileType.tokens);
 
   const chartData = {
     labels: labels,
@@ -51,13 +47,13 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
         Context length distribution by file type
       </h2>
       <span className="text-sm text-gray-500 block">
-        (Total context length for each file type)
+        (Total context length for each file type, sorted by size)
       </span>
       <div className="chart-container">
         <Pie data={chartData} />
       </div>
     </div>
   );
-};
+}
 
 export default FileTypesChart;

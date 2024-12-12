@@ -9,15 +9,19 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FileData } from "@/types";
 import { formatNumber } from "@/utils/formatters";
 
-
 interface AllFilesTableParams {
-    fileData: FileData[];
+  fileData: FileData[];
 }
-
 
 function AllFilesTable({ fileData }: AllFilesTableParams) {
   const [searchText, setSearchText] = useState("");
@@ -66,7 +70,9 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
           <Label htmlFor="displayCount" className="text-sm text-gray-600">
             Show:
           </Label>
-          <Select onValueChange={(value) => setDisplayCount(parseInt(value, 10))}>
+          <Select
+            onValueChange={(value) => setDisplayCount(parseInt(value, 10))}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a number of files" />
             </SelectTrigger>
@@ -88,7 +94,7 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
             <TableRow>
               <TableHead className="text-left">File Name</TableHead>
               <TableHead className="text-left">Path</TableHead>
-              <TableHead className="text-left">Extension</TableHead>
+              <TableHead className="text-left">File Type</TableHead>
               <TableHead className="text-left">Context Length</TableHead>
             </TableRow>
           </TableHeader>
@@ -112,6 +118,6 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
       </div>
     </div>
   );
-};
+}
 
 export default AllFilesTable;

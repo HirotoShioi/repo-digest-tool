@@ -1,4 +1,5 @@
 import fnmatch
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
@@ -99,3 +100,15 @@ def filter_files_in_repo(repo_path: Path, prompt: Optional[str] = None) -> List[
         raise RuntimeError(
             f"Error while processing repository '{repo_path}': {e}"
         ) from e
+
+
+@dataclass
+class FilterSettings:
+    ignore_list: List[str]
+    include_list: List[str]
+
+
+def get_filter_settings() -> FilterSettings:
+    ignore_list = read_pattern_file(Path(".") / ".gptignore")
+    include_list = read_pattern_file(Path(".") / ".gptinclude")
+    return FilterSettings(ignore_list, include_list)
