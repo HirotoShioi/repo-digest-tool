@@ -6,12 +6,13 @@ import { useQueryClient } from "@tanstack/react-query";
 function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (settings: Settings) => client.PUT("/settings", {
+    mutationFn: (settings: Settings) =>
+      client.PUT("/settings", {
         body: {
-            include_files: settings.includePatterns,
-            exclude_files: settings.excludePatterns,
+          include_files: settings.includePatterns,
+          exclude_files: settings.excludePatterns,
         },
-    }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
