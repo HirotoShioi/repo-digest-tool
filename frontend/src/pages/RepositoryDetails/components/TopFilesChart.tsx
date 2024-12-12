@@ -1,7 +1,25 @@
 import { FileData } from "@/types";
 import { formatNumber } from "@/utils/formatters";
 import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
+// 必要な構成要素を登録
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface TopFilesChartParams {
     fileData: FileData[];

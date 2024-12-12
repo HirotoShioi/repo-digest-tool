@@ -35,6 +35,9 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.62.7
         version: 5.62.7(@tanstack/react-query@5.62.7(react@18.3.1))(react@18.3.1)
+      chart.js:
+        specifier: ^4.4.7
+        version: 4.4.7
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

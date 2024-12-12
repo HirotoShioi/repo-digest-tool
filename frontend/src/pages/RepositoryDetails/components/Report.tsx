@@ -5,32 +5,15 @@ import AllFilesTable from "./AllFilesTable";
 import { Summary } from "@/types";
 
 interface ReportParams {
-  reportData: Summary;
+  summary: Summary;
 }
 
-function Report({ reportData }: ReportParams) {
+function Report({ summary }: ReportParams) {
   const {
     repository,
-    totalFiles,
-    totalSizeKb,
-    averageFileSizeKb,
-    maxFileSizeKb,
-    minFileSizeKb,
     fileTypes,
-    contextLength,
     fileData,
-  } = reportData;
-
-  const summary = {
-    repository,
-    totalFiles,
-    totalSizeKb,
-    averageFileSizeKb,
-    maxFileSizeKb,
-    minFileSizeKb,
-    fileTypes,
-    contextLength,
-  };
+  } = summary;
 
   return (
     <div className="container mx-auto p-6">

@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { RepositoryDetails } from "@/pages/RepositoryDetails/components/RepositoryDetails";
-import { useFileStats } from "@/hooks/useFileStats";
 import { useGetRepositoryById } from "@/services/repositories/queries";
+import { useGetSummary } from "@/services/summary/queries";
+import Report from "./components/Report";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
@@ -14,9 +14,12 @@ function RepositoryDetailsPage() {
     author,
     name,
   });
-  const { fileStats, generateDigest } = useFileStats(author, name);
+  const { data: summary } = useGetSummary({
+    author,
+    repositoryName: name,
+  });
 
-  if (isLoading) {
+  if (isLoading || !summary) {
     return <div>Loading...</div>;
   }
 
@@ -43,12 +46,7 @@ function RepositoryDetailsPage() {
         <ArrowLeft className="w-4 h-4" />
         Back to repositories
       </button>
-
-      <RepositoryDetails
-        repository={repository}
-        fileStats={fileStats}
-        onGenerateDigest={generateDigest}
-      />
+      <Report summary={summary} />
     </div>
   );
 }
