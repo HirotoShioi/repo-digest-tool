@@ -39,13 +39,6 @@ function RepositoryDetailsPage() {
 
   return (
     <div>
-      <button
-        onClick={() => navigate("/")}
-        className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to repositories
-      </button>
       <Report summary={summary} />
     </div>
   );

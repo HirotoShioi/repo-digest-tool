@@ -3,6 +3,7 @@ import DigestStatistics from "./DigestStatistics";
 import TopFilesChart from "./TopFilesChart";
 import AllFilesTable from "./AllFilesTable";
 import { Summary } from "@/types";
+import { FileText } from "lucide-react";
 
 interface ReportParams {
   summary: Summary;
@@ -16,10 +17,11 @@ function Report({ summary }: ReportParams) {
   } = summary;
 
   return (
-    <div className="container mx-auto p-6">
+    <div>
       {/* Header */}
-      <h1 className="text-4xl font-bold text-center mb-8">
-        Repository Digest Report - {repository}
+      <h1 className="text-2xl font-bold mb-4 flex items-center gap-2">
+        <FileText className="w-6 h-6" />
+        {repository}
       </h1>
 
       {/* File Types Distribution & Digest Statistics */}
