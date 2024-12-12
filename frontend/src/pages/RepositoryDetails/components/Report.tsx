@@ -6,7 +6,7 @@ import { Summary } from "@/types";
 import { FileText, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { SettingDialog } from "./SettingDialog";
+import { FilterSettingDialog } from "./FilterSettingDialog";
 
 interface ReportParams {
   summary: Summary;
@@ -28,9 +28,9 @@ function Report({ summary }: ReportParams) {
           <FileText className="w-6 h-6" />
           {repository}
         </h1>
-        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-          <Settings className="w-4 h-4 mr-2" />
-          Settings
+        <Button size="lg" onClick={() => setOpen(true)} className="bg-green-600 hover:bg-green-700">
+          <Settings className="w-4 h-4" />
+          Filter
         </Button>
       </div>
 
@@ -42,7 +42,7 @@ function Report({ summary }: ReportParams) {
 
       <TopFilesChart fileData={fileData} />
       <AllFilesTable fileData={fileData} />
-      <SettingDialog open={open} onOpenChange={setOpen} />
+      <FilterSettingDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }

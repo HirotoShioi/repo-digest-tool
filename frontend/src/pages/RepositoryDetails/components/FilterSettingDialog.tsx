@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface SettingDialogProps {
+interface FilterSettingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -25,7 +25,7 @@ const defaultPatterns = [
   // ... (same patterns as in Settings/index.tsx)
 ];
 
-export function SettingDialog({ open, onOpenChange }: SettingDialogProps) {
+export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogProps) {
   const [excludePatterns, setExcludePatterns] =
     useState<string[]>(defaultPatterns);
   const [includePatterns, setIncludePatterns] = useState<string[]>([]);
