@@ -31,7 +31,6 @@ function useGetSummary(params: GetSummaryParams) {
   const query = useQuery({
     queryKey: ["summary", params],
     queryFn: async () => {
-        // TODO: Change to GET request in the future
         const url = "gitHubUrl" in params ? params.gitHubUrl : `${params.author}/${params.repositoryName}`;
         const response = await client.POST("/summary", {
             body: {

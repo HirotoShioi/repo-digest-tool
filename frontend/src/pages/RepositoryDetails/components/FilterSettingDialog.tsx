@@ -15,11 +15,11 @@ import {
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface FilterSettingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave: () => void;
 }
 
 function isValidGlob(pattern: string): boolean {
@@ -28,9 +28,8 @@ function isValidGlob(pattern: string): boolean {
   return pattern.length > 0 && pattern.includes("*");
 }
 
-export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogProps) {
+export function FilterSettingDialog({ open, onOpenChange, onSave }: FilterSettingDialogProps) {
   const { data: filterSettings } = useGetSettings();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const [excludePatterns, setExcludePatterns] = useState<string[]>([]);
@@ -103,14 +102,13 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
         excludePatterns,
       },
       {
-        onSuccess: (newData) => {
-          // サーバー更新成功後にキャッシュ更新
-          queryClient.setQueryData(['settings'], newData);
+        onSuccess: () => {
           toast({
             title: "Settings updated",
             variant: "default",
             description: "Your settings have been updated successfully",
           });
+          onSave();
           onOpenChange(false);
         },
       }
