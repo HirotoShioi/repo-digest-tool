@@ -9,71 +9,69 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
+import { useToast } from "@/hooks/use-toast";
 
 interface FilterSettingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-// Move defaultPatterns from Settings/index.tsx
-const defaultPatterns = [
-  "__pycache__/",
-  "*.pyc",
-  // ... (same patterns as in Settings/index.tsx)
-];
-
 export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogProps) {
   const {data: filterSettings} = useGetSettings()
-  const excludePatterns = filterSettings?.excludePatterns || defaultPatterns
-  const includePatterns = filterSettings?.includePatterns || []
-  const [newPattern, setNewPattern] = useState("");
-  const [maxFileSize, setMaxFileSize] = useState(10);
-  const { mutate: updateSettings } = useUpdateSettings()
+  const [excludePatterns, setExcludePatterns] =
+    useState<string[]>(filterSettings?.excludePatterns || []);
+  const [includePatterns, setIncludePatterns] = useState<string[]>(filterSettings?.includePatterns || []);
+  const [maxFileSize, setMaxFileSize] = useState<number>(10);
+  const [newExcludePattern, setNewExcludePattern] = useState("");
+  const [newIncludePattern, setNewIncludePattern] = useState("");
 
   // Same functions as Settings/index.tsx
   const addPattern = (type: "exclude" | "include") => {
-    const trimmedPattern = newPattern.trim();
-    if (trimmedPattern) {
-      if (type === "exclude") {
-        updateSettings({
-          ...filterSettings,
-          excludePatterns: [...excludePatterns, trimmedPattern],
-        });
-      } else {
-        updateSettings({
-          ...filterSettings,
-          includePatterns: [...includePatterns, trimmedPattern],
-        });
+    if (type === "exclude") {
+      const trimmedPattern = newExcludePattern.trim();
+      if (trimmedPattern) {
+        setExcludePatterns((prev) => [...prev, trimmedPattern]);
+        setNewExcludePattern("");
       }
-      setNewPattern("");
+    } else {
+      const trimmedPattern = newIncludePattern.trim();
+      if (trimmedPattern) {
+        setIncludePatterns((prev) => [...prev, trimmedPattern]);
+        setNewIncludePattern("");
+      }
     }
   };
 
   const removePattern = (pattern: string, type: "exclude" | "include") => {
     if (type === "exclude") {
-      updateSettings({
-        ...filterSettings,
-        excludePatterns: excludePatterns.filter((p) => p !== pattern),
-      });
+      setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
     } else {
-      updateSettings({
-        ...filterSettings,
-        includePatterns: includePatterns.filter((p) => p !== pattern),
-      });
+      setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
     }
   };
 
+  const { mutate: updateSettings } = useUpdateSettings()
+  const { toast } = useToast()
   const handleSave = async () => {
-    // Save logic here
-    console.log("Exclude Patterns:", excludePatterns);
-    console.log("Include Patterns:", includePatterns);
-    console.log("Max File Size:", maxFileSize);
-    onOpenChange(false);
+    updateSettings({
+      includePatterns: includePatterns,
+      excludePatterns: excludePatterns,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Settings updated",
+          variant: "default",
+          description: "Your settings have been updated successfully",
+        });
+        onOpenChange(false);
+      },
+    });
   };
 
   const PatternList = ({
@@ -110,6 +108,8 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Filter Settings</DialogTitle>
+          <DialogDescription>
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-8">
           <div className="space-y-4">
@@ -122,8 +122,8 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
             <div className="flex gap-2 mb-2">
               <Input
                 placeholder="Add new exclude pattern (e.g. *.log)"
-                value={newPattern}
-                onChange={(e) => setNewPattern(e.target.value)}
+                value={newExcludePattern}
+                onChange={(e) => setNewExcludePattern(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addPattern("exclude")}
               />
               <Button onClick={() => addPattern("exclude")} size="icon">
@@ -143,8 +143,8 @@ export function FilterSettingDialog({ open, onOpenChange }: FilterSettingDialogP
             <div className="flex gap-2 mb-2">
               <Input
                 placeholder="Add new include pattern (e.g. *.md)"
-                value={newPattern}
-                onChange={(e) => setNewPattern(e.target.value)}
+                value={newIncludePattern}
+                onChange={(e) => setNewIncludePattern(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addPattern("include")}
               />
               <Button onClick={() => addPattern("include")} size="icon">

@@ -189,10 +189,11 @@ def get_settings() -> Settings:
 
 @router.put("/settings")
 def update_settings(request: Settings) -> Settings:
-    settings = get_filter_settings()
-    settings.include_list = request.include_files
-    settings.ignore_list = request.exclude_files
+    with open(".gptignore", "w") as f:
+        f.write("\n".join(request.exclude_files))
+    with open(".gptinclude", "w") as f:
+        f.write("\n".join(request.include_files))
     return Settings(
-        include_files=settings.include_list,
-        exclude_files=settings.ignore_list,
+        include_files=request.include_files,
+        exclude_files=request.exclude_files,
     )
