@@ -7,11 +7,8 @@ interface ReportParams {
   summary: Summary;
 }
 
-function Report({ summary}: ReportParams) {
-  const {
-    fileTypes,
-    fileData,
-  } = summary;
+function Report({ summary }: ReportParams) {
+  const { fileTypes, fileData } = summary;
 
   return (
     <div>

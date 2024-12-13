@@ -14,7 +14,15 @@ export interface LoadingButtonProps
 
 const LoadingButton = React.forwardRef<HTMLButtonElement, LoadingButtonProps>(
   (
-    { className, children, isLoading, loadingText, disabled, variant, ...props },
+    {
+      className,
+      children,
+      isLoading,
+      loadingText,
+      disabled,
+      variant,
+      ...props
+    },
     ref
   ) => {
     return (

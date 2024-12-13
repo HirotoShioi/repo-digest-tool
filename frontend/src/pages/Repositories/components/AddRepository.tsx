@@ -1,23 +1,26 @@
-import React, { useState } from 'react';
-import { GitBranch } from 'lucide-react';
+import React, { useState } from "react";
+import { GitBranch } from "lucide-react";
 
 interface AddRepositoryProps {
   onAdd: (url: string) => void;
 }
 
 export function AddRepository({ onAdd }: AddRepositoryProps) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
       onAdd(url.trim());
-      setUrl('');
+      setUrl("");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 mb-6">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-lg shadow-md p-6 mb-6"
+    >
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
         <GitBranch className="w-5 h-5 text-blue-600" />
         Add New Repository

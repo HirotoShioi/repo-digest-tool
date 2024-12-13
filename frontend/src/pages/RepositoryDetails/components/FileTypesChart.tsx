@@ -1,6 +1,12 @@
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -51,9 +57,9 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-      <div className="chart-container">
-        <Pie data={chartData} />
-      </div>
+        <div className="chart-container">
+          <Pie data={chartData} />
+        </div>
       </CardContent>
     </Card>
   );
