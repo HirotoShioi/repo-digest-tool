@@ -81,14 +81,14 @@ function AllFilesTable({ fileData, author, name }: AllFilesTableParams) {
       {
         onError: (error) => {
           toast({
-            title: "Failed to exclude files",
+            title: "Failed to update filter",
             description: error.message,
             variant: "destructive",
           });
         },
         onSuccess: () => {
           toast({
-            title: "Files excluded",
+            title: "Filter updated",
           });
         },
       }

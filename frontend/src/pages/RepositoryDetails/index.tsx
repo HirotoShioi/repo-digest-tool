@@ -97,13 +97,12 @@ function RepositoryDetailsPage() {
           />
         </div>
       </div>
-      {isFetching && !isSummaryLoading ? (
-        <LoadingSpinner
-          minHeight={500}
-          size={48}
-          label="Updating digest summary..."
-        />
-      ) : isSummaryLoading ? (
+      {isFetching && !isSummaryLoading && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <LoadingSpinner size={48} label="Updating digest summary..." />
+        </div>
+      )}
+      {isSummaryLoading ? (
         <LoadingSpinner
           minHeight={500}
           size={48}
