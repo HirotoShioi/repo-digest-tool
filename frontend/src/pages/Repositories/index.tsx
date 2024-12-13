@@ -1,0 +1,58 @@
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
+import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useGetRepositories } from "@/services/repositories/queries";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+
+function RepositoriesPage() {
+  const { data: repositories, isLoading } = useGetRepositories();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const filteredRepositories = (repositories ?? [])
+    .filter(
+      (repo) =>
+        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        repo.url.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="flex-1 justify-center items-center">
+          <Input
+            type="text"
+            className="w-full border-primary"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search repositories..."
+          />
+        </div>
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="bg-primary hover:bg-primary/90"
+        >
+          <Plus className="w-5 h-5" />
+          Add Repository
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <LoadingSpinner size={48} minHeight={500} />
+      ) : (
+        <RepositoryList repositories={filteredRepositories} />
+      )}
+
+      <AddRepositoryDialog
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+      />
+    </div>
+  );
+}
+
+export default RepositoriesPage;

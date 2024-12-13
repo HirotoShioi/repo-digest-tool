@@ -17,6 +17,7 @@ REPO_DIR = "repositories"
 
 @dataclass
 class Repository:
+    id: str
     url: str
     branch: Optional[str]
     path: Path
@@ -38,9 +39,23 @@ class GitHub:
     def __init__(self, github_token: Optional[str] = None) -> None:
         self.github_token = github_token or os.getenv("GITHUB_TOKEN")
 
+    def getByUrl(self, repo_url: str) -> Repository:
+        repositories = self.list()
+        for repository in repositories:
+            if repository.url == repo_url:
+                return repository
+        raise ValueError(f"Repository not found: {repo_url}")
+
+    def get(self, author: str, repository_name: str) -> Repository:
+        repositories = self.list()
+        for repository in repositories:
+            if repository.author == author and repository.name == repository_name:
+                return repository
+        raise ValueError(f"Repository not found: {repository_name}")
+
     def clone(
         self, repo_url: str, branch: Optional[str] = None, force: bool = False
-    ) -> None:
+    ) -> Optional[Repository]:
         """
         Clone a repository.
 
@@ -48,6 +63,9 @@ class GitHub:
             repo_url (str): Repository URL.
             branch (Optional[str], optional): Branch to clone. Defaults to None.
             force (bool, optional): Force re-clone a repository. Defaults to False.
+
+        Returns:
+            Repository: Cloned repository
 
         Raises:
             e: GitCommandError
@@ -65,9 +83,25 @@ class GitHub:
                     depth=1,
                     branch=branch if branch else None,
                 )
+                # Extract author and repository name from the URL
+                parsed_url = urlparse(repo_url)
+                path_parts = parsed_url.path.strip("/").split("/")
+                author = path_parts[0]
+                repo_name = path_parts[1]
+
+                return Repository(
+                    id=f"{author}/{repo_name}",
+                    url=repo_url,
+                    branch=branch if branch else None,
+                    path=repo_path,
+                    updated_at=datetime.datetime.now(),
+                    name=repo_name,
+                    author=author,
+                )
         except GitCommandError as e:
             log_error(e)
             raise e
+        return None
 
     def remove(self, repo_url: str) -> None:
         """
@@ -163,6 +197,7 @@ class GitHub:
                     size = repo_path.stat().st_size
                     repositories.append(
                         Repository(
+                            id=f"{author}/{name}",
                             url=GitHub.remove_github_token(repo.remotes.origin.url),
                             branch=repo.active_branch.name,
                             path=repo_path,
