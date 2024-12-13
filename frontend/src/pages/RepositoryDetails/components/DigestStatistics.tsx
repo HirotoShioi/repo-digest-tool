@@ -34,7 +34,7 @@ interface DigestStatisticsParams {
 
 function DigestStatistics({ summary }: DigestStatisticsParams) {
   return (
-    <Card className="bg-white shadow-md rounded-lg p-2">
+    <Card className="p-2">
       <CardHeader className="p-4">
         <CardTitle>Digest Statistics</CardTitle>
       </CardHeader>

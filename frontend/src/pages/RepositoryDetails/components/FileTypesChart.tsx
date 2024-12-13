@@ -43,7 +43,7 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
   };
 
   return (
-    <Card className="bg-white shadow-md rounded-lg p-2">
+    <Card className="shadow-md rounded-lg p-2">
       <CardHeader className="p-4">
         <CardTitle>Context length distribution by file type</CardTitle>
         <CardDescription>

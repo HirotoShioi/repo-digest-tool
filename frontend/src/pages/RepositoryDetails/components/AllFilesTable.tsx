@@ -51,7 +51,7 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
   const totalCount = filteredFiles.length;
 
   return (
-    <Card className="bg-white shadow-md rounded-lg p-2 mt-8">
+    <Card className="p-2 mt-8">
       <CardHeader className="p-4">
         <CardTitle>All Files</CardTitle>
       </CardHeader>

@@ -77,7 +77,7 @@ function TopFilesChart({ fileData }: TopFilesChartParams) {
   };
 
   return (
-    <Card className="bg-white shadow-md rounded-lg p-2">
+    <Card className="p-2">
       <CardHeader className="p-4">
         <CardTitle>Top 20 Files by Context Length</CardTitle>
       </CardHeader>

@@ -1,8 +1,9 @@
 import { Outlet, Link } from "react-router";
 import { cn } from "@/lib/utils";
-import { FileText, Github, Moon, Sun } from "lucide-react";
+import { FileText, Moon, Sun } from "lucide-react";
 import { Button } from "./ui/button";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
+import githubIcon from "@/assets/github.svg";
 
 export function Layout() {
   const { theme, setTheme } = useTheme();
@@ -35,12 +36,12 @@ export function Layout() {
                 <span className="sr-only">Toggle theme</span>
               </Button>
               <a
-                href="https://github.com/yourusername/repo-digest-tool"
+                href="https://github.com/HirotoShioi/repo-digest-tool"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <Button variant="ghost" size="icon">
-                  <Github className="h-5 w-5" />
+                  <img src={githubIcon} alt="GitHub" className="h-5 w-5" />
                   <span className="sr-only">GitHub repository</span>
                 </Button>
               </a>
