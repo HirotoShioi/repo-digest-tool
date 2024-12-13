@@ -42,6 +42,22 @@ def get_repository(author: str, repository_name: str) -> Repository:
     return github.get(author, repository_name)
 
 
+class CloneRepositoryParams(BaseModel):
+    url: str = Field(..., description="The URL of the repository to clone")
+    branch: Optional[str] = Field(None, description="The branch to clone")
+
+
+@router.post(
+    "/repositories",
+    response_model=Response,
+    summary="Clone a repository",
+    description="Clone a repository. If the URL is not provided, all repositories will be cloned.",
+)
+def clone_repository(request: CloneRepositoryParams) -> Response:
+    github.clone(request.url, request.branch)
+    return Response(status="success")
+
+
 class DeleteRepositoryParams(BaseModel):
     url: Optional[str] = Field(None, description="The URL of the repository to delete")
 

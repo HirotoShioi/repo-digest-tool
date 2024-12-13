@@ -31,3 +31,5 @@ benchmarks/**
 examples/**
 yarn.lock
 uv.lock
+*.gif
+*.zip
