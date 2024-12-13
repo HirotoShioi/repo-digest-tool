@@ -46,26 +46,24 @@ function DigestStatistics({ summary }: DigestStatisticsParams) {
               Context Length (GPT-4o)
             </TableCell>
             <TableCell className="relative">
-                    <span
-                      className={summary.contextLength > 128000 ? "text-red-600" : "text-gray-800"}
-                    >
-                      {formatNumber(summary.contextLength)}
-                    </span>
-                    {summary.contextLength > 128000 && (
-                       <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="text-red-600 underline cursor-help">?</span>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-gray-800 text-white text-sm rounded-md shadow-md px-4 py-2 w-64">
-                                  The context length exceeds the limit of 128,000 for
-                                  GPT-4o. Consider reducing the content or splitting it
-                                  into smaller chunks to fit within the limit.
-                                </TooltipContent>
-                           </Tooltip>
-                       </TooltipProvider>
-                    )}
-                </TableCell>
+                <span
+                  className={summary.contextLength > 128000 ? "text-destructive" : "text-muted-foreground"}
+                >
+                  {formatNumber(summary.contextLength)}
+                </span>
+                {summary.contextLength > 128000 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-red-600 underline cursor-help ml-2">?</span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-gray-800 text-white text-sm rounded-md shadow-md px-4 py-2 w-64">
+                      The context length exceeds the limit of 128,000 for
+                      GPT-4o. Consider reducing the content or splitting it
+                      into smaller chunks to fit within the limit.
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell className="font-semibold">Total Files</TableCell>

@@ -23,6 +23,7 @@ function RepositoriesPage() {
         <div className="flex-1 justify-center items-center">
           <Input
             type="text"
+            className="w-full border-primary"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search repositories..."
@@ -30,7 +31,7 @@ function RepositoriesPage() {
         </div>
         <Button
           onClick={() => setIsAddDialogOpen(true)}
-          className="bg-green-700 hover:bg-green-800"
+          className="bg-primary hover:bg-primary/90"
         >
           <Plus className="w-5 h-5" />
           Add Repository

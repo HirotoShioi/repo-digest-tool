@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
 
 function Provider({ children }: { children: React.ReactNode }) {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0}>
       <QueryClientProvider client={queryClient}>
         {children}
         <Toaster />

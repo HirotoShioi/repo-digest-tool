@@ -104,7 +104,7 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
           </TableHeader>
           <TableBody>
             {displayedFiles.map((file, index) => (
-              <TableRow key={index} className="hover:bg-gray-50">
+              <TableRow key={index} className="hover:bg-muted">
                 <TableCell>{file.name}</TableCell>
                 <TableCell>{file.path}</TableCell>
                 <TableCell>{file.extension || "None"}</TableCell>

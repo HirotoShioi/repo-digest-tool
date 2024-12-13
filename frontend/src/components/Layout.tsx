@@ -9,7 +9,7 @@ export function Layout() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-muted">
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="mx-auto">
           <div className="flex h-14 items-center justify-between px-4">

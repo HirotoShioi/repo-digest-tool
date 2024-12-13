@@ -82,7 +82,7 @@ function RepositoryDetailsPage() {
           <Button
             size="lg"
             onClick={() => setOpen(true)}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-primary hover:bg-primary/90"
           >
             <Settings className="w-4 h-4" />
             Filter

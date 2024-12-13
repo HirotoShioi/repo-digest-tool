@@ -5,7 +5,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { Repository } from "@/types";
-import { formatSize, formatDate } from "@/utils/formatters";
+import { formatDate } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -50,9 +50,9 @@ export function RepositoryCard({
       >
         <CardHeader className="p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 max-w-[70%]">
               <FolderGit2 className="w-6 h-6 text-primary" />
-              <div className="flex flex-col w-full max-w-[380px]">
+              <div className="flex flex-col w-full">
                 <h3 className="text-lg font-semibold">{repository.name}</h3>
                 <p className="text-sm text-muted-foreground truncate">{repository.url}</p>
               </div>
