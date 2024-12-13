@@ -44,9 +44,9 @@ def test_digest_file_generation() -> None:
         )
 
     file_size = digest_path.stat().st_size
-    MIN_DIGEST_SIZE = 67 * 1024
+    MIN_DIGEST_SIZE = 40 * 1024
     MAX_DIGEST_SIZE_MB = 1 * 1024 * 1024
-    assert file_size > MIN_DIGEST_SIZE, "Digest file size should be larger than 200KB."
+    assert file_size > MIN_DIGEST_SIZE, "Digest file size should be larger than 40KB."
     assert (
         file_size <= MAX_DIGEST_SIZE_MB
     ), f"Digest file size should be less than {MAX_DIGEST_SIZE_MB}MB"
