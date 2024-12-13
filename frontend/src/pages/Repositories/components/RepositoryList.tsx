@@ -9,12 +9,11 @@ export function RepositoryList({
   repositories,
 }: RepositoryListProps) {
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
       {repositories.map((repo) => (
-        <RepositoryCard
-          key={repo.id}
-          repository={repo}
-        />
+          <RepositoryCard
+            repository={repo}
+          />
       ))}
       {repositories.length === 0 && (
         <div className="text-center py-8 text-gray-500">

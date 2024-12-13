@@ -31,7 +31,8 @@ function RepositoryDetailsPage() {
     repositoryName: name,
   });
 
-  const { mutate: generateDigest, isPending: isDigestLoading } = useGenerateDigest();
+  const { mutate: generateDigest, isPending: isDigestLoading } =
+    useGenerateDigest();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -54,10 +55,20 @@ function RepositoryDetailsPage() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <FileText className="w-6 h-6" />
-          {repository.name}
-        </h1>
+        <div className="flex gap-2 flex-col">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <FileText className="w-6 h-6" />
+            {repository.name}
+          </h1>
+          <a
+            href={repository.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground"
+          >
+            {repository.url}
+          </a>
+        </div>
         <div className="flex items-center gap-2">
           <LoadingButton
             isLoading={isDigestLoading}
@@ -89,13 +100,13 @@ function RepositoryDetailsPage() {
         <LoadingSpinner
           minHeight={500}
           size={48}
-          label="Updating repository analysis..."
+          label="Updating digest summary..."
         />
       ) : isSummaryLoading ? (
         <LoadingSpinner
           minHeight={500}
           size={48}
-          label="Loading repository analysis..."
+          label="Loading digest summary..."
         />
       ) : summary ? (
         <Report summary={summary} />

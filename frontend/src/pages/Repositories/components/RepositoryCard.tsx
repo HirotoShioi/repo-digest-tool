@@ -43,77 +43,73 @@ export function RepositoryCard({
     name: repository.name,
   });
   return (
-    <Card
-      onMouseEnter={() => prefetch()}
-      onClick={() => navigate(`/${repository.author}/${repository.name}`)}
-      className={`hover:shadow-lg transition-all cursor-pointer`}
-    >
-      <CardHeader className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <FolderGit2 className="w-6 h-6 text-primary" />
-            <div>
-              <h3 className="text-lg font-semibold">{repository.name}</h3>
-              <p className="text-sm text-muted-foreground">{repository.url}</p>
+      <Card
+        onMouseEnter={() => prefetch()}
+        onClick={() => navigate(`/${repository.author}/${repository.name}`)}
+        className={`hover:shadow-lg transition-all cursor-pointer h-full`}
+      >
+        <CardHeader className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <FolderGit2 className="w-6 h-6 text-primary" />
+              <div className="flex flex-col w-full max-w-[380px]">
+                <h3 className="text-lg font-semibold">{repository.name}</h3>
+                <p className="text-sm text-muted-foreground truncate">{repository.url}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpdate();
+                    }}
+                    size="icon"
+                    variant="ghost"
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Update repository</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete();
+                    }}
+                    size="icon"
+                    variant="ghost"
+                    className="hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete repository</TooltipContent>
+              </Tooltip>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUpdate();
-                  }}
-                  size="icon"
-                  variant="ghost"
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Update repository</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete();
-                  }}
-                  size="icon"
-                  variant="ghost"
-                  className="hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Delete repository</TooltipContent>
-            </Tooltip>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="bg-muted p-3 rounded-md">
+              <p className="text-muted-foreground">Author</p>
+              <p className="font-semibold">{repository.author}</p>
+            </div>
+            <div className="bg-muted p-3 rounded-md">
+              <p className="text-muted-foreground">Last Updated</p>
+              <p className="font-semibold">{formatDate(repository.updatedAt)}</p>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="bg-muted p-3 rounded-md">
-            <p className="text-muted-foreground">Author</p>
-            <p className="font-semibold">{repository.author}</p>
-          </div>
-          <div className="bg-muted p-3 rounded-md">
-            <p className="text-muted-foreground">Size</p>
-            <p className="font-semibold">{formatSize(repository.size)}</p>
-          </div>
-          <div className="bg-muted p-3 rounded-md">
-            <p className="text-muted-foreground">Last Updated</p>
-            <p className="font-semibold">{formatDate(repository.updatedAt)}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
   );
 }
