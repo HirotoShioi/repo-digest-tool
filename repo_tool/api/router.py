@@ -102,7 +102,7 @@ def update_repository(request: UpdateRepositoryParams) -> Response:
 
 
 @router.get(
-    "/summary/{author}/{repository_name}",
+    "/{author}/{repository_name}/summary",
     response_model=Summary,
     summary="Get a summary of a repository digest",
     description="Get a summary of a repository digest",
