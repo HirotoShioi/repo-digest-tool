@@ -30,3 +30,4 @@ benchmarks/**
 *.test.tsx
 examples/**
 yarn.lock
+uv.lock
