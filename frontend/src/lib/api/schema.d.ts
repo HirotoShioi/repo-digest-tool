@@ -21,11 +21,7 @@ export interface paths {
          * @description Update a repository. If the URL is not provided, all repositories will be updated.
          */
         put: operations["update_repository_repositories_put"];
-        /**
-         * Clone a repository
-         * @description Clone a repository
-         */
-        post: operations["clone_repository_repositories_post"];
+        post?: never;
         /**
          * Delete a repository
          * @description Delete a repository. If the URL is not provided, all repositories will be deleted.
@@ -56,20 +52,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/summary": {
+    "/summary/{author}/{repository_name}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * Create a summary of a repository
-         * @description Create a summary of a repository
+         * Get a summary of a repository digest
+         * @description Get a summary of a repository digest
          */
-        post: operations["get_summary_of_repository_summary_post"];
+        get: operations["get_summary_of_repository_summary__author___repository_name__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -118,19 +114,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** CloneRepositoryParams */
-        CloneRepositoryParams: {
-            /**
-             * Url
-             * @description The URL of the repository to clone
-             */
-            url: string;
-            /**
-             * Branch
-             * @description The branch to clone (default: main)
-             */
-            branch?: string | null;
-        };
         /** DeleteRepositoryParams */
         DeleteRepositoryParams: {
             /**
@@ -167,28 +150,10 @@ export interface components {
              */
             url: string;
             /**
-             * Prompt
-             * @description The prompt to create a digest
-             */
-            prompt?: string | null;
-            /**
              * Branch
              * @description The branch to generate digest for
              */
             branch?: string | null;
-        };
-        /** GenerateSummaryParams */
-        GenerateSummaryParams: {
-            /**
-             * Url
-             * @description The URL of the repository to create a summary
-             */
-            url: string;
-            /**
-             * Prompt
-             * @description The prompt to create a summary
-             */
-            prompt?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -349,39 +314,6 @@ export interface operations {
             };
         };
     };
-    clone_repository_repositories_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CloneRepositoryParams"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Repository"] | null;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     delete_repository_repositories_delete: {
         parameters: {
             query?: never;
@@ -447,18 +379,17 @@ export interface operations {
             };
         };
     };
-    get_summary_of_repository_summary_post: {
+    get_summary_of_repository_summary__author___repository_name__get: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                author: string;
+                repository_name: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GenerateSummaryParams"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
