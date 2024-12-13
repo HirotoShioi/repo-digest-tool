@@ -35,16 +35,19 @@ function useGetSummary(params: GetSummaryParams) {
   const query = useQuery({
     queryKey: ["summary", params.author, params.name],
     enabled: !!params.author && !!params.name,
+    staleTime: Infinity,
     queryFn: async () => {
-      console.log("useGetSummary");
-      const response = await client.GET("/summary/{author}/{repository_name}", {
-        params: {
-          path: {
-            author: params.author!,
-            repository_name: params.name!,
+      const response = await client.GET(
+        `/{author}/{repository_name}/summary`,
+        {
+          params: {
+            path: {
+              author: params.author!,
+              repository_name: params.name!,
+            },
           },
-        },
-      });
+        }
+      );
       console.log(response);
       return response?.data ? toSummary(response.data) : null;
     },
