@@ -12,14 +12,11 @@ import { LoadingButton } from "@/components/LoadingButton";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
-  if (!author || !name) {
-    return <div>Repository not found</div>;
-  }
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { data: repository, isLoading } = useGetRepositoryById({
-    author,
-    name,
+    author: author ?? "",
+    name: name ?? "",
   });
   const {
     data: summary,
@@ -27,12 +24,16 @@ function RepositoryDetailsPage() {
     isLoading: isSummaryLoading,
     isFetching,
   } = useGetSummary({
-    author,
-    repositoryName: name,
+    author: author ?? "",
+    repositoryName: name ?? "",
   });
 
   const { mutate: generateDigest, isPending: isDigestLoading } =
     useGenerateDigest();
+
+  if (!author || !name) {
+    return <div>Repository not found</div>;
+  }
 
   if (isLoading) {
     return <div>Loading...</div>;

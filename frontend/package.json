@@ -11,7 +11,6 @@
     "generate-types": "openapi-typescript http://0.0.0.0:8000/openapi.json -o src/lib/api/schema.d.ts"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.0",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-navigation-menu": "^1.2.1",

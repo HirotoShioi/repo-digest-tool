@@ -47,7 +47,7 @@ jobs:
         run: pnpm tsc --noEmit
 
       - name: Lint
-        run: pnpm eslint .
+        run: pnpm lint
 
       - name: Build
         run: pnpm build

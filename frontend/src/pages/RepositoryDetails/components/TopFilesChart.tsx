@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FileData } from "@/types";
 import { formatNumber } from "@/utils/formatters";
 import { Bar } from "react-chartjs-2";
@@ -23,17 +24,17 @@ ChartJS.register(
 );
 
 interface TopFilesChartParams {
-    fileData: FileData[];
+  fileData: FileData[];
 }
 
 function TopFilesChart({ fileData }: TopFilesChartParams) {
+  // Sort fileData by tokens in descending order and take top 20
+  const sortedFiles = [...fileData]
+    .sort((a, b) => b.tokens - a.tokens)
+    .slice(0, 20);
 
-    // Sort fileData by tokens in descending order and take top 20
-    const sortedFiles = [...fileData].sort((a, b) => b.tokens - a.tokens).slice(0,20);
-
-
-    const labels = sortedFiles.map(file => file.name);
-    const data = sortedFiles.map(file => file.tokens);
+  const labels = sortedFiles.map((file) => file.name);
+  const data = sortedFiles.map((file) => file.tokens);
 
   const chartData = {
     labels: labels,
@@ -82,12 +83,12 @@ function TopFilesChart({ fileData }: TopFilesChartParams) {
         <CardTitle>Top 20 Files by Context Length</CardTitle>
       </CardHeader>
       <CardContent className="p-4">
-      <div className="chart-container">
-        <Bar data={chartData} options={chartOptions as any} />
-      </div>
+        <div className="chart-container">
+          <Bar data={chartData} options={chartOptions as any} />
+        </div>
       </CardContent>
     </Card>
   );
-};
+}
 
 export default TopFilesChart;

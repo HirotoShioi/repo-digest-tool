@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,17 +25,21 @@ interface FilterSettingDialogProps {
 
 function isValidGlob(pattern: string): boolean {
   if (!pattern || pattern.trim().length === 0) return false;
-  
+
   try {
     // Minimatchインスタンスを作成してパターンを検証
     new Minimatch(pattern);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
-export function FilterSettingDialog({ open, onOpenChange, onSave }: FilterSettingDialogProps) {
+export function FilterSettingDialog({
+  open,
+  onOpenChange,
+  onSave,
+}: FilterSettingDialogProps) {
   const { data: filterSettings } = useGetSettings();
   const { toast } = useToast();
 
@@ -90,7 +94,7 @@ export function FilterSettingDialog({ open, onOpenChange, onSave }: FilterSettin
       }
     }
   }
-  
+
   function removePattern(pattern: string, type: "exclude" | "include") {
     if (type === "exclude") {
       setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
@@ -98,7 +102,6 @@ export function FilterSettingDialog({ open, onOpenChange, onSave }: FilterSettin
       setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
     }
   }
-  
 
   const { mutate: updateSettings } = useUpdateSettings();
 
@@ -165,7 +168,8 @@ export function FilterSettingDialog({ open, onOpenChange, onSave }: FilterSettin
             <div>
               <h3 className="text-lg font-medium">Exclude Patterns</h3>
               <p className="text-sm text-muted-foreground">
-                Specify patterns for files and directories to exclude from processing
+                Specify patterns for files and directories to exclude from
+                processing
               </p>
             </div>
             <div className="flex gap-2 mb-2">
