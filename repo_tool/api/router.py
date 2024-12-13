@@ -96,7 +96,7 @@ def get_summary_of_repository(author: str, repository_name: str) -> Summary:
     if not github.repo_exists(url):
         raise HTTPException(status_code=404, detail="Repository not found")
     repo_path = GitHub.get_repo_path(url)
-    filtered_files = filter_files_in_repo(repo_path)
+    filtered_files = filter_files_in_repo(repo_path, None)
     summary = generate_summary(repo_path, filtered_files)
     return summary
 
