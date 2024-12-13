@@ -19,14 +19,22 @@ import {
 import { FileData } from "@/types";
 import { formatNumber } from "@/utils/formatters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useExcludeFiles } from "@/services/settings/mutations";
+import { useToast } from "@/hooks/use-toast";
 
 interface AllFilesTableParams {
   fileData: FileData[];
+  author: string;
+  name: string;
 }
 
-function AllFilesTable({ fileData }: AllFilesTableParams) {
+function AllFilesTable({ fileData, author, name }: AllFilesTableParams) {
+  const { mutate: excludeFiles } = useExcludeFiles();
   const [searchText, setSearchText] = useState("");
   const [displayCount, setDisplayCount] = useState(20);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
   const filteredFiles = useMemo(() => {
     const normalizedSearchText = searchText.toLowerCase();
@@ -50,6 +58,44 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
   const displayedCount = displayedFiles.length;
   const totalCount = filteredFiles.length;
 
+  const handleCheckboxChange = (filePath: string) => {
+    setSelectedFiles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(filePath)) {
+        newSet.delete(filePath);
+      } else {
+        newSet.add(filePath);
+      }
+      return newSet;
+    });
+  };
+
+  const { toast } = useToast();
+  const handleFilterClick = () => {
+    excludeFiles(
+      {
+        author,
+        name,
+        paths: Array.from(selectedFiles),
+      },
+      {
+        onError: (error) => {
+          toast({
+            title: "Failed to exclude files",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+        onSuccess: () => {
+          toast({
+            title: "Files excluded",
+          });
+        },
+      }
+    );
+    setSelectedFiles(new Set());
+  };
+
   return (
     <Card className="p-2 mt-8">
       <CardHeader className="p-4">
@@ -67,6 +113,15 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
               onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
+
+          {/* Add Filter Button */}
+          <Button
+            onClick={handleFilterClick}
+            disabled={selectedFiles.size === 0}
+            variant="secondary"
+          >
+            Filter ({selectedFiles.size})
+          </Button>
 
           {/* Display Count Selector */}
           <div className="flex items-center gap-2">
@@ -90,11 +145,11 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <Table className="min-w-full">
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]"></TableHead>
                 <TableHead className="text-left">File Name</TableHead>
                 <TableHead className="text-left">Path</TableHead>
                 <TableHead className="text-left">File Type</TableHead>
@@ -104,6 +159,12 @@ function AllFilesTable({ fileData }: AllFilesTableParams) {
             <TableBody>
               {displayedFiles.map((file, index) => (
                 <TableRow key={index} className="hover:bg-muted">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedFiles.has(file.path)}
+                      onCheckedChange={() => handleCheckboxChange(file.path)}
+                    />
+                  </TableCell>
                   <TableCell>{file.name}</TableCell>
                   <TableCell>{file.path}</TableCell>
                   <TableCell>{file.extension || "None"}</TableCell>

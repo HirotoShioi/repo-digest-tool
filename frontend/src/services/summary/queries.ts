@@ -26,13 +26,13 @@ function toSummary(response: components["schemas"]["Summary"]): Summary {
     };
 }
 
-type GetSummaryParams =  { author?: string; repositoryName?: string }
+type GetSummaryParams =  { author?: string; name?: string }
 function useGetSummary(params: GetSummaryParams) {
   const query = useQuery({
-    queryKey: ["summary", params],
-    enabled: !!params.author && !!params.repositoryName,
+    queryKey: ["summary", params.author, params.name],
+    enabled: !!params.author && !!params.name,
     queryFn: async () => {
-        const url =`${params.author}/${params.repositoryName}`;
+        const url =`${params.author}/${params.name}`;
         const response = await client.POST("/summary", {
             body: {
                 url: url,

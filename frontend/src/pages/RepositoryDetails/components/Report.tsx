@@ -5,9 +5,11 @@ import AllFilesTable from "./AllFilesTable";
 import { Summary } from "@/types";
 interface ReportParams {
   summary: Summary;
+  author: string;
+  name: string;
 }
 
-function Report({ summary }: ReportParams) {
+function Report({ summary, author, name }: ReportParams) {
   const { fileTypes, fileData } = summary;
 
   return (
@@ -18,7 +20,7 @@ function Report({ summary }: ReportParams) {
       </div>
 
       <TopFilesChart fileData={fileData} />
-      <AllFilesTable fileData={fileData} />
+      <AllFilesTable fileData={fileData} author={author} name={name} />
     </div>
   );
 }

@@ -25,7 +25,7 @@ function RepositoryDetailsPage() {
     isFetching,
   } = useGetSummary({
     author: author,
-    repositoryName: name,
+    name: name,
   });
 
   const { mutate: generateDigest, isPending: isDigestLoading } =
@@ -110,7 +110,7 @@ function RepositoryDetailsPage() {
           label="Loading digest summary..."
         />
       ) : summary ? (
-        <Report summary={summary} />
+        <Report summary={summary} author={author} name={name} />
       ) : (
         <div className="text-center py-8 text-gray-600">
           No analysis data available
