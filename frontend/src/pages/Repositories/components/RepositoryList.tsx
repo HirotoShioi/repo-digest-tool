@@ -13,6 +13,7 @@ export function RepositoryList({
       {repositories.map((repo) => (
           <RepositoryCard
             repository={repo}
+            key={repo.id}
           />
       ))}
       {repositories.length === 0 && (
