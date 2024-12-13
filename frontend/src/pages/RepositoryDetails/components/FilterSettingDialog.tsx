@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,83 @@ function isValidGlob(pattern: string): boolean {
   }
 }
 
+const PatternInput = memo(function PatternInput({
+  value,
+  onChange,
+  onAdd,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onAdd: () => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="flex gap-2 mb-2">
+      <Input
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && onAdd()}
+      />
+      <Button onClick={onAdd} size="icon">
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+});
+
+const PatternList = memo(function PatternList({
+  patterns,
+  type,
+  onRemove,
+}: {
+  patterns: string[];
+  type: "exclude" | "include";
+  onRemove: (pattern: string, type: "exclude" | "include") => void;
+}) {
+  return (
+    <ScrollArea className="h-[150px] rounded-md border p-4">
+      <div className="flex flex-wrap gap-2">
+        {patterns.map((pattern) => (
+          <Badge
+            key={pattern}
+            variant="secondary"
+            className="flex items-center gap-1"
+          >
+            {pattern}
+            <button
+              onClick={() => onRemove(pattern, type)}
+              className="ml-1 hover:text-destructive"
+              aria-label={`Remove ${pattern} pattern`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </Badge>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+});
+
+const FileSizeInput = memo(function FileSizeInput({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <Input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="max-w-xs"
+      placeholder="Maximum file size (MB)"
+    />
+  );
+});
+
 export function FilterSettingDialog({
   open,
   onOpenChange,
@@ -42,6 +119,7 @@ export function FilterSettingDialog({
 }: FilterSettingDialogProps) {
   const { data: filterSettings } = useGetSettings();
   const { toast } = useToast();
+  const { mutate: updateSettings } = useUpdateSettings();
 
   const [excludePatterns, setExcludePatterns] = useState<string[]>([]);
   const [includePatterns, setIncludePatterns] = useState<string[]>([]);
@@ -49,63 +127,70 @@ export function FilterSettingDialog({
   const [newExcludePattern, setNewExcludePattern] = useState("");
   const [newIncludePattern, setNewIncludePattern] = useState("");
 
-  // データ取得後、一度だけローカルステートに反映
   useEffect(() => {
     if (filterSettings) {
       setExcludePatterns(filterSettings.excludePatterns || []);
       setIncludePatterns(filterSettings.includePatterns || []);
-      // maxFileSizeがserverから来るならここでセット
     }
   }, [filterSettings]);
 
-  function addPattern(type: "exclude" | "include") {
-    if (type === "exclude") {
-      const trimmedPattern = newExcludePattern.trim();
-      if (
-        trimmedPattern &&
-        isValidGlob(trimmedPattern) &&
-        !excludePatterns.includes(trimmedPattern)
-      ) {
-        setExcludePatterns((prev) => [...prev, trimmedPattern]);
-        setNewExcludePattern("");
+  const showErrorToast = useCallback(() => {
+    toast({
+      title: "Invalid Pattern",
+      description: "Pattern is empty, invalid or already exists.",
+      variant: "destructive",
+    });
+  }, [toast]);
+
+  const addPattern = useCallback(
+    (type: "exclude" | "include") => {
+      if (type === "exclude") {
+        const trimmedPattern = newExcludePattern.trim();
+        if (
+          trimmedPattern &&
+          isValidGlob(trimmedPattern) &&
+          !excludePatterns.includes(trimmedPattern)
+        ) {
+          setExcludePatterns((prev) => [...prev, trimmedPattern]);
+          setNewExcludePattern("");
+        } else {
+          showErrorToast();
+        }
       } else {
-        // ここでユーザーにエラー表示するなど
-        toast({
-          title: "Invalid Pattern",
-          description: "Pattern is empty, invalid or already exists.",
-          variant: "destructive",
-        });
+        const trimmedPattern = newIncludePattern.trim();
+        if (
+          trimmedPattern &&
+          isValidGlob(trimmedPattern) &&
+          !includePatterns.includes(trimmedPattern)
+        ) {
+          setIncludePatterns((prev) => [...prev, trimmedPattern]);
+          setNewIncludePattern("");
+        } else {
+          showErrorToast();
+        }
       }
-    } else {
-      const trimmedPattern = newIncludePattern.trim();
-      if (
-        trimmedPattern &&
-        isValidGlob(trimmedPattern) &&
-        !includePatterns.includes(trimmedPattern)
-      ) {
-        setIncludePatterns((prev) => [...prev, trimmedPattern]);
-        setNewIncludePattern("");
+    },
+    [
+      newExcludePattern,
+      newIncludePattern,
+      excludePatterns,
+      includePatterns,
+      showErrorToast,
+    ]
+  );
+
+  const removePattern = useCallback(
+    (pattern: string, type: "exclude" | "include") => {
+      if (type === "exclude") {
+        setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
       } else {
-        toast({
-          title: "Invalid Pattern",
-          description: "Pattern is empty, invalid or already exists.",
-          variant: "destructive",
-        });
+        setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
       }
-    }
-  }
+    },
+    []
+  );
 
-  function removePattern(pattern: string, type: "exclude" | "include") {
-    if (type === "exclude") {
-      setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
-    } else {
-      setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
-    }
-  }
-
-  const { mutate: updateSettings } = useUpdateSettings();
-
-  async function handleSave() {
+  const handleSave = useCallback(async () => {
     updateSettings(
       {
         includePatterns,
@@ -123,38 +208,26 @@ export function FilterSettingDialog({
         },
       }
     );
-  }
+  }, [
+    includePatterns,
+    excludePatterns,
+    updateSettings,
+    toast,
+    onSave,
+    onOpenChange,
+  ]);
 
-  function PatternList({
-    patterns,
-    type,
-  }: {
-    patterns: string[];
-    type: "exclude" | "include";
-  }) {
-    return (
-      <ScrollArea className="h-[150px] rounded-md border p-4">
-        <div className="flex flex-wrap gap-2">
-          {patterns.map((pattern) => (
-            <Badge
-              key={pattern}
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
-              {pattern}
-              <button
-                onClick={() => removePattern(pattern, type)}
-                className="ml-1 hover:text-destructive"
-                aria-label={`Remove ${pattern} pattern`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      </ScrollArea>
-    );
-  }
+  const handleExcludePatternChange = useCallback((value: string) => {
+    setNewExcludePattern(value);
+  }, []);
+
+  const handleIncludePatternChange = useCallback((value: string) => {
+    setNewIncludePattern(value);
+  }, []);
+
+  const handleMaxFileSizeChange = useCallback((value: number) => {
+    setMaxFileSize(value);
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -172,18 +245,17 @@ export function FilterSettingDialog({
                 processing
               </p>
             </div>
-            <div className="flex gap-2 mb-2">
-              <Input
-                placeholder="Add new exclude pattern (e.g. *.log)"
-                value={newExcludePattern}
-                onChange={(e) => setNewExcludePattern(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addPattern("exclude")}
-              />
-              <Button onClick={() => addPattern("exclude")} size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <PatternList patterns={excludePatterns} type="exclude" />
+            <PatternInput
+              value={newExcludePattern}
+              onChange={handleExcludePatternChange}
+              onAdd={() => addPattern("exclude")}
+              placeholder="Add new exclude pattern (e.g. *.log)"
+            />
+            <PatternList
+              patterns={excludePatterns}
+              type="exclude"
+              onRemove={removePattern}
+            />
           </div>
 
           <div className="space-y-4">
@@ -193,18 +265,17 @@ export function FilterSettingDialog({
                 Specify patterns for files that should always be included
               </p>
             </div>
-            <div className="flex gap-2 mb-2">
-              <Input
-                placeholder="Add new include pattern (e.g. *.md)"
-                value={newIncludePattern}
-                onChange={(e) => setNewIncludePattern(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addPattern("include")}
-              />
-              <Button onClick={() => addPattern("include")} size="icon">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <PatternList patterns={includePatterns} type="include" />
+            <PatternInput
+              value={newIncludePattern}
+              onChange={handleIncludePatternChange}
+              onAdd={() => addPattern("include")}
+              placeholder="Add new include pattern (e.g. *.md)"
+            />
+            <PatternList
+              patterns={includePatterns}
+              type="include"
+              onRemove={removePattern}
+            />
           </div>
 
           <div className="space-y-4">
@@ -214,12 +285,9 @@ export function FilterSettingDialog({
                 Set the maximum file size that will be processed (in MB)
               </p>
             </div>
-            <Input
-              type="number"
+            <FileSizeInput
               value={maxFileSize}
-              onChange={(e) => setMaxFileSize(Number(e.target.value))}
-              className="max-w-xs"
-              placeholder="Maximum file size (MB)"
+              onChange={handleMaxFileSizeChange}
             />
           </div>
 
