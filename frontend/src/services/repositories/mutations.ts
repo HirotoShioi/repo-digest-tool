@@ -61,6 +61,7 @@ const useUpdateRepository = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
+      queryClient.invalidateQueries({ queryKey: ["summary"] });
     },
   });
 
