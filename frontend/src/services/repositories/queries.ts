@@ -21,7 +21,6 @@ function toRepository(r: RepositoryResponse): Repository {
 const useGetRepositories = () => {
   return useQuery<Repository[]>({
     queryKey: ["repositories"],
-    initialData: [],
     queryFn: async () => {
       const response = await client.GET("/repositories");
       return (response.data ?? []).map(toRepository);
@@ -30,21 +29,22 @@ const useGetRepositories = () => {
 };
 
 type GetRepositoryByIdParams = {
-  author: string;
-  name: string;
+  author?: string;
+  name?: string;
 };
 
 const useGetRepositoryById = (params: GetRepositoryByIdParams) => {
   return useQuery<Repository | null>({
     queryKey: ["repository", params.author, params.name],
+    enabled: !!params.author && !!params.name,
     queryFn: async () => {
       const response = await client.GET(
         "/repositories/{author}/{repository_name}",
         {
           params: {
             path: {
-              author: params.author,
-              repository_name: params.name,
+              author: params.author!,
+              repository_name: params.name!,
             },
           },
         }
@@ -57,7 +57,11 @@ const useGetRepositoryById = (params: GetRepositoryByIdParams) => {
   });
 };
 
-const usePrefetchRepositoryById = (params: GetRepositoryByIdParams) => {
+type PrefetchRepositoryByIdParams = {
+  author: string;
+  name: string;
+};
+const usePrefetchRepositoryById = (params: PrefetchRepositoryByIdParams) => {
   const queryClient = useQueryClient();
   const [isPrefetched, setIsPrefetched] = useState(false);
   const prefetch = () => {

@@ -5,17 +5,20 @@ import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetRepositories } from "@/services/repositories/queries";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 function RepositoriesPage() {
-  const { data: repositories } = useGetRepositories();
+  const { data: repositories, isLoading } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const filteredRepositories = repositories.filter(
-    (repo) =>
-      repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      repo.url.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredRepositories = (repositories ?? [])
+    .filter(
+      (repo) =>
+        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        repo.url.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="space-y-8">
@@ -38,9 +41,11 @@ function RepositoriesPage() {
         </Button>
       </div>
 
-      <RepositoryList
-        repositories={filteredRepositories}
-      />
+      {isLoading ? (
+        <LoadingSpinner size={48} minHeight={500} />
+      ) : (
+        <RepositoryList repositories={filteredRepositories} />
+      )}
 
       <AddRepositoryDialog
         isOpen={isAddDialogOpen}

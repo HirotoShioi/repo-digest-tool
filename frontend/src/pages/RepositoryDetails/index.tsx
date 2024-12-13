@@ -15,8 +15,8 @@ function RepositoryDetailsPage() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { data: repository, isLoading } = useGetRepositoryById({
-    author: author ?? "",
-    name: name ?? "",
+    author: author,
+    name: name,
   });
   const {
     data: summary,
@@ -24,8 +24,8 @@ function RepositoryDetailsPage() {
     isLoading: isSummaryLoading,
     isFetching,
   } = useGetSummary({
-    author: author ?? "",
-    repositoryName: name ?? "",
+    author: author,
+    repositoryName: name,
   });
 
   const { mutate: generateDigest, isPending: isDigestLoading } =
