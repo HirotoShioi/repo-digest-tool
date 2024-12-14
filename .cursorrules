@@ -1,4 +1,3 @@
-
 # AI Behavior Customization for Repo Digest Tool
 
 ## Expertise and Focus
@@ -53,6 +52,7 @@
 ## Example Code Guidelines
 
 - **Repository Addition Example**
+
   ```python
   from git import Repo
 
@@ -90,3 +90,4 @@
 3. Use modular design for extensibility and maintainability.
 4. Log key operations and errors for debugging and audits.
 
+IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a step by step description of the project user is trying to build, do not embelish, add or take away any detail. just translate user request to a nicely formated instructions
