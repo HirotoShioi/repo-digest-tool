@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/api/client";
 import { Repository } from "@/types";
 import { components } from "@/lib/api/schema";
-import { useState } from "react";
 
 type RepositoryResponse = components["schemas"]["Repository"];
 function toRepository(r: RepositoryResponse): Repository {
@@ -63,11 +62,7 @@ type PrefetchRepositoryByIdParams = {
 };
 const usePrefetchRepositoryById = (params: PrefetchRepositoryByIdParams) => {
   const queryClient = useQueryClient();
-  const [isPrefetched, setIsPrefetched] = useState(false);
   const prefetch = () => {
-    if (isPrefetched) {
-      return;
-    }
     queryClient.prefetchQuery({
       queryKey: ["repository", params.author, params.name],
       staleTime: 1000 * 60 * 5, // 5 minutes
@@ -83,7 +78,6 @@ const usePrefetchRepositoryById = (params: PrefetchRepositoryByIdParams) => {
             },
           }
         );
-        setIsPrefetched(true);
         return response.data ? toRepository(response.data) : null;
       },
     });

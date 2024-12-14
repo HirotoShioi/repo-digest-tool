@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/api/client";
+import { extractAuthorAndNameFromUrl } from "@/lib/utils";
 
 type CloneRepositoryParams = {
   repositoryIdOrUrl: string;
@@ -59,8 +60,14 @@ const useUpdateRepository = () => {
         },
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, params: UpdateRepositoryParams) => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
+      const { author, name } = extractAuthorAndNameFromUrl(
+        params.repositoryIdOrUrl!
+      ) ?? {};
+      if (author && name) {
+        queryClient.invalidateQueries({ queryKey: ["summary", author, name] });
+      }
     },
   });
 
