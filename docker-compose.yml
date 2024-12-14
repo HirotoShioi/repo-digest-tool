@@ -32,6 +32,21 @@ services:
     security_opt:
       - seccomp:unconfined
 
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    profiles:
+      - frontend
+
 volumes:
   repositories:
   digests: 
