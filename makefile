@@ -1,4 +1,4 @@
-.PHONY: build run run-dev down logs shell clean
+.PHONY: build run-dev run down logs shell clean
 
 build:
 	docker compose build
@@ -7,7 +7,7 @@ run-dev:
 	docker compose up --watch api
 
 run:
-	docker compose --profile frontend up --watch
+	docker compose up -d
 
 down:
 	docker compose down
@@ -19,4 +19,4 @@ shell:
 	docker compose exec api bash
 
 clean:
-	docker compose down -v
+	docker compose down --remove-orphans -v

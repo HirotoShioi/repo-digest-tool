@@ -1,6 +1,6 @@
 # Repo Digest Tool: Features and Usage Guide
 
-<img src="./examples/スクリーンショット%202024-12-15%206.58.15.png" alt="Repo Digest Tool Screenshot" style="width: 100%; max-width: 800px;" />
+![example](./examples/スクリーンショット%202024-12-15%206.58.15.png)
 
 ## Features Overview
 
@@ -34,54 +34,49 @@ The generated digest files have a wide range of applications when used with LLMs
 - **Custom Queries**: Leverage LLMs to ask complex questions about the repository, such as "What are the key algorithms used in this codebase?" or "Which files handle authentication?"
 - **Improved Debugging**: Quickly pinpoint files related to specific functionality or errors by referencing the digest.
 
----
-
-## How to Use the Tool
+## Setup & Usage
 
 ### Prerequisites
 
-Before setting up the tool, ensure you have the following installed on your system:
+- Docker Engine 24.0.0 or later
+- Docker Compose v2.0.0 or later
 
-- **Node.js**: Version 18.x or higher
-- **pnpm**: Preferred over npm for managing frontend dependencies
-- **Docker**: For running the backend as a container
+### Installation & Running
 
-#### Setting Up
+1. Build the application:
 
-1. **Clone the Repository**:
+```bash
+make build
+```
 
-   ```bash
-   git clone https://github.com/your-username/repo-digest-tool.git
-   cd repo-digest-tool
-   ```
+2. Start the application:
 
-2. **Backend and Frontend Setup**:
+```bash
+make run
+```
 
-Use the included `makefile` for setup and management:
+The application will be available at:
 
-- Build the Docker image for the backend:
-  ```bash
-  make docker-build
-  ```
-- Start the backend container:
-  ```bash
-  make docker-up
-  ```
-- Navigate to the frontend directory and start the development server:
-  ```bash
-  cd frontend
-  pnpm install
-  pnpm run dev
-  ```
-- Access the API documentation at `http://localhost:8000/docs` and the frontend at `http://localhost:5173`.
+- Frontend: `http://localhost`
+- API: `http://localhost:8000`
+- API Documentation: `http://localhost:8000/redoc`
 
-### Generating a Digest
+### Management Commands
 
-1. Navigate to a repository's details page in the frontend.
-2. Click **Get Digest** to compress the repository into a single text file.
-3. Use filtering options to refine the digest by excluding irrelevant files (e.g., `.log`, `.config`, or CI/CD files).
-4. Download the digest file or view the HTML report to explore repository insights.
+- Stop the application:
 
----
+```bash
+make down
+```
 
-This guide will continue to evolve as the tool develops further. If you have feedback or feature requests, please feel free to contribute or raise an issue on the GitHub repository.
+- View logs:
+
+```bash
+make logs
+```
+
+- Clean up all resources:
+
+```bash
+make clean
+```
