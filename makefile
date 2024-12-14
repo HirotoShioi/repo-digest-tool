@@ -1,24 +1,22 @@
-.PHONY: run-app docker-build docker-up docker-down docker-logs docker-shell clean
+.PHONY: build run-dev run down logs shell clean
 
-run-app:
-	fastapi dev repo_tool/api
+build:
+	docker compose build
 
-docker-build:
-	docker-compose build
+run-dev:
+	docker compose up --watch api
 
-docker-up:
-	docker compose up --watch
+run:
+	docker compose up -d
 
-docker-down:
-	docker-compose down
+down:
+	docker compose down
 
-docker-logs:
-	docker-compose logs -f
+logs:
+	docker compose logs -f
 
-docker-shell:
-	docker-compose exec api bash
+shell:
+	docker compose exec api bash
 
 clean:
-	docker-compose down -v
-	find . -type d -name "__pycache__" -exec rm -r {} +
-	find . -type f -name "*.pyc" -delete
+	docker compose down --remove-orphans -v

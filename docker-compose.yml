@@ -32,6 +32,13 @@ services:
     security_opt:
       - seccomp:unconfined
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+
 volumes:
   repositories:
   digests: 
