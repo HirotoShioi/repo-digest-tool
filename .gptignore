@@ -23,7 +23,6 @@ LICENSE
 *.sketch
 pnpm-lock.yaml
 *.ico
-docs/**
 bun.lockb
 benchmarks/**
 *.test.ts
@@ -33,3 +32,5 @@ yarn.lock
 uv.lock
 *.gif
 *.zip
+frontend/pnpm-lock.yaml
+frontend/src/lib/api/schema.d.ts

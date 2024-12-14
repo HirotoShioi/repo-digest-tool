@@ -1,161 +1,90 @@
-# Repo Digest Tool
+## Repo Digest Tool: Features and Usage Guide
 
-![スクリーンショット 2024-12-08 10 07 14](https://github.com/user-attachments/assets/e9e5d500-2ba6-40d5-b564-57dd23301e21)
+### 1. Features Overview
 
-A CLI tool for managing GitHub repositories and generating digest summaries, implemented with Typer.
+The **Repo Digest Tool** serves a single, focused purpose: to compress the entirety of a GitHub repository into a single, high-quality text file called a "digest." This digest is optimized for use with chat-based LLMs like ChatGPT, enabling users to analyze and summarize repository contents efficiently.
+
+#### Purpose
+
+The tool is designed to enable users to:
+
+- Understand the structure and content of large codebases quickly.
+- Generate high-quality summaries for documentation and analysis.
+- Provide compressed repository files that can be easily processed by LLMs.
+
+#### Key Features
+
+- **Repository Compression**: Converts all relevant files in a repository into a single text file, making it easy to process with LLMs.
+- **Filtering for Quality**: Users can filter out unnecessary files to ensure the digest contains only the most relevant information. Filters can exclude CI/CD files, binary files, and more, ensuring optimal content for analysis.
+- **Enhanced Summarization**: Uses built-in summary functions to produce higher-quality outputs compared to other tools.
+- **HTML Reports**: Automatically generates detailed HTML reports summarizing the repository structure and key metrics.
+
+#### Use Cases for Digest Files
+
+The generated digest files have a wide range of applications when used with LLMs:
+
+- **Code Understanding**: Developers can quickly gain insights into large codebases without manually exploring files.
+- **Documentation Generation**: Use the digest as input to create structured documentation, including API references, module overviews, or user guides.
+- **Technical Debt Analysis**: Analyze the structure of a repository to identify areas with potential technical debt, such as outdated files or redundant code.
+- **Team Onboarding**: Provide new team members with a high-level summary of the repository to accelerate onboarding.
+- **Custom Queries**: Leverage LLMs to ask complex questions about the repository, such as "What are the key algorithms used in this codebase?" or "Which files handle authentication?"
+- **Improved Debugging**: Quickly pinpoint files related to specific functionality or errors by referencing the digest.
 
 ---
 
-## Features
+### 2. How to Use the Tool
 
-- **Repository Digest Generation**: Creates digests of repositories and stores them in the `digests/` directory.
-- **Repository Management**: Add, remove, update, or list repositories stored locally in the `repositories/` directory.
-- **Custom Filtering**: Uses an LLM (Language Learning Model) for advanced filtering of repository contents based on user prompts.
-- **HTML Reports**: Generates user-friendly HTML reports summarizing repository statistics and digest contents.
+#### a. Prerequisites
 
----
+Before setting up the tool, ensure you have the following installed on your system:
 
-## Installation
+- **Node.js**: Version 18.x or higher
+- **pnpm**: Preferred over npm for managing frontend dependencies
+- **Docker**: For running the backend as a container
 
-### Requirements
+#### b. Setting Up
 
-- Python 3.12 or above
-- `git` installed and accessible in your system path
-
-### Setup
-
-1. Clone the repository:
+1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/<your-username>/repo-digest-tool.git
+   git clone https://github.com/your-username/repo-digest-tool.git
    cd repo-digest-tool
    ```
 
-2. Install dependencies:
+2. **Backend and Frontend Setup**:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+   - Use the included `makefile` for setup and management:
+     - Build the Docker image for the backend:
+       ```bash
+       make docker-build
+       ```
+     - Start the backend container:
+       ```bash
+       make docker-up
+       ```
+     - Navigate to the frontend directory and start the development server:
+       ```bash
+       cd frontend
+       pnpm install
+       pnpm run dev
+       ```
+     - Access the API documentation at `http://localhost:8000/docs` and the frontend at `http://localhost:5173`.
 
-3. Optional: Install as a package for easier access:
-   ```bash
-   pip install -e .
-   ```
+#### c. Generating a Digest
 
----
-
-## Usage
-
-### CLI Commands
-
-Here’s a quick overview of the commands:
-
-#### Add a Repository
-
-```bash
-repo add <repo_url> [--branch <branch>] [--force]
-```
-
-- Adds a repository to local storage.
-- Example:
-  ```bash
-  repo add https://github.com/honojs/hono
-  repo add https://github.com/honojs/hono --branch develop --force
-  ```
-
-#### Remove a Repository
-
-```bash
-repo remove <repo_url>
-```
-
-- Removes a repository from local storage.
-- Example:
-  ```bash
-  repo remove https://github.com/honojs/hono
-  ```
-
-#### List Repositories
-
-```bash
-repo list
-```
-
-- Lists all repositories stored locally.
-- Example:
-  ```bash
-  repo list
-  ```
-
-#### Generate a Digest
-
-```bash
-repo digest <repo_url> [--branch <branch>] [--prompt <prompt>] [--force]
-```
-
-- Generates a digest for a repository. Optional: specify a branch or a custom LLM filtering prompt.
-- Example:
-  ```bash
-  repo digest https://github.com/honojs/hono
-  repo digest https://github.com/honojs/hono --prompt "Focus on APIs"
-  ```
-
-#### Clear Repositories
-
-```bash
-repo clear [--all | --author <author>]
-```
-
-- Clears repositories from local storage. Either all or selectively by author.
-- Example:
-  ```bash
-  repo clear --all
-  repo clear --author honojs
-  ```
-
-#### Update a Repository
-
-```bash
-repo update <repo_url>
-```
-
-- Updates a repository by pulling the latest changes.
-- Example:
-  ```bash
-  repo update https://github.com/honojs/hono
-  ```
+1. Navigate to a repository's details page in the frontend.
+2. Click **Get Digest** to compress the repository into a single text file.
+3. Use filtering options to refine the digest by excluding irrelevant files (e.g., `.log`, `.config`, or CI/CD files).
+4. Download the digest file or view the HTML report to explore repository insights.
 
 ---
 
-## Development Roadmap
+### 3. Example Screenshots
 
-1. **Basic Functionality**:
+#### a. Digest Creation Workflow
 
-   - Repository management (`add`, `remove`, `list`).
-   - Digest generation.
-
-2. **Digest Extensions**:
-
-   - LLM filtering with custom prompts.
-   - HTML report generation.
-
-3. **Testing and Documentation**:
-
-   - Unit tests for all commands.
-   - Comprehensive documentation.
-
-4. **Future Enhancements**:
-   - Multi-language report support.
-   - Integration with other platforms (e.g., GitLab).
+#### b. HTML Report Example
 
 ---
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-## Contribution
-
-Contributions are welcome! Please fork the repository and submit a pull request.
+This guide will continue to evolve as the tool develops further. If you have feedback or feature requests, please feel free to contribute or raise an issue on the GitHub repository.
