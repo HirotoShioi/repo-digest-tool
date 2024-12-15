@@ -20,14 +20,15 @@ pub async fn clone_repository(url: &str, destination: PathBuf) -> Result<()> {
     // Parse the URL for git
     let git_url = gix::url::parse(url.into())?;
     let mut prepare_clone = gix::prepare_clone(git_url, &destination)?;
-    let (prepare_checkout, _) = prepare_clone
+    let (mut prepare_checkout, _) = prepare_clone
         .fetch_then_checkout(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)?;
+    let (repo, _) =
+        prepare_checkout.main_worktree(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)?;
 
     println!(
         "Checking out into {:?} ...",
-        prepare_checkout.repo().work_dir().expect("should be there")
+        repo.work_dir().expect("should be there")
     );
-
     Ok(())
 }
 

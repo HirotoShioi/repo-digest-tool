@@ -94,22 +94,26 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
 
 # Repository Tool Project Requirements
 
-1. Implement repository cloning functionality
+1. Repository Cloning
 
-   - Use gitoxide for Git operations
-   - Support async operations
-   - Validate repository URLs
-   - Handle errors appropriately
-   - Create destination directories as needed
+   - Create and maintain destination directories
+   - Use absolute paths for repository storage
+   - Implement proper cleanup handling
+   - Add user confirmation before exit
 
-2. Testing Requirements
+2. Error Handling
 
-   - Include unit tests for successful cloning
-   - Test error cases (invalid URLs)
-   - Use temporary directories for testing
+   - Proper directory creation checks
+   - Detailed error messages
+   - Path validation
 
-3. Dependencies
+3. User Experience
+
+   - Display clone location
+   - Add confirmation steps
+   - Maintain repository persistence
+
+4. Dependencies
    - gitoxide for Git operations
    - tokio for async support
    - anyhow for error handling
-   - url for URL validation
