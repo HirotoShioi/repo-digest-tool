@@ -116,9 +116,3 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Support for nested directory structures
    - Handle path existence checks
    - Clean up on force operations
-
-4. Dependencies
-   - url for URL parsing
-   - gix for Git operations
-   - tokio for async support
-   - anyhow for error handling
