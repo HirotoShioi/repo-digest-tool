@@ -2,12 +2,10 @@ import asyncio
 import cProfile
 import os
 import pstats
-import time
 from dataclasses import dataclass, field
-from functools import wraps
 from pathlib import Path
 from pstats import SortKey
-from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, Optional, TypeVar
 
 import aiofiles
 import tiktoken
@@ -17,7 +15,6 @@ from repo_tool.core.contants import DIGEST_DIR
 
 # 型変数の定義
 T = TypeVar("T")
-F = TypeVar("F", bound=Callable[..., Awaitable[Any]])
 
 data_size = 20
 precision = 2
@@ -215,20 +212,6 @@ async def process_files(file_infos: List[FileInfo]) -> FileStats:
         context_length=context_length,
         file_data=file_data_list,
     )
-
-
-def timing_decorator(func: F) -> F:
-    """非同期関数の実行時間を計測するデコレータ"""
-
-    @wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> Any:
-        start = time.time()
-        result = await func(*args, **kwargs)
-        end = time.time()
-        print(f"{func.__name__} took {end - start:.2f} seconds")
-        return result
-
-    return wrapper  # type: ignore
 
 
 async def process_single_file(file_info: FileInfo) -> Optional[Dict[str, Any]]:
