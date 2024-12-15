@@ -2,6 +2,12 @@ use anyhow::{Context, Result};
 use std::path::PathBuf;
 use url::Url;
 
+#[derive(Debug)]
+pub struct RepoInfo {
+    pub author: String,
+    pub repo_name: String,
+    pub repo_path: PathBuf,
+}
 /// Clones a git repository from the given URL to the specified destination path
 ///
 /// # Arguments
@@ -10,7 +16,7 @@ use url::Url;
 ///
 /// # Returns
 /// * `Result<()>` - Ok(()) if successful, Error if something went wrong
-pub async fn clone_repository(url: &str, repo_dir: PathBuf, force: bool) -> Result<()> {
+pub async fn clone_repository(url: &str, repo_dir: PathBuf, force: bool) -> Result<RepoInfo> {
     // Validate the URL
     let parsed_url =
         Url::parse(url).with_context(|| format!("Failed to parse repository URL: {}", url))?;
@@ -32,7 +38,11 @@ pub async fn clone_repository(url: &str, repo_dir: PathBuf, force: bool) -> Resu
     // If repository already exists and force is false, return early with success
     if !force && repo_dir.exists() {
         println!("Repository already exists at {:?}", repo_dir);
-        return Ok(());
+        return Ok(RepoInfo {
+            author: author.to_string(),
+            repo_name: repo_name.to_string(),
+            repo_path: repo_dir,
+        });
     }
 
     // Handle force flag
@@ -56,7 +66,11 @@ pub async fn clone_repository(url: &str, repo_dir: PathBuf, force: bool) -> Resu
         "Repository cloned successfully to {:?}",
         repo.work_dir().expect("should be there")
     );
-    Ok(())
+    Ok(RepoInfo {
+        author: author.to_string(),
+        repo_name: repo_name.to_string(),
+        repo_path: repo_dir,
+    })
 }
 
 #[cfg(test)]

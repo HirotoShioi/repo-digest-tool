@@ -10,6 +10,16 @@ pub struct FilterSettings {
     include_list: Vec<String>,
 }
 
+pub fn get_filter_settings() -> Result<FilterSettings> {
+    let ignore_list = read_pattern_file(&Path::new("../.gptignore"))?;
+    let include_list = read_pattern_file(&Path::new("../.gptinclude"))?;
+
+    Ok(FilterSettings {
+        ignore_list,
+        include_list,
+    })
+}
+
 fn build_glob_set(patterns: &[String]) -> Result<GlobSet> {
     let mut builder = GlobSetBuilder::new();
     for pattern in patterns {
@@ -120,14 +130,4 @@ pub fn filter_files_in_repo(repo_path: &Path, prompt: Option<String>) -> Result<
         .into_iter()
         .filter(|path| path.is_file())
         .collect())
-}
-
-pub fn get_filter_settings() -> Result<FilterSettings> {
-    let ignore_list = read_pattern_file(&Path::new("../.gptignore"))?;
-    let include_list = read_pattern_file(&Path::new("../.gptinclude"))?;
-
-    Ok(FilterSettings {
-        ignore_list,
-        include_list,
-    })
 }

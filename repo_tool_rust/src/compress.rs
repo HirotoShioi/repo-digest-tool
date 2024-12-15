@@ -1,28 +1,26 @@
+use crate::clone::RepoInfo;
 use anyhow::{Context, Result};
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-pub fn compress_files(repo_name: String, files: Vec<PathBuf>) -> Result<()> {
+pub fn compress_files(repo_info: RepoInfo, files: Vec<PathBuf>) -> Result<()> {
     if files.is_empty() {
         return Ok(());
     }
-
-    let repo_path = find_repo_root(&files[0])?;
-    println!("Repo path: {:?}", repo_path);
-    let content = generate_digest_content(&repo_path, &files)?;
+    let content = generate_digest_content(&repo_info.repo_path, &files)?;
 
     // Create digests directory if it doesn't exist
     fs::create_dir_all("digests")?;
 
     // Write to output file
-    let output_path = format!("digests/{}.txt", repo_name);
+    let output_path = format!("digests/{}.txt", repo_info.repo_name);
     fs::write(&output_path, content)?;
 
     Ok(())
 }
 
-fn generate_digest_content(repo_path: &Path, files: &[PathBuf]) -> Result<String> {
+pub fn generate_digest_content(repo_path: &Path, files: &[PathBuf]) -> Result<String> {
     if files.is_empty() {
         return Ok("No matching files found.".to_string());
     }
@@ -74,15 +72,4 @@ fn read_file_contents(path: &Path) -> Result<String> {
     }
 
     Ok(content)
-}
-
-fn find_repo_root(file_path: &Path) -> Result<PathBuf> {
-    let mut current = file_path.to_path_buf();
-    while let Some(parent) = current.parent() {
-        if parent.join(".git").is_dir() {
-            return Ok(parent.to_path_buf());
-        }
-        current = parent.to_path_buf();
-    }
-    Err(anyhow::anyhow!("Repository root not found"))
 }
