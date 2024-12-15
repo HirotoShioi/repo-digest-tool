@@ -7,14 +7,15 @@ edition = "2021"
 walkdir = "2.4"
 globset = "0.4"
 tera = "1.17"
-tiktoken-rs = "0.6.0"
+tiktoken-rs = "0.6"
 gix = { version = "0.68.0", default-features = false, features = [
     "worktree-mutation",
     "blocking-http-transport-reqwest",
 ] }
 reqwest = "0.12.0"
-tokio = { version = "1.36.0", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
 anyhow = "1.0"
 url = "2.5.0"
 tempfile = "3.14.0"
 serde = { version = "1.0", features = ["derive"] }
+futures = "0.3"

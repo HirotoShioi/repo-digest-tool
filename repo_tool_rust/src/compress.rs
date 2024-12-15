@@ -4,7 +4,7 @@ use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-pub fn compress_files(repo_info: RepoInfo, files: Vec<PathBuf>) -> Result<()> {
+pub fn compress_files(repo_info: &RepoInfo, files: &Vec<PathBuf>) -> Result<()> {
     if files.is_empty() {
         return Ok(());
     }

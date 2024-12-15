@@ -1,6 +1,7 @@
 use repo_tool_rust::clone::clone_repository;
 use repo_tool_rust::compress::compress_files;
 use repo_tool_rust::filter::filter_files_in_repo;
+use repo_tool_rust::summary::generate_summary;
 use std::path::PathBuf;
 
 #[tokio::main]
@@ -21,8 +22,16 @@ async fn main() {
             return;
         }
     };
-    match compress_files(repo_info, files) {
+    match compress_files(&repo_info, &files) {
         Ok(_) => println!("Compress successful!"),
         Err(err) => eprintln!("Error compressing files: {:?}", err),
     }
+    let summary = match generate_summary(&repo_info.repo_path, &files).await {
+        Ok(summary) => summary,
+        Err(err) => {
+            eprintln!("Error generating summary: {:?}", err);
+            return;
+        }
+    };
+    println!("{:?}", summary);
 }

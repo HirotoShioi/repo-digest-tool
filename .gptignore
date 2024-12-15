@@ -34,3 +34,6 @@ uv.lock
 *.zip
 frontend/pnpm-lock.yaml
 frontend/src/lib/api/schema.d.ts
+docs/images/hono-logo.pxm
+docs/images/hono-title.pxm
+generated/api/api.ts
