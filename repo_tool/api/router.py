@@ -54,7 +54,10 @@ class CloneRepositoryParams(BaseModel):
     description="Clone a repository. If the URL is not provided, all repositories will be cloned.",
 )
 def clone_repository(request: CloneRepositoryParams) -> Response:
-    github.clone(request.url, request.branch)
+    try:
+        github.clone(request.url, request.branch)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return Response(status="success")
 
 
@@ -76,6 +79,8 @@ def delete_all_repositories() -> Response:
     description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
 )
 def delete_repository(author: str, repository_name: str) -> Response:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(status_code=404, detail="Repository not found")
     github.remove(f"{author}/{repository_name}")
     return Response(status="success")
 
