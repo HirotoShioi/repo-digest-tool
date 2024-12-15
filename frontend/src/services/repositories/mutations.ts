@@ -25,18 +25,25 @@ const useCloneRepository = () => {
 };
 
 type DeleteRepositoryParams = {
-  repositoryIdOrUrl: string;
+  author: string;
+  repositoryName: string;
 };
 
 const useDeleteRepository = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (params: DeleteRepositoryParams) => {
-      return client.DELETE("/repositories", {
-        body: {
-          url: params.repositoryIdOrUrl,
-        },
-      });
+      return client.DELETE(
+        "/repositories/{author}/{repository_name}",
+        {
+          params: {
+            path: {
+              author: params.author,
+              repository_name: params.repositoryName,
+            },
+          },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });

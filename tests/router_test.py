@@ -11,7 +11,7 @@ from repo_tool.core.github import GitHub, Repository
 
 
 class InMemoryGitHub(GitHub):
-    """テスト用のインメモリGitHub実装"""
+    """In-memory implementation of GitHub for testing"""
 
     def __init__(self) -> None:
         self.repos: Dict[str, Repository] = {}
@@ -73,16 +73,16 @@ class InMemoryGitHub(GitHub):
 
 
 def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    """辞書のキーでソートした新しい辞書を返す"""
+    """Returns a new dictionary sorted by keys"""
     return dict(sorted(d.items()))
 
 
 @pytest.fixture
 def test_client() -> TestClient:
-    """テスト用のFastAPIクライアント"""
+    """Returns a FastAPI test client with InMemoryGitHub dependency injection"""
     app = FastAPI()
     app.include_router(router)
-    # InMemoryGitHubをDIする
+    # Inject InMemoryGitHub implementation
     app.dependency_overrides[GitHub] = InMemoryGitHub
     return TestClient(app)
 
@@ -94,7 +94,7 @@ def test_get_repositories_empty(test_client: TestClient) -> None:
 
 
 def test_repository_lifecycle(test_client: TestClient) -> None:
-    # 1. リポジトリをクローン
+    # 1. Clone repository
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
         "branch": "main",
@@ -103,7 +103,7 @@ def test_repository_lifecycle(test_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
-    # 2. リポジトリ一覧を取得
+    # 2. Get repository list
     response = test_client.get("/repositories")
     assert response.status_code == 200
     repos = response.json()
@@ -115,26 +115,26 @@ def test_repository_lifecycle(test_client: TestClient) -> None:
     assert repo["branch"] == "main"
     assert "updated_at" in repo
 
-    # 3. 単一リポジトリを取得
+    # 3. Get single repository
     response = test_client.get("/repositories/HirotoShioi/repo-digest-tool")
     assert response.status_code == 200
     repo = response.json()
     assert repo["id"] == "HirotoShioi/repo-digest-tool"
 
-    # 4. リポジトリを更新
+    # 4. Update repository
     update_payload = {"url": "https://github.com/HirotoShioi/repo-digest-tool"}
     response = test_client.put("/repositories", json=update_payload)
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
-    # 5. リポジトリを削除
+    # 5. Delete repository
     response = test_client.delete(
         "/repositories/HirotoShioi/repo-digest-tool",
     )
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
-    # 6. 削除後のリポジトリ一覧を確認
+    # 6. Verify repository list is empty after deletion
     response = test_client.get("/repositories")
     assert response.status_code == 200
     assert response.json() == []
@@ -154,7 +154,7 @@ def test_get_summary_not_found(test_client: TestClient) -> None:
 
 
 def test_delete_all_repositories(test_client: TestClient) -> None:
-    # まずリポジトリを追加
+    # First add a repository
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
         "branch": "main",
@@ -162,12 +162,12 @@ def test_delete_all_repositories(test_client: TestClient) -> None:
     response = test_client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
-    # 全リポジトリを削除
+    # Delete all repositories
     response = test_client.delete("/repositories")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
-    # リポジトリが空になっていることを確認
+    # Verify repository list is empty
     response = test_client.get("/repositories")
     assert response.status_code == 200
     assert response.json() == []

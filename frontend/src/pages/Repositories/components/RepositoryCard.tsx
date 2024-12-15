@@ -25,10 +25,15 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
   const { mutate: updateRepository, isPending: isUpdating } =
     useUpdateRepository();
   function handleDelete() {
-    deleteRepository({ repositoryIdOrUrl: repository.url });
+    deleteRepository({
+      author: repository.author,
+      repositoryName: repository.name,
+    });
   }
   function handleUpdate() {
-    updateRepository({ repositoryIdOrUrl: repository.url });
+    updateRepository({
+      repositoryIdOrUrl: repository.url,
+    });
   }
 
   const prefetch = usePrefetchRepositoryById({
