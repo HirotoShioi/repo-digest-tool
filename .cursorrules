@@ -91,3 +91,28 @@
 4. Log key operations and errors for debugging and audits.
 
 IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a step by step description of the project user is trying to build, do not embelish, add or take away any detail. just translate user request to a nicely formated instructions
+
+# Repository Tool Project Requirements
+
+1. Repository Management
+
+   - Clone repositories from URLs with depth=1 (shallow clone)
+   - Skip if repository already exists (return success)
+   - Create proper directory structure (author/repo_name)
+   - Support force flag for overwriting existing repos
+   - Validate repository URLs
+   - Handle cleanup and directory creation
+
+2. Error Handling
+
+   - Validate URLs before cloning
+   - Proper directory permission checks
+   - Clear error messages for invalid inputs
+   - Handle Git operation failures
+
+3. Path Management
+
+   - Use proper path construction
+   - Support for nested directory structures
+   - Handle path existence checks
+   - Clean up on force operations

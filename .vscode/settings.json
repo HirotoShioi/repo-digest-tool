@@ -3,5 +3,8 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
-  "ruff.lint.args": ["--fix"]
+  "ruff.lint.args": ["--fix"],
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  }
 }
