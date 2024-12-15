@@ -1,0 +1,18 @@
+[package]
+name = "repo_tool_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+walkdir = "2.3"
+globset = "0.4"
+tera = "1.17"
+tiktoken-rs = "0.6.0"
+gix = { version = "0.68.0", default-features = false, features = [
+    "worktree-mutation",
+    "blocking-http-transport-reqwest",
+] }
+reqwest = "0.12.0"
+tokio = { version = "1.36.0", features = ["full"] }
+anyhow = "1.0.80"
+url = "2.5.0"
