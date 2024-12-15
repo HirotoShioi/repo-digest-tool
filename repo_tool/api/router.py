@@ -58,21 +58,25 @@ def clone_repository(request: CloneRepositoryParams) -> Response:
     return Response(status="success")
 
 
-class DeleteRepositoryParams(BaseModel):
-    url: Optional[str] = Field(None, description="The URL of the repository to delete")
+@router.delete(
+    "/repositories",
+    response_model=Response,
+    summary="Delete all repositories",
+    description="Delete all repositories",
+)
+def delete_all_repositories() -> Response:
+    github.clean()
+    return Response(status="success")
 
 
 @router.delete(
-    "/repositories",
+    "/repositories/{author}/{repository_name}",
     response_model=Response,
     summary="Delete a repository",
     description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
 )
-def delete_repository(request: DeleteRepositoryParams) -> Response:
-    if request.url:
-        github.remove(request.url)
-    else:
-        github.clean()
+def delete_repository(author: str, repository_name: str) -> Response:
+    github.remove(f"{author}/{repository_name}")
     return Response(status="success")
 
 
