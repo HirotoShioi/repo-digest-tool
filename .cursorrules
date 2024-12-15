@@ -96,7 +96,7 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
 
 1. Repository Management
 
-   - Clone repositories from URLs
+   - Clone repositories from URLs with depth=1 (shallow clone)
    - Skip if repository already exists (return success)
    - Create proper directory structure (author/repo_name)
    - Support force flag for overwriting existing repos

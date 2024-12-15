@@ -56,8 +56,11 @@ pub async fn clone_repository(url: &str, repo_dir: PathBuf, force: bool) -> Resu
 
     // Clone the repository
     let git_url = gix::url::parse(url.into())?;
-    let mut prepare_clone = gix::prepare_clone(git_url, &repo_dir)?;
+    let prepare_clone = gix::prepare_clone(git_url, &repo_dir)?;
     let (mut prepare_checkout, _) = prepare_clone
+        .with_shallow(gix::remote::fetch::Shallow::DepthAtRemote(
+            std::num::NonZeroU32::new(1).unwrap(),
+        ))
         .fetch_then_checkout(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)?;
     let (repo, _) =
         prepare_checkout.main_worktree(gix::progress::Discard, &gix::interrupt::IS_INTERRUPTED)?;
