@@ -29,6 +29,12 @@ pub async fn clone_repository(url: &str, repo_dir: PathBuf, force: bool) -> Resu
     // Construct the full repository path
     let repo_dir = repo_dir.join(author).join(repo_name);
 
+    // If repository already exists and force is false, return early with success
+    if !force && repo_dir.exists() {
+        println!("Repository already exists at {:?}", repo_dir);
+        return Ok(());
+    }
+
     // Handle force flag
     if force && repo_dir.exists() {
         std::fs::remove_dir_all(&repo_dir)?;
@@ -69,6 +75,18 @@ mod tests {
         println!("repo_dir: {:?}", repo_dir);
         assert!(repo_dir.exists());
         assert!(repo_dir.join(".git").exists());
+    }
+
+    #[tokio::test]
+    async fn reclone_should_not_fail() {
+        let temp_dir = tempdir().unwrap();
+        let repo_url = "https://github.com/HirotoShioi/repo-digest-tool";
+
+        let result = clone_repository(repo_url, temp_dir.path().to_path_buf(), false).await;
+        let result2 = clone_repository(repo_url, temp_dir.path().to_path_buf(), false).await;
+
+        assert!(result.is_ok());
+        assert!(result2.is_ok());
     }
 
     #[tokio::test]
