@@ -126,9 +126,6 @@ pub fn get_filter_settings() -> Result<FilterSettings> {
     let ignore_list = read_pattern_file(&Path::new("../.gptignore"))?;
     let include_list = read_pattern_file(&Path::new("../.gptinclude"))?;
 
-    println!("Ignore list: {:?}", ignore_list);
-    println!("Include list: {:?}", include_list);
-
     Ok(FilterSettings {
         ignore_list,
         include_list,
