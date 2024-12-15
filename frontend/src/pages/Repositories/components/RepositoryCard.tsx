@@ -32,7 +32,8 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
   }
   function handleUpdate() {
     updateRepository({
-      repositoryIdOrUrl: repository.url,
+      author: repository.author,
+      repositoryName: repository.name,
     });
   }
 

@@ -122,8 +122,7 @@ def test_repository_lifecycle(test_client: TestClient) -> None:
     assert repo["id"] == "HirotoShioi/repo-digest-tool"
 
     # 4. Update repository
-    update_payload = {"url": "https://github.com/HirotoShioi/repo-digest-tool"}
-    response = test_client.put("/repositories", json=update_payload)
+    response = test_client.put("/repositories/HirotoShioi/repo-digest-tool")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
@@ -141,8 +140,7 @@ def test_repository_lifecycle(test_client: TestClient) -> None:
 
 
 def test_update_repository_not_found(test_client: TestClient) -> None:
-    payload = {"url": "https://github.com/HirotoShioi/repo-digest-tool"}
-    response = test_client.put("/repositories", json=payload)
+    response = test_client.put("/repositories/HirotoShioi/repo-digest-tool")
     assert response.status_code == 404
     assert response.json() == {"detail": "Repository not found"}
 

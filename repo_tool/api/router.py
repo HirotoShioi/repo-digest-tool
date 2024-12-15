@@ -80,28 +80,29 @@ def delete_repository(author: str, repository_name: str) -> Response:
     return Response(status="success")
 
 
-class UpdateRepositoryParams(BaseModel):
-    url: Optional[str] = Field(None, description="The URL of the repository to update")
-    branch: Optional[str] = Field(
-        None, description="The branch to update (default: main)"
-    )
+@router.put(
+    "/repositories",
+    response_model=Response,
+    summary="Update all repositories",
+    description="Update all repositories",
+)
+def update_all_repositories() -> Response:
+    github.update()
+    return Response(status="success")
 
 
 @router.put(
-    "/repositories",
+    "/repositories/{author}/{repository_name}",
     response_model=Response,
     summary="Update a repository",
     description="Update a repository. If the URL is not provided, all repositories will be updated.",
 )
-def update_repository(request: UpdateRepositoryParams) -> Response:
-    if request.url:
-        if not github.repo_exists(request.url):
-            raise HTTPException(
-                status_code=404, detail="Repository not found"
-            )  # noqa: F821
-        github.update(request.url)
-    else:
-        github.update()
+def update_repository(author: str, repository_name: str) -> Response:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(
+            status_code=404, detail="Repository not found"
+        )  # noqa: F821
+    github.update(f"{author}/{repository_name}")
     return Response(status="success")
 
 
