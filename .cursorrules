@@ -94,26 +94,30 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
 
 # Repository Tool Project Requirements
 
-1. Repository Cloning
+1. Repository Management
 
-   - Create and maintain destination directories
-   - Use absolute paths for repository storage
-   - Implement proper cleanup handling
-   - Add user confirmation before exit
+   - Clone repositories from URLs
+   - Create proper directory structure (author/repo_name)
+   - Support force flag for overwriting existing repos
+   - Validate repository URLs
+   - Handle cleanup and directory creation
 
 2. Error Handling
 
-   - Proper directory creation checks
-   - Detailed error messages
-   - Path validation
+   - Validate URLs before cloning
+   - Proper directory permission checks
+   - Clear error messages for invalid inputs
+   - Handle Git operation failures
 
-3. User Experience
+3. Path Management
 
-   - Display clone location
-   - Add confirmation steps
-   - Maintain repository persistence
+   - Use proper path construction
+   - Support for nested directory structures
+   - Handle path existence checks
+   - Clean up on force operations
 
 4. Dependencies
-   - gitoxide for Git operations
+   - url for URL parsing
+   - gix for Git operations
    - tokio for async support
    - anyhow for error handling

@@ -2140,6 +2140,7 @@ dependencies = [
  "gix",
  "globset",
  "reqwest",
+ "tempfile",
  "tera",
  "tiktoken-rs",
  "tokio",
