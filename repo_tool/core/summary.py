@@ -1,8 +1,13 @@
 import asyncio
+import cProfile
 import os
+import pstats
+import time
 from dataclasses import dataclass, field
+from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from pstats import SortKey
+from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
 
 import aiofiles
 import tiktoken
@@ -10,8 +15,14 @@ from jinja2 import Environment, FileSystemLoader
 
 from repo_tool.core.contants import DIGEST_DIR
 
+# 型変数の定義
+T = TypeVar("T")
+F = TypeVar("F", bound=Callable[..., Awaitable[Any]])
+
 data_size = 20
 precision = 2
+BATCH_SIZE = 100
+MAX_FILE_SIZE = 5000
 encoding = tiktoken.get_encoding("o200k_base")
 
 
@@ -109,25 +120,35 @@ def generate_summary(
     """
     ファイル統計のサマリーレポートを生成する
     """
+    # プロファイラーを追加
+    profiler = cProfile.Profile()
+    profiler.enable()
+
     if not os.path.exists(DIGEST_DIR):
         os.makedirs(DIGEST_DIR, exist_ok=True)
 
     file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
     # 非同期処理の実行と結果の取得
-    stats = asyncio.run(process_files(file_infos))
+    file_stats = asyncio.run(process_files(file_infos))
 
     # サマリーの生成
     summary = Summary(
         repository=repo_path.name,
-        total_files=stats.file_count,
-        total_size_kb=round(stats.total_size, precision),
-        average_file_size_kb=round(stats.average_size, precision),
-        max_file_size_kb=round(stats.max_size, precision),
-        min_file_size_kb=round(stats.min_size, precision),
-        file_types=stats.extension_tokens,
-        context_length=stats.context_length,
-        file_data=stats.file_data,
+        total_files=file_stats.file_count,
+        total_size_kb=round(file_stats.total_size, precision),
+        average_file_size_kb=round(file_stats.average_size, precision),
+        max_file_size_kb=round(file_stats.max_size, precision),
+        min_file_size_kb=round(file_stats.min_size, precision),
+        file_types=file_stats.extension_tokens,
+        context_length=file_stats.context_length,
+        file_data=file_stats.file_data,
     )
+
+    # プロファイリング結果を出力
+    profiler.disable()
+    profile_stats = pstats.Stats(profiler).sort_stats(SortKey.TIME)
+    profile_stats.print_stats()
+
     return summary
 
 
@@ -135,6 +156,9 @@ async def process_files(file_infos: List[FileInfo]) -> FileStats:
     """
     全ファイルの非同期処理と集計を行う
     """
+    # バッチサイズを設定
+    BATCH_SIZE = 100
+
     extension_data: Dict[str, Dict[str, int]] = {}
     total_size = 0
     file_sizes = []
@@ -142,35 +166,37 @@ async def process_files(file_infos: List[FileInfo]) -> FileStats:
     processed_files = []
     file_data_list = []
 
-    tasks = [process_single_file(file_info) for file_info in file_infos]
-    results = await asyncio.gather(*tasks)
+    # バッチ処理を実装
+    for i in range(0, len(file_infos), BATCH_SIZE):
+        batch = file_infos[i : i + BATCH_SIZE]
+        tasks = [process_single_file(file_info) for file_info in batch]
+        results = await asyncio.gather(*tasks)
 
-    for result in results:
-        if result is None:
-            continue
+        for result in results:
+            if result is None:
+                continue
 
-        processed_files.append(result["path"])
-        total_size += result["size"]
-        context_length += result["tokens"]
-        file_sizes.append(result["size"])
+            processed_files.append(result["path"])
+            total_size += result["size"]
+            context_length += result["tokens"]
+            file_sizes.append(result["size"])
 
-        # Create FileData object
-        file_data_list.append(
-            FileData(
-                name=Path(result["path"]).name,
-                path=result["path"],
-                extension=result["extension"],
-                tokens=result["tokens"],
+            file_data_list.append(
+                FileData(
+                    name=Path(result["path"]).name,
+                    path=result["path"],
+                    extension=result["extension"],
+                    tokens=result["tokens"],
+                )
             )
-        )
 
-        ext = result["extension"]
-        if ext not in extension_data:
-            extension_data[ext] = {"count": 0, "tokens": 0}
-        extension_data[ext]["count"] += 1
-        extension_data[ext]["tokens"] += result["tokens"]
+            ext = result["extension"]
+            if ext not in extension_data:
+                extension_data[ext] = {"count": 0, "tokens": 0}
+            extension_data[ext]["count"] += 1
+            extension_data[ext]["tokens"] += result["tokens"]
 
-    # Sort file_data_list by token count
+    # ファイルデータをトークン数でソート
     file_data_list.sort(key=lambda x: x.tokens, reverse=True)
 
     extension_tokens = [
@@ -191,6 +217,20 @@ async def process_files(file_infos: List[FileInfo]) -> FileStats:
     )
 
 
+def timing_decorator(func: F) -> F:
+    """非同期関数の実行時間を計測するデコレータ"""
+
+    @wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start = time.time()
+        result = await func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start:.2f} seconds")
+        return result
+
+    return wrapper  # type: ignore
+
+
 async def process_single_file(file_info: FileInfo) -> Optional[Dict[str, Any]]:
     """
     単一ファイルの非同期処理を行う補助関数
@@ -198,20 +238,34 @@ async def process_single_file(file_info: FileInfo) -> Optional[Dict[str, Any]]:
     try:
         relative_path = str(file_info.file_path.relative_to(file_info.repo_path))
 
+        # stat呼び出しを先に行う
+        try:
+            file_size = file_info.file_path.stat().st_size / 1024  # bytes to KB
+        except Exception:
+            return None
+
+        # 大きすぎるファイルはスキップ
+        if file_size > MAX_FILE_SIZE:  # 1MB以上のファイルはスキップ
+            return {
+                "path": relative_path,
+                "size": file_size,
+                "tokens": 0,
+                "extension": file_info.file_path.suffix.lower() or "no_extension",
+            }
+
         async with aiofiles.open(
             file_info.file_path, "r", encoding="utf-8", errors="ignore"
         ) as f:
             content = await f.read()
-            tokens = len(encoding.encode(content))
 
-        file_size = file_info.file_path.stat().st_size / 1024  # bytes to KB
-        ext = file_info.file_path.suffix.lower() or "no_extension"
+        # トークン化処理
+        tokens = len(encoding.encode(content))
 
         return {
             "path": relative_path,
             "size": file_size,
             "tokens": tokens,
-            "extension": ext,
+            "extension": file_info.file_path.suffix.lower() or "no_extension",
         }
     except Exception as e:
         print(f"Error processing file {file_info.file_path}: {e}")
