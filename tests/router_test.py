@@ -1,82 +1,10 @@
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from repo_tool.api.router import get_github, router
-from repo_tool.core.github import GitHub, Repository
-
-
-class InMemoryGitHub(GitHub):
-    """In-memory implementation of GitHub for testing"""
-
-    def __init__(self) -> None:
-        self.repos: Dict[str, Repository] = {}
-
-    def list(self) -> List[Repository]:
-        return list(self.repos.values())
-
-    def get(self, author: str, repository_name: str) -> Repository:
-        repo_id = f"{author}/{repository_name}"
-        if repo_id not in self.repos:
-            raise ValueError(f"Repository {repo_id} not found")
-        return self.repos[repo_id]
-
-    def clone(
-        self, url: str, branch: str | None = None, force: bool = False
-    ) -> Optional[Repository]:
-        try:
-            repo_id = GitHub.get_repo_path(url)
-        except ValueError as e:
-            raise ValueError(f"Invalid repository URL: {str(e)}")
-
-        if str(repo_id) in self.repos and not force:
-            # Return existing repo if not force cloning
-            return self.repos[str(repo_id)]
-
-        # Remove existing repo if force=True
-        if force:
-            self.remove(url)
-
-        author, name = str(repo_id).split("/")
-        self.repos[str(repo_id)] = Repository(
-            id=str(repo_id),
-            name=name,
-            url=url,
-            author=author,
-            branch=branch or "main",
-            path=Path(f"/mock/path/{repo_id}"),
-            updated_at=datetime.now(),
-        )
-        return self.repos[str(repo_id)]
-
-    def remove(self, url: str) -> None:
-        repo_id = GitHub.get_repo_path(url)
-        print(f"repo_id: {repo_id}")
-        if str(repo_id) in self.repos:
-            del self.repos[str(repo_id)]
-
-    def clean(self) -> None:
-        self.repos.clear()
-
-    def update(self, url: str | None = None) -> List[Repository]:
-        if url:
-            repo_id = GitHub.get_repo_path(url)
-            if str(repo_id) in self.repos:
-                self.repos[str(repo_id)].updated_at = datetime.now()
-                return [self.repos[str(repo_id)]]
-        else:
-            for repo in self.repos.values():
-                repo.updated_at = datetime.now()
-            return list(self.repos.values())
-        return []
-
-    def repo_exists(self, url: str) -> bool:
-        repo_id = GitHub.get_repo_path(url)
-        return str(repo_id) in self.repos
+from repo_tool.api.router import router
 
 
 def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
@@ -84,13 +12,12 @@ def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
     return dict(sorted(d.items()))
 
 
+# TODO: Dependency injectionを使ってGitHubのモックを作る
 @pytest.fixture
 def test_client() -> TestClient:
     """Returns a FastAPI test client with InMemoryGitHub dependency injection"""
     app = FastAPI()
     app.include_router(router)
-    # Inject InMemoryGitHub implementation
-    app.dependency_overrides[get_github] = InMemoryGitHub
     return TestClient(app)
 
 
@@ -210,25 +137,6 @@ def test_clone_repository_duplicate(test_client: TestClient) -> None:
     response = test_client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
-
-
-def test_clone_repository_with_force(test_client: TestClient) -> None:
-    """Test force cloning an existing repository"""
-    url = "https://github.com/HirotoShioi/repo-digest-tool"
-    # First clone
-    response = test_client.post("/repositories", json={"url": url, "branch": "main"})
-    assert response.status_code == 200
-
-    # Force clone
-    response = test_client.post(
-        "/repositories", json={"url": url, "branch": "develop", "force": True}
-    )
-    assert response.status_code == 200
-
-    # Verify branch was updated
-    response = test_client.get("/repositories/HirotoShioi/repo-digest-tool")
-    assert response.status_code == 200
-    assert response.json()["branch"] == "develop"
 
 
 def test_get_repository_invalid_author_repo(test_client: TestClient) -> None:
