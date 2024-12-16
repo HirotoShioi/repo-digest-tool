@@ -1,10 +1,49 @@
 import fnmatch
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
 from repo_tool.core.llm import filter_files_with_llm
 from repo_tool.core.logger import log_error
+
+
+@dataclass
+class FilterSettings:
+    include_patterns: List[str]
+    exclude_patterns: List[str]
+    max_file_size: int
+
+    @staticmethod
+    def from_json(json_str: str) -> "FilterSettings":
+        return FilterSettings(**json.loads(json_str))
+
+    def to_json(self) -> str:
+        return json.dumps(self, ensure_ascii=False, default=lambda o: o.__dict__)
+
+
+max_file_size = 1024 * 1024 * 1024  # 1GB
+
+
+def get_filter_settings_from_env() -> FilterSettings:
+    include_patterns = read_pattern_file(Path(".") / ".gptinclude")
+    exclude_patterns = read_pattern_file(Path(".") / ".gptignore")
+    return FilterSettings(include_patterns, exclude_patterns, max_file_size)
+
+
+def read_pattern_file(file_path: Path) -> List[str]:
+    """
+    Reads a pattern file and returns a list of patterns.
+    Skips comments and empty lines.
+    """
+    pattern_list = []
+    if file_path.exists():
+        with file_path.open("r", encoding="utf-8") as pattern_file:
+            for line in pattern_file:
+                line = line.strip()
+                if line and not line.startswith("#"):  # Skip comments and empty lines
+                    pattern_list.append(line)
+    return pattern_list
 
 
 def get_all_files(repo_path: Path, ignore_patterns: List[str]) -> List[Path]:
@@ -63,34 +102,29 @@ def filter_files(
     return filtered_files
 
 
-def read_pattern_file(file_path: Path) -> List[str]:
-    """
-    Reads a pattern file and returns a list of patterns.
-    Skips comments and empty lines.
-    """
-    pattern_list = []
-    if file_path.exists():
-        with file_path.open("r", encoding="utf-8") as pattern_file:
-            for line in pattern_file:
-                line = line.strip()
-                if line and not line.startswith("#"):  # Skip comments and empty lines
-                    pattern_list.append(line)
-    return pattern_list
-
-
-def filter_files_in_repo(repo_path: Path, prompt: Optional[str] = None) -> List[Path]:
+def filter_files_in_repo(
+    repo_path: Path,
+    prompt: Optional[str] = None,
+    filter_settings: Optional[FilterSettings] = None,
+) -> List[Path]:
     """
     Processes a repository using the .gptignore file to filter files.
     """
     if not repo_path.exists():
         raise ValueError(f"Repository path '{repo_path}' does not exist.")
 
+    if filter_settings is None:
+        filter_settings = get_filter_settings_from_env()
+
     try:
-        ignore_list = read_pattern_file(Path(".") / ".gptignore")
-        include_list = read_pattern_file(Path(".") / ".gptinclude")
         # Get all files and filter based on extensions and .gptignore
-        all_files = get_all_files(repo_path, ignore_list)
-        filtered_files = filter_files(all_files, repo_path, ignore_list, include_list)
+        all_files = get_all_files(repo_path, filter_settings.exclude_patterns)
+        filtered_files = filter_files(
+            all_files,
+            repo_path,
+            filter_settings.exclude_patterns,
+            filter_settings.include_patterns,
+        )
         if prompt:
             filtered_files = filter_files_with_llm(filtered_files, prompt)
         file_list = [file_path for file_path in filtered_files if file_path.is_file()]
@@ -100,15 +134,3 @@ def filter_files_in_repo(repo_path: Path, prompt: Optional[str] = None) -> List[
         raise RuntimeError(
             f"Error while processing repository '{repo_path}': {e}"
         ) from e
-
-
-@dataclass
-class FilterSettings:
-    ignore_list: List[str]
-    include_list: List[str]
-
-
-def get_filter_settings() -> FilterSettings:
-    ignore_list = read_pattern_file(Path(".") / ".gptignore")
-    include_list = read_pattern_file(Path(".") / ".gptinclude")
-    return FilterSettings(ignore_list, include_list)

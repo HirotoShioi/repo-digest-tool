@@ -15,7 +15,7 @@ from repo_tool.api.repositories import (
     SummaryCacheRepository,
 )
 from repo_tool.core.digest import generate_digest_content
-from repo_tool.core.filter import filter_files_in_repo, get_filter_settings
+from repo_tool.core.filter import filter_files_in_repo, get_filter_settings_from_env
 from repo_tool.core.github import GitHub, Repository
 from repo_tool.core.summary import Summary, generate_summary
 
@@ -146,13 +146,17 @@ def update_repository(
     description="Get a summary of a repository digest",
 )
 def get_summary_of_repository(
-    author: str, repository_name: str, github: GitHub = Depends(get_github)
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_db),
+    github: GitHub = Depends(get_github),
 ) -> Summary:
     url = f"{author}/{repository_name}"
     if not github.repo_exists(url):
         raise HTTPException(status_code=404, detail="Repository not found")
     repo_path = GitHub.get_repo_path(url)
-    filtered_files = filter_files_in_repo(repo_path, None)
+    filter_settings = get_filter_settings_repository(session).get_by_repository_id(url)
+    filtered_files = filter_files_in_repo(repo_path, filter_settings=filter_settings)
     summary = generate_summary(repo_path, filtered_files)
     return summary
 
@@ -215,10 +219,10 @@ class Settings(BaseModel):
 
 @router.get("/settings")
 def get_settings() -> Settings:
-    settings = get_filter_settings()
+    settings = get_filter_settings_from_env()
     return Settings(
-        include_files=settings.include_list,
-        exclude_files=settings.ignore_list,
+        include_files=settings.exclude_patterns,
+        exclude_files=settings.include_patterns,
         max_file_size=1000000,
     )
 
@@ -249,10 +253,10 @@ def get_settings_of_repository(
             exclude_files=maybe_settings.exclude_patterns,
             max_file_size=maybe_settings.max_file_size,
         )
-    default_settings = get_filter_settings()
+    default_settings = get_filter_settings_from_env()
     return Settings(
-        include_files=default_settings.include_list,
-        exclude_files=default_settings.ignore_list,
+        include_files=default_settings.exclude_patterns,
+        exclude_files=default_settings.include_patterns,
         max_file_size=1000000,
     )
 

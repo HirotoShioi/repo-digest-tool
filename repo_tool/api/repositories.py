@@ -1,25 +1,10 @@
-import json
-from dataclasses import dataclass
 from typing import List, Optional
 
 from sqlalchemy import create_engine
 from sqlmodel import Field, Session, SQLModel, select
 
+from repo_tool.core.filter import FilterSettings
 from repo_tool.core.summary import FileData, FileType, Summary
-
-
-@dataclass
-class FilterSettings:
-    include_patterns: List[str]
-    exclude_patterns: List[str]
-    max_file_size: int
-
-    @staticmethod
-    def from_json(json_str: str) -> "FilterSettings":
-        return FilterSettings(**json.loads(json_str))
-
-    def to_json(self) -> str:
-        return json.dumps(self, ensure_ascii=False, default=lambda o: o.__dict__)
 
 
 class FilterSettingsTable(SQLModel, table=True):
