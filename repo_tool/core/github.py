@@ -38,6 +38,8 @@ class Repository:
 class GitHub:
     def __init__(self, github_token: Optional[str] = None) -> None:
         self.github_token = github_token or os.getenv("GITHUB_TOKEN")
+        if not Path(REPO_DIR).exists():
+            Path(REPO_DIR).mkdir(parents=True, exist_ok=True)
 
     def getByUrl(self, repo_url: str) -> Repository:
         repositories = self.list()
