@@ -6,7 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from repo_tool.api.router import router
+from repo_tool.api.router import get_github, router
 from repo_tool.core.github import GitHub, Repository
 
 
@@ -29,21 +29,21 @@ class InMemoryGitHub(GitHub):
         self, url: str, branch: str | None = None, force: bool = False
     ) -> Optional[Repository]:
         try:
-            repo_id = self._get_repo_id_from_url(url)
+            repo_id = GitHub.get_repo_path(url)
         except ValueError as e:
             raise ValueError(f"Invalid repository URL: {str(e)}")
 
-        if repo_id in self.repos and not force:
+        if str(repo_id) in self.repos and not force:
             # Return existing repo if not force cloning
-            return self.repos[repo_id]
+            return self.repos[str(repo_id)]
 
         # Remove existing repo if force=True
         if force:
             self.remove(url)
 
-        author, name = repo_id.split("/")
-        self.repos[repo_id] = Repository(
-            id=repo_id,
+        author, name = str(repo_id).split("/")
+        self.repos[str(repo_id)] = Repository(
+            id=str(repo_id),
             name=name,
             url=url,
             author=author,
@@ -51,23 +51,23 @@ class InMemoryGitHub(GitHub):
             path=Path(f"/mock/path/{repo_id}"),
             updated_at=datetime.now(),
         )
-        return self.repos[repo_id]
+        return self.repos[str(repo_id)]
 
     def remove(self, url: str) -> None:
-        repo_id = self._get_repo_id_from_url(url)
+        repo_id = GitHub.get_repo_path(url)
         print(f"repo_id: {repo_id}")
-        if repo_id in self.repos:
-            del self.repos[repo_id]
+        if str(repo_id) in self.repos:
+            del self.repos[str(repo_id)]
 
     def clean(self) -> None:
         self.repos.clear()
 
     def update(self, url: str | None = None) -> List[Repository]:
         if url:
-            repo_id = self._get_repo_id_from_url(url)
-            if repo_id in self.repos:
-                self.repos[repo_id].updated_at = datetime.now()
-                return [self.repos[repo_id]]
+            repo_id = GitHub.get_repo_path(url)
+            if str(repo_id) in self.repos:
+                self.repos[str(repo_id)].updated_at = datetime.now()
+                return [self.repos[str(repo_id)]]
         else:
             for repo in self.repos.values():
                 repo.updated_at = datetime.now()
@@ -75,34 +75,8 @@ class InMemoryGitHub(GitHub):
         return []
 
     def repo_exists(self, url: str) -> bool:
-        repo_id = self._get_repo_id_from_url(url)
-        return repo_id in self.repos
-
-    @staticmethod
-    def _get_repo_id_from_url(url: str) -> str:
-        """Extract repository ID from URL and validate format
-
-        Args:
-            url: Repository URL (e.g., https://github.com/user/repo)
-
-        Returns:
-            Repository ID in format "user/repo"
-
-        Raises:
-            ValueError: If URL format is invalid
-        """
-        if not url.startswith("https://github.com/"):
-            raise ValueError(
-                "Invalid repository URL: Must start with https://github.com/"
-            )
-
-        parts = url.rstrip("/").split("/")
-        if len(parts) < 5:
-            raise ValueError(
-                "Invalid repository URL: Must be in format https://github.com/user/repo"
-            )
-
-        return f"{parts[-2]}/{parts[-1]}"
+        repo_id = GitHub.get_repo_path(url)
+        return str(repo_id) in self.repos
 
 
 def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
@@ -116,7 +90,7 @@ def test_client() -> TestClient:
     app = FastAPI()
     app.include_router(router)
     # Inject InMemoryGitHub implementation
-    app.dependency_overrides[GitHub] = InMemoryGitHub
+    app.dependency_overrides[get_github] = InMemoryGitHub
     return TestClient(app)
 
 
@@ -268,7 +242,7 @@ def test_update_all_repositories(test_client: TestClient) -> None:
     # Add two repositories
     repos = [
         "https://github.com/HirotoShioi/repo-digest-tool",
-        "https://github.com/HirotoShioi/another-repo",
+        "https://github.com/HirotoShioi/query-cache",
     ]
 
     for url in repos:
