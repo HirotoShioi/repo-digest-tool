@@ -38,7 +38,7 @@ class FilterSettingsRepository:
         )
         return self.session.exec(statement).first()
 
-    def create_or_update(self, settings: FilterSettings) -> FilterSettings:
+    def upsert(self, settings: FilterSettings) -> FilterSettings:
         """
         FilterSettingsを作成または更新
         Returns the created or updated FilterSettings
@@ -84,7 +84,7 @@ class SummaryCacheRepository:
             return Summary.from_json(result.summary_json)
         return None
 
-    def create_or_update(self, summary: Summary, last_updated: str) -> Summary:
+    def upsert(self, summary: Summary, last_updated: str) -> Summary:
         """
         Create or update SummaryCache
         Returns the created or updated Summary
@@ -151,7 +151,7 @@ def main() -> None:
         )
 
         # Save summary
-        saved_summary = summary_cache_repository.create_or_update(
+        saved_summary = summary_cache_repository.upsert(
             summary=summary, last_updated="2024-01-01"
         )
         print("Saved Summary:", saved_summary.repository)
