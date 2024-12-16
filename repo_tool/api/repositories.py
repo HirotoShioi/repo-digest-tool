@@ -72,11 +72,10 @@ class FilterSettingsRepository:
             max_file_size=max_file_size,
         )
 
-        existing = self.session.exec(
-            select(FilterSettingsTable).where(
-                FilterSettingsTable.repository_id == repository_id
-            )
-        ).first()
+        statement = select(FilterSettingsTable).where(
+            FilterSettingsTable.repository_id == repository_id
+        )
+        existing = self.session.exec(statement).first()
 
         if existing:
             existing.settings = settings.to_json()
