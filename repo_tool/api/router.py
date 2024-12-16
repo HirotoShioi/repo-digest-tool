@@ -3,7 +3,7 @@ import tempfile
 from typing import List, Optional
 
 from dotenv import load_dotenv
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
@@ -17,7 +17,9 @@ router = APIRouter()
 
 load_dotenv(override=True)
 
-github = GitHub()
+
+def get_github() -> GitHub:
+    return GitHub()
 
 
 class Response(BaseModel):
@@ -29,7 +31,7 @@ class Response(BaseModel):
     summary="Get all repositories",
     description="Get all repositories",
 )
-def get_repositories() -> List[Repository]:
+def get_repositories(github: GitHub = Depends(get_github)) -> List[Repository]:
     return github.list()
 
 
@@ -38,7 +40,9 @@ def get_repositories() -> List[Repository]:
     summary="Get a repository",
     description="Get a repository",
 )
-def get_repository(author: str, repository_name: str) -> Repository:
+def get_repository(
+    author: str, repository_name: str, github: GitHub = Depends(get_github)
+) -> Repository:
     return github.get(author, repository_name)
 
 
@@ -53,51 +57,66 @@ class CloneRepositoryParams(BaseModel):
     summary="Clone a repository",
     description="Clone a repository. If the URL is not provided, all repositories will be cloned.",
 )
-def clone_repository(request: CloneRepositoryParams) -> Response:
-    github.clone(request.url, request.branch)
+def clone_repository(
+    request: CloneRepositoryParams, github: GitHub = Depends(get_github)
+) -> Response:
+    try:
+        github.clone(request.url, request.branch)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=str(e))
     return Response(status="success")
-
-
-class DeleteRepositoryParams(BaseModel):
-    url: Optional[str] = Field(None, description="The URL of the repository to delete")
 
 
 @router.delete(
     "/repositories",
     response_model=Response,
-    summary="Delete a repository",
-    description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
+    summary="Delete all repositories",
+    description="Delete all repositories",
 )
-def delete_repository(request: DeleteRepositoryParams) -> Response:
-    if request.url:
-        github.remove(request.url)
-    else:
-        github.clean()
+def delete_all_repositories(github: GitHub = Depends(get_github)) -> Response:
+    github.clean()
     return Response(status="success")
 
 
-class UpdateRepositoryParams(BaseModel):
-    url: Optional[str] = Field(None, description="The URL of the repository to update")
-    branch: Optional[str] = Field(
-        None, description="The branch to update (default: main)"
-    )
+@router.delete(
+    "/repositories/{author}/{repository_name}",
+    response_model=Response,
+    summary="Delete a repository",
+    description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
+)
+def delete_repository(
+    author: str, repository_name: str, github: GitHub = Depends(get_github)
+) -> Response:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(status_code=404, detail="Repository not found")
+    github.remove(f"{author}/{repository_name}")
+    return Response(status="success")
 
 
 @router.put(
     "/repositories",
     response_model=Response,
+    summary="Update all repositories",
+    description="Update all repositories",
+)
+def update_all_repositories(github: GitHub = Depends(get_github)) -> Response:
+    github.update()
+    return Response(status="success")
+
+
+@router.put(
+    "/repositories/{author}/{repository_name}",
+    response_model=Response,
     summary="Update a repository",
     description="Update a repository. If the URL is not provided, all repositories will be updated.",
 )
-def update_repository(request: UpdateRepositoryParams) -> Response:
-    if request.url:
-        if not github.repo_exists(request.url):
-            raise HTTPException(
-                status_code=404, detail="Repository not found"
-            )  # noqa: F821
-        github.update(request.url)
-    else:
-        github.update()
+def update_repository(
+    author: str, repository_name: str, github: GitHub = Depends(get_github)
+) -> Response:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(status_code=404, detail="Repository not found")
+    github.update(f"{author}/{repository_name}")
     return Response(status="success")
 
 
@@ -107,7 +126,9 @@ def update_repository(request: UpdateRepositoryParams) -> Response:
     summary="Get a summary of a repository digest",
     description="Get a summary of a repository digest",
 )
-def get_summary_of_repository(author: str, repository_name: str) -> Summary:
+def get_summary_of_repository(
+    author: str, repository_name: str, github: GitHub = Depends(get_github)
+) -> Summary:
     url = f"{author}/{repository_name}"
     if not github.repo_exists(url):
         raise HTTPException(status_code=404, detail="Repository not found")
@@ -128,7 +149,9 @@ class GenerateDigestParams(BaseModel):
     summary="Create a digest of a repository",
     description="Create a digest of a repository. This will create a digest of the repository and return it as a file.",
 )
-def get_digest_of_repository(request: GenerateDigestParams) -> FileResponse:
+def get_digest_of_repository(
+    request: GenerateDigestParams, github: GitHub = Depends(get_github)
+) -> FileResponse:
     repo_path = GitHub.get_repo_path(request.url)
     if not github.repo_exists(request.url):
         github.clone(request.url, request.branch)

@@ -97,11 +97,14 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
 1. Repository Management
 
    - Clone repositories from URLs with depth=1 (shallow clone)
-   - Skip if repository already exists (return success)
+   - Support force flag for overwriting existing repos with new settings
+   - Handle branch updates during force clone operations
+   - Skip if repository exists (return existing) when not force cloning
    - Create proper directory structure (author/repo_name)
-   - Support force flag for overwriting existing repos
    - Validate repository URLs
    - Handle cleanup and directory creation
+   - Support bulk operations for updates
+   - Validate GitHub URL format
 
 2. Error Handling
 
@@ -109,6 +112,10 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Proper directory permission checks
    - Clear error messages for invalid inputs
    - Handle Git operation failures
+   - Handle missing required parameters
+   - Proper handling of non-existent repositories
+   - Validate author/repository name format
+   - Descriptive error messages for URL validation
 
 3. Path Management
 
@@ -116,3 +123,14 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Support for nested directory structures
    - Handle path existence checks
    - Clean up on force operations
+   - Handle special characters in paths
+
+4. Testing
+   - Cover edge cases and abnormal scenarios
+   - Test idempotent operations
+   - Test force clone behavior
+   - Test bulk operations
+   - Test error conditions
+   - Validate response formats
+   - Reset test state between test runs
+   - Test URL validation

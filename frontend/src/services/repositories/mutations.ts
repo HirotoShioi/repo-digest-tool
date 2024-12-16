@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/api/client";
-import { extractAuthorAndNameFromUrl } from "@/lib/utils";
 
 type CloneRepositoryParams = {
   repositoryIdOrUrl: string;
@@ -25,18 +24,25 @@ const useCloneRepository = () => {
 };
 
 type DeleteRepositoryParams = {
-  repositoryIdOrUrl: string;
+  author: string;
+  repositoryName: string;
 };
 
 const useDeleteRepository = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (params: DeleteRepositoryParams) => {
-      return client.DELETE("/repositories", {
-        body: {
-          url: params.repositoryIdOrUrl,
-        },
-      });
+      return client.DELETE(
+        "/repositories/{author}/{repository_name}",
+        {
+          params: {
+            path: {
+              author: params.author,
+              repository_name: params.repositoryName,
+            },
+          },
+        }
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
@@ -47,27 +53,28 @@ const useDeleteRepository = () => {
 };
 
 type UpdateRepositoryParams = {
-  repositoryIdOrUrl?: string;
+  author: string;
+  repositoryName: string;
 };
 
 const useUpdateRepository = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (params: UpdateRepositoryParams) => {
-      return client.PUT("/repositories", {
-        body: {
-          url: params.repositoryIdOrUrl,
+      return client.PUT("/repositories/{author}/{repository_name}", {
+        params: {
+          path: {
+            author: params.author,
+            repository_name: params.repositoryName,
+          },
         },
       });
     },
     onSuccess: (_, params: UpdateRepositoryParams) => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
-      const { author, name } = extractAuthorAndNameFromUrl(
-        params.repositoryIdOrUrl!
-      ) ?? {};
-      if (author && name) {
-        queryClient.invalidateQueries({ queryKey: ["summary", author, name] });
-      }
+      queryClient.invalidateQueries({
+        queryKey: ["summary", params.author, params.repositoryName],
+      });
     },
   });
 

@@ -20,6 +20,7 @@ data_size = 20
 precision = 2
 BATCH_SIZE = 100
 MAX_FILE_SIZE = 5000
+enable_profiling = os.getenv("ENABLE_PROFILING", "false").lower() == "true"
 encoding = tiktoken.get_encoding("o200k_base")
 
 
@@ -116,19 +117,23 @@ def generate_summary(
 ) -> Summary:
     """
     ファイル統計のサマリーレポートを生成する
+
+    Args:
+        repo_path: リポジトリのパス
+        file_list: 処理対象のファイルリスト
+        enable_profiling: プロファイリングを有効にするかどうか (デフォルト: False)
     """
-    # プロファイラーを追加
-    profiler = cProfile.Profile()
-    profiler.enable()
+    profiler = None
+    if enable_profiling:
+        profiler = cProfile.Profile()
+        profiler.enable()
 
     if not os.path.exists(DIGEST_DIR):
         os.makedirs(DIGEST_DIR, exist_ok=True)
 
     file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
-    # 非同期処理の実行と結果の取得
     file_stats = asyncio.run(process_files(file_infos))
 
-    # サマリーの生成
     summary = Summary(
         repository=repo_path.name,
         total_files=file_stats.file_count,
@@ -141,10 +146,10 @@ def generate_summary(
         file_data=file_stats.file_data,
     )
 
-    # プロファイリング結果を出力
-    profiler.disable()
-    profile_stats = pstats.Stats(profiler).sort_stats(SortKey.TIME)
-    profile_stats.print_stats()
+    if enable_profiling and profiler:
+        profiler.disable()
+        profile_stats = pstats.Stats(profiler).sort_stats(SortKey.TIME)
+        profile_stats.print_stats()
 
     return summary
 

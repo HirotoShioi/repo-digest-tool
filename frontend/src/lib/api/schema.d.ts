@@ -17,20 +17,20 @@ export interface paths {
          */
         get: operations["get_repositories_repositories_get"];
         /**
-         * Update a repository
-         * @description Update a repository. If the URL is not provided, all repositories will be updated.
+         * Update all repositories
+         * @description Update all repositories
          */
-        put: operations["update_repository_repositories_put"];
+        put: operations["update_all_repositories_repositories_put"];
         /**
          * Clone a repository
          * @description Clone a repository. If the URL is not provided, all repositories will be cloned.
          */
         post: operations["clone_repository_repositories_post"];
         /**
-         * Delete a repository
-         * @description Delete a repository. If the URL is not provided, all repositories will be deleted.
+         * Delete all repositories
+         * @description Delete all repositories
          */
-        delete: operations["delete_repository_repositories_delete"];
+        delete: operations["delete_all_repositories_repositories_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -48,9 +48,17 @@ export interface paths {
          * @description Get a repository
          */
         get: operations["get_repository_repositories__author___repository_name__get"];
-        put?: never;
+        /**
+         * Update a repository
+         * @description Update a repository. If the URL is not provided, all repositories will be updated.
+         */
+        put: operations["update_repository_repositories__author___repository_name__put"];
         post?: never;
-        delete?: never;
+        /**
+         * Delete a repository
+         * @description Delete a repository. If the URL is not provided, all repositories will be deleted.
+         */
+        delete: operations["delete_repository_repositories__author___repository_name__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -130,14 +138,6 @@ export interface components {
              * @description The branch to clone
              */
             branch?: string | null;
-        };
-        /** DeleteRepositoryParams */
-        DeleteRepositoryParams: {
-            /**
-             * Url
-             * @description The URL of the repository to delete
-             */
-            url?: string | null;
         };
         /** FileData */
         FileData: {
@@ -247,19 +247,6 @@ export interface components {
             /** File Data */
             file_data: components["schemas"]["FileData"][];
         };
-        /** UpdateRepositoryParams */
-        UpdateRepositoryParams: {
-            /**
-             * Url
-             * @description The URL of the repository to update
-             */
-            url?: string | null;
-            /**
-             * Branch
-             * @description The branch to update (default: main)
-             */
-            branch?: string | null;
-        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -298,18 +285,14 @@ export interface operations {
             };
         };
     };
-    update_repository_repositories_put: {
+    update_all_repositories_repositories_put: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateRepositoryParams"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -318,15 +301,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Response"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -364,18 +338,14 @@ export interface operations {
             };
         };
     };
-    delete_repository_repositories_delete: {
+    delete_all_repositories_repositories_delete: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeleteRepositoryParams"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -384,15 +354,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Response"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -416,6 +377,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Repository"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_repository_repositories__author___repository_name__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author: string;
+                repository_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_repository_repositories__author___repository_name__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author: string;
+                repository_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Response"];
                 };
             };
             /** @description Validation Error */
