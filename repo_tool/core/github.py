@@ -70,6 +70,9 @@ class GitHub:
         Raises:
             e: GitCommandError
         """
+        if not Path(REPO_DIR).exists():
+            Path(REPO_DIR).mkdir(parents=True, exist_ok=True)
+
         try:
             if GitHub.is_short_hand_url(repo_url):
                 repo_url = GitHub.resolve_repo_url(repo_url)

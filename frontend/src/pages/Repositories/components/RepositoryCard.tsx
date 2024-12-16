@@ -1,4 +1,4 @@
-import { Trash2, RefreshCw, FolderGit2, Loader2 } from "lucide-react";
+import { Trash2, RefreshCw, Loader2 } from "lucide-react";
 import type { Repository } from "@/types";
 import { formatDate } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,6 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 max-w-[70%]">
-            <FolderGit2 className="w-6 h-6 text-primary" />
             <div className="flex flex-col w-full">
               <h3 className="text-lg font-semibold">{repository.name}</h3>
               <p className="text-sm text-muted-foreground truncate">
