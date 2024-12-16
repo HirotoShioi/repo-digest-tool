@@ -20,7 +20,7 @@ data_size = 20
 precision = 2
 BATCH_SIZE = 100
 MAX_FILE_SIZE = 5000
-enable_profiling = os.getenv("ENABLE_PROFILING", "false").lower() == "true"
+enable_profiling = os.getenv("ENABLE_PROFILING", "false").lower() == "true" or False
 encoding = tiktoken.get_encoding("o200k_base")
 
 

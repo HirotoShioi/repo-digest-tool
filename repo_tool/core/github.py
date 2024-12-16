@@ -292,8 +292,6 @@ class GitHub:
             or "\\" in repo
             or not author
             or not repo  # Ensure non-empty strings
-            or not re.match(r"^[a-zA-Z0-9][-\w.]*$", author)  # Validate author format
-            or not re.match(r"^[-\w.]+$", repo)  # Validate repo format
         ):
             return False
 
@@ -350,11 +348,10 @@ class GitHub:
             str: The full repository URL.
         """
         if repo_url.startswith("https://github.com"):
-            # 完全なURLはそのまま返す
             return repo_url
 
-        # 正規表現で短縮形式を検証
-        short_url_pattern = r"^(?!.*\.\.)[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,38}/[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,100}(\.git)?$"
+        # Updated regex pattern to allow underscores in repo name
+        short_url_pattern = r"^(?!.*\.\.)[a-zA-Z0-9][-a-zA-Z0-9\.]{0,38}/[a-zA-Z0-9][-a-zA-Z0-9\._]{0,100}(\.git)?$"
         if re.match(short_url_pattern, repo_url):
             return f"https://github.com/{repo_url}"
         else:
