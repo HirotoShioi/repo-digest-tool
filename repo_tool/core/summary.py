@@ -1,10 +1,7 @@
 import asyncio
-import cProfile
 import os
-import pstats
 from dataclasses import dataclass, field
 from pathlib import Path
-from pstats import SortKey
 from typing import Any, Dict, List, Optional, TypeVar
 
 import aiofiles
@@ -20,7 +17,6 @@ data_size = 20
 precision = 2
 BATCH_SIZE = 100
 MAX_FILE_SIZE = 5000
-enable_profiling = os.getenv("ENABLE_PROFILING", "false").lower() == "true"
 encoding = tiktoken.get_encoding("o200k_base")
 
 
@@ -123,11 +119,6 @@ def generate_summary(
         file_list: 処理対象のファイルリスト
         enable_profiling: プロファイリングを有効にするかどうか (デフォルト: False)
     """
-    profiler = None
-    if enable_profiling:
-        profiler = cProfile.Profile()
-        profiler.enable()
-
     if not os.path.exists(DIGEST_DIR):
         os.makedirs(DIGEST_DIR, exist_ok=True)
 
@@ -145,12 +136,6 @@ def generate_summary(
         context_length=file_stats.context_length,
         file_data=file_stats.file_data,
     )
-
-    if enable_profiling and profiler:
-        profiler.disable()
-        profile_stats = pstats.Stats(profiler).sort_stats(SortKey.TIME)
-        profile_stats.print_stats()
-
     return summary
 
 
