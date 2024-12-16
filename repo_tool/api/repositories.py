@@ -66,18 +66,27 @@ class FilterSettingsRepository:
         FilterSettingsを作成または更新
         Returns the created or updated FilterSettings
         """
-        existing = self.get_by_repository_id(repository_id)
-        if existing:
-            self.session.add(existing)
-            self.session.commit()
-            return existing
-
         settings = FilterSettings(
             include_patterns=include_patterns,
             exclude_patterns=exclude_patterns,
             max_file_size=max_file_size,
         )
-        self.session.add(settings)
+
+        existing = self.session.exec(
+            select(FilterSettingsTable).where(
+                FilterSettingsTable.repository_id == repository_id
+            )
+        ).first()
+
+        if existing:
+            existing.settings = settings.to_json()
+            self.session.add(existing)
+        else:
+            settings_table = FilterSettingsTable(
+                repository_id=repository_id, settings=settings.to_json()
+            )
+            self.session.add(settings_table)
+
         self.session.commit()
         return settings
 
@@ -85,7 +94,10 @@ class FilterSettingsRepository:
         """
         リポジトリIDでFilterSettingsを削除
         """
-        existing = self.get_by_repository_id(repository_id)
+        statement = select(FilterSettingsTable).where(
+            FilterSettingsTable.repository_id == repository_id
+        )
+        existing = self.session.exec(statement).first()
         if existing:
             self.session.delete(existing)
             self.session.commit()

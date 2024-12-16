@@ -122,6 +122,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/{author}/{repository_name}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings Of Repository */
+        get: operations["get_settings_of_repository__author___repository_name__settings_get"];
+        /** Update Settings Of Repository */
+        put: operations["update_settings_of_repository__author___repository_name__settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -225,9 +243,16 @@ export interface components {
              * @description The files to exclude from the digest
              */
             exclude_files: string[];
+            /**
+             * Max File Size
+             * @description The maximum file size to include in the digest
+             */
+            max_file_size: number;
         };
         /** Summary */
         Summary: {
+            /** Author */
+            author: string;
             /** Repository */
             repository: string;
             /** Total Files */
@@ -542,6 +567,74 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Settings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_of_repository__author___repository_name__settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author: string;
+                repository_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Settings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_settings_of_repository__author___repository_name__settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author: string;
+                repository_name: string;
+            };
             cookie?: never;
         };
         requestBody: {

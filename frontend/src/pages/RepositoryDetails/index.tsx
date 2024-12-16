@@ -94,6 +94,8 @@ function RepositoryDetailsPage() {
             onSave={() => {
               refetch({});
             }}
+            author={author}
+            repository={name}
           />
         </div>
       </div>

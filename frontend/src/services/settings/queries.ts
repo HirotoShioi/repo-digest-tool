@@ -10,15 +10,26 @@ function toSettings(data: components["schemas"]["Settings"]): Settings {
   };
 }
 
-function useGetSettings() {
+type GetSettingParams = {
+  author: string;
+  repository: string;
+};
+function useGetSettings(params: GetSettingParams) {
   return useQuery({
-    queryKey: ["settings"],
+    queryKey: ["settings", params.author, params.repository],
     initialData: {
       includePatterns: [],
       excludePatterns: [],
     },
     queryFn: async () => {
-      const response = await client.GET("/settings");
+      const response = await client.GET("/{author}/{repository_name}/settings", {
+        params: {
+          path: {
+            author: params.author,
+            repository_name: params.repository,
+          },
+        },
+      });
       if (!response.data) {
         throw new Error("Failed to fetch settings");
       }

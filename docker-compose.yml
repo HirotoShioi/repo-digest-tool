@@ -16,6 +16,7 @@ services:
       - ./digests:/app/digests
       - ./.gptinclude:/app/.gptinclude
       - ./.gptignore:/app/.gptignore
+      - ./repo_tool.db:/app/repo_tool.db
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1

@@ -48,7 +48,6 @@ function useGetSummary(params: GetSummaryParams) {
           },
         }
       );
-      console.log(response);
       return response?.data ? toSummary(response.data) : null;
     },
   });

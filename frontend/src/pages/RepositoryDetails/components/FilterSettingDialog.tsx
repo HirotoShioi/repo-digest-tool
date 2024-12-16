@@ -21,6 +21,8 @@ interface FilterSettingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: () => void;
+  author: string;
+  repository: string;
 }
 
 function isValidGlob(pattern: string): boolean {
@@ -115,9 +117,14 @@ const FileSizeInput = memo(function FileSizeInput({
 export function FilterSettingDialog({
   open,
   onOpenChange,
+  author,
+  repository,
   onSave,
 }: FilterSettingDialogProps) {
-  const { data: filterSettings } = useGetSettings();
+  const { data: filterSettings } = useGetSettings({
+    author,
+    repository,
+  });
   const { toast } = useToast();
   const { mutate: updateSettings } = useUpdateSettings();
 
@@ -193,8 +200,13 @@ export function FilterSettingDialog({
   const handleSave = useCallback(async () => {
     updateSettings(
       {
-        includePatterns,
-        excludePatterns,
+        author,
+        name: repository,
+        settings: {
+          includePatterns,
+          excludePatterns,
+          maxFileSize,
+        },
       },
       {
         onSuccess: () => {
@@ -209,9 +221,12 @@ export function FilterSettingDialog({
       }
     );
   }, [
+    updateSettings,
+    author,
+    repository,
     includePatterns,
     excludePatterns,
-    updateSettings,
+    maxFileSize,
     toast,
     onSave,
     onOpenChange,

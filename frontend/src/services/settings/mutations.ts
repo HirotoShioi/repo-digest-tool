@@ -4,14 +4,26 @@ import { Settings } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { components } from "@/lib/api/schema";
 
+type UpdateSettingsParams = {
+  author: string;
+  name: string;
+  settings: Settings;
+};
 function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (settings: Settings) =>
-      client.PUT("/settings", {
+    mutationFn: (params: UpdateSettingsParams) =>
+      client.PUT(`/{author}/{repository_name}/settings`, {
+        params: {
+          path: {
+            author: params.author!,
+            repository_name: params.name!,
+          },
+        },
         body: {
-          include_files: settings.includePatterns,
-          exclude_files: settings.excludePatterns,
+          include_files: params.settings.includePatterns,
+          exclude_files: params.settings.excludePatterns,
+          max_file_size: params.settings.maxFileSize,
         },
       }),
     onSuccess: () => {
@@ -24,6 +36,7 @@ function toSettings(data: components["schemas"]["Settings"]): Settings {
   return {
     includePatterns: data.include_files,
     excludePatterns: data.exclude_files,
+    maxFileSize: data.max_file_size,
   };
 }
 
@@ -32,6 +45,7 @@ type ExcludeFilesParams = {
   name: string;
   paths: string[];
 };
+
 function useExcludeFiles() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -44,10 +58,17 @@ function useExcludeFiles() {
         }
         settings = toSettings(response.data);
       }
-      await client.PUT("/settings", {
+      await client.PUT(`/{author}/{repository_name}/settings`, {
+        params: {
+          path: {
+            author: params.author!,
+            repository_name: params.name!,
+          },
+        },
         body: {
           include_files: settings.includePatterns,
           exclude_files: [...settings.excludePatterns, ...params.paths],
+          max_file_size: settings.maxFileSize,
         },
       });
     },
