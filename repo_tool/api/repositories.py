@@ -45,7 +45,7 @@ class FilterSettingsRepository:
 
     def get_by_repository_id(self, repository_id: str) -> Optional[FilterSettings]:
         """
-        リポジトリIDでFilterSettingsを取得
+        Get FilterSettings by repository ID
         """
         statement = select(FilterSettingsTable).where(
             FilterSettingsTable.repository_id == repository_id
@@ -63,7 +63,7 @@ class FilterSettingsRepository:
         max_file_size: int,
     ) -> FilterSettings:
         """
-        FilterSettingsを作成または更新
+        Create or update FilterSettings
         Returns the created or updated FilterSettings
         """
         settings = FilterSettings(
