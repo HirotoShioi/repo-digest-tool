@@ -61,7 +61,7 @@
 ### Milestones
 
 - Define database models and create migration scripts.
-- Implement `BaseRepository`, `FilterSettingsRepository`, and `SummaryCacheRepository`.
+- Implement `FilterSettingsRepository`, and `SummaryCacheRepository`.
 - Develop API endpoints for filtering settings (`GET` and `PUT` operations).
 - Integrate caching logic into the summary generation process.
 - Write unit tests for repository classes and API endpoints, including edge cases.

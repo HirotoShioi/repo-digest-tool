@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -57,6 +58,7 @@ class FileStats:
 
 @dataclass
 class Summary:
+    author: str
     repository: str
     total_files: int
     total_size_kb: float
@@ -66,6 +68,17 @@ class Summary:
     file_types: List[FileType]
     context_length: int
     file_data: List[FileData]
+
+    def to_json(self) -> str:
+        return json.dumps(self, default=lambda o: o.__dict__, ensure_ascii=False)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "Summary":
+        data = json.loads(json_str)
+        # Reconstruct nested objects
+        data["file_types"] = [FileType(**ft) for ft in data["file_types"]]
+        data["file_data"] = [FileData(**fd) for fd in data["file_data"]]
+        return cls(**data)
 
     def generate_report(self, data_size: int = 20) -> None:
         """
@@ -124,8 +137,10 @@ def generate_summary(
 
     file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
     file_stats = asyncio.run(process_files(file_infos))
+    author = str(repo_path).split("/")[1]
 
     summary = Summary(
+        author=author,
         repository=repo_path.name,
         total_files=file_stats.file_count,
         total_size_kb=round(file_stats.total_size, precision),

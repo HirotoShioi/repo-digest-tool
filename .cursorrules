@@ -134,3 +134,32 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Validate response formats
    - Reset test state between test runs
    - Test URL validation
+
+# Repository Tool Database Requirements
+
+1. Database Setup
+
+   - Initialize SQLite database with SQLModel
+   - Create tables for FilterSettings and SummaryCache
+   - Handle database migrations
+   - Proper session management
+
+2. Repository Management
+
+   - Store filter settings per repository
+   - Cache repository summaries
+   - Support CRUD operations
+   - Handle database connections properly
+
+3. Error Handling
+
+   - Validate database operations
+   - Handle session lifecycle
+   - Proper error messages for database operations
+   - Transaction management
+
+4. Data Models
+   - FilterSettings model for repository filters
+   - SummaryCache model for caching summaries
+   - Proper relationship handling
+   - Data validation
