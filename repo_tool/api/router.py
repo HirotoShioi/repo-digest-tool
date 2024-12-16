@@ -7,7 +7,13 @@ from fastapi import Depends, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
+from sqlalchemy import create_engine
+from sqlmodel import Session
 
+from repo_tool.api.repositories import (
+    FilterSettingsRepository,
+    SummaryCacheRepository,
+)
 from repo_tool.core.digest import generate_digest_content
 from repo_tool.core.filter import filter_files_in_repo, get_filter_settings
 from repo_tool.core.github import GitHub, Repository
@@ -20,6 +26,19 @@ load_dotenv(override=True)
 
 def get_github() -> GitHub:
     return GitHub()
+
+
+def get_db() -> Session:
+    engine = create_engine("sqlite:///repo_tool.db")
+    return Session(engine)
+
+
+def get_summary_cache_repository(session: Session) -> SummaryCacheRepository:
+    return SummaryCacheRepository(session)
+
+
+def get_filter_settings_repository(session: Session) -> FilterSettingsRepository:
+    return FilterSettingsRepository(session)
 
 
 class Response(BaseModel):
@@ -189,6 +208,9 @@ class Settings(BaseModel):
     exclude_files: List[str] = Field(
         ..., description="The files to exclude from the digest"
     )
+    max_file_size: int = Field(
+        ..., description="The maximum file size to include in the digest"
+    )
 
 
 @router.get("/settings")
@@ -197,6 +219,7 @@ def get_settings() -> Settings:
     return Settings(
         include_files=settings.include_list,
         exclude_files=settings.ignore_list,
+        max_file_size=1000000,
     )
 
 
@@ -209,4 +232,42 @@ def update_settings(request: Settings) -> Settings:
     return Settings(
         include_files=request.include_files,
         exclude_files=request.exclude_files,
+        max_file_size=request.max_file_size,
     )
+
+
+@router.get("/{author}/{repository_name}/settings")
+def get_settings_of_repository(
+    author: str, repository_name: str, session: Session = Depends(get_db)
+) -> Settings:
+    maybe_settings = get_filter_settings_repository(session).get_by_repository_id(
+        f"{author}/{repository_name}"
+    )
+    if maybe_settings:
+        return Settings(
+            include_files=maybe_settings.include_patterns,
+            exclude_files=maybe_settings.exclude_patterns,
+            max_file_size=maybe_settings.max_file_size,
+        )
+    default_settings = get_filter_settings()
+    return Settings(
+        include_files=default_settings.include_list,
+        exclude_files=default_settings.ignore_list,
+        max_file_size=1000000,
+    )
+
+
+@router.put("/{author}/{repository_name}/settings")
+def update_settings_of_repository(
+    author: str,
+    repository_name: str,
+    request: Settings,
+    session: Session = Depends(get_db),
+) -> Settings:
+    get_filter_settings_repository(session).upsert(
+        f"{author}/{repository_name}",
+        request.include_files,
+        request.exclude_files,
+        request.max_file_size,
+    )
+    return request

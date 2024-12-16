@@ -1,4 +1,6 @@
-from typing import Optional
+import json
+from dataclasses import dataclass
+from typing import List, Optional
 
 from sqlalchemy import create_engine
 from sqlmodel import Field, Session, SQLModel, select
@@ -6,15 +8,27 @@ from sqlmodel import Field, Session, SQLModel, select
 from repo_tool.core.summary import FileData, FileType, Summary
 
 
-class FilterSettings(SQLModel, table=True):
+@dataclass
+class FilterSettings:
+    include_patterns: List[str]
+    exclude_patterns: List[str]
+    max_file_size: int
+
+    @staticmethod
+    def from_json(json_str: str) -> "FilterSettings":
+        return FilterSettings(**json.loads(json_str))
+
+    def to_json(self) -> str:
+        return json.dumps(self, ensure_ascii=False, default=lambda o: o.__dict__)
+
+
+class FilterSettingsTable(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     repository_id: str
-    include_patterns: Optional[str]
-    exclude_patterns: Optional[str]
-    max_file_size: Optional[int]
+    settings: str
 
 
-class SummaryCache(SQLModel, table=True):
+class SummaryCacheTable(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     repository_id: str
     summary_json: str  # Store JSON string of Summary
@@ -33,25 +47,36 @@ class FilterSettingsRepository:
         """
         リポジトリIDでFilterSettingsを取得
         """
-        statement = select(FilterSettings).where(
-            FilterSettings.repository_id == repository_id
+        statement = select(FilterSettingsTable).where(
+            FilterSettingsTable.repository_id == repository_id
         )
-        return self.session.exec(statement).first()
+        result = self.session.exec(statement).first()
+        if result:
+            return FilterSettings.from_json(result.settings)
+        return None
 
-    def upsert(self, settings: FilterSettings) -> FilterSettings:
+    def upsert(
+        self,
+        repository_id: str,
+        include_patterns: List[str],
+        exclude_patterns: List[str],
+        max_file_size: int,
+    ) -> FilterSettings:
         """
         FilterSettingsを作成または更新
         Returns the created or updated FilterSettings
         """
-        existing = self.get_by_repository_id(settings.repository_id)
+        existing = self.get_by_repository_id(repository_id)
         if existing:
-            existing.include_patterns = settings.include_patterns
-            existing.exclude_patterns = settings.exclude_patterns
-            existing.max_file_size = settings.max_file_size
             self.session.add(existing)
             self.session.commit()
             return existing
 
+        settings = FilterSettings(
+            include_patterns=include_patterns,
+            exclude_patterns=exclude_patterns,
+            max_file_size=max_file_size,
+        )
         self.session.add(settings)
         self.session.commit()
         return settings
@@ -76,8 +101,8 @@ class SummaryCacheRepository:
         """
         Get Summary by repository ID
         """
-        statement = select(SummaryCache).where(
-            SummaryCache.repository_id == repository_id
+        statement = select(SummaryCacheTable).where(
+            SummaryCacheTable.repository_id == repository_id
         )
         result = self.session.exec(statement).first()
         if result:
@@ -90,14 +115,16 @@ class SummaryCacheRepository:
         Returns the created or updated Summary
         """
         repository_id = get_repository_id(summary.author, summary.repository)
-        cache = SummaryCache(
+        cache = SummaryCacheTable(
             repository_id=repository_id,
             summary_json=summary.to_json(),
             last_updated=last_updated,
         )
 
         existing = self.session.exec(
-            select(SummaryCache).where(SummaryCache.repository_id == repository_id)
+            select(SummaryCacheTable).where(
+                SummaryCacheTable.repository_id == repository_id
+            )
         ).first()
 
         if existing:
