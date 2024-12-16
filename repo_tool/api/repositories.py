@@ -47,13 +47,16 @@ class FilterSettingsRepository:
         """
         Get FilterSettings by repository ID
         """
-        statement = select(FilterSettingsTable).where(
-            FilterSettingsTable.repository_id == repository_id
-        )
-        result = self.session.exec(statement).first()
-        if result:
-            return FilterSettings.from_json(result.settings)
-        return None
+        try:
+            statement = select(FilterSettingsTable).where(
+                FilterSettingsTable.repository_id == repository_id
+            )
+            result = self.session.exec(statement).first()
+            if result:
+                return FilterSettings.from_json(result.settings)
+            return None
+        except Exception:
+            return None
 
     def upsert(
         self,
