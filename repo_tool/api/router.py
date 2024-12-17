@@ -45,6 +45,7 @@ class Response(BaseModel):
     "/repositories",
     summary="Get all repositories",
     description="Get all repositories",
+    dependencies=[Depends(get_github)],
 )
 def get_repositories() -> List[Repository]:
     github = get_github()
@@ -55,6 +56,7 @@ def get_repositories() -> List[Repository]:
     "/repositories/{author}/{repository_name}",
     summary="Get a repository",
     description="Get a repository",
+    dependencies=[Depends(get_github)],
 )
 def get_repository(author: str, repository_name: str) -> Repository:
     github = get_github()
@@ -71,6 +73,7 @@ class CloneRepositoryParams(BaseModel):
     response_model=Response,
     summary="Clone a repository",
     description="Clone a repository. If the URL is not provided, all repositories will be cloned.",
+    dependencies=[Depends(get_github)],
 )
 def clone_repository(request: CloneRepositoryParams) -> Response:
     github = get_github()
@@ -101,6 +104,7 @@ def delete_all_repositories(session: Session = Depends(get_session)) -> Response
     response_model=Response,
     summary="Delete a repository",
     description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
+    dependencies=[Depends(get_github)],
 )
 def delete_repository(
     author: str, repository_name: str, session: Session = Depends(get_session)
@@ -123,6 +127,7 @@ def delete_repository(
     response_model=Response,
     summary="Update all repositories",
     description="Update all repositories",
+    dependencies=[Depends(get_github)],
 )
 def update_all_repositories(session: Session = Depends(get_session)) -> Response:
     github = get_github()
@@ -136,6 +141,7 @@ def update_all_repositories(session: Session = Depends(get_session)) -> Response
     response_model=Response,
     summary="Update a repository",
     description="Update a repository. If the URL is not provided, all repositories will be updated.",
+    dependencies=[Depends(get_github)],
 )
 def update_repository(
     author: str, repository_name: str, session: Session = Depends(get_session)
@@ -155,6 +161,7 @@ def update_repository(
     response_model=Summary,
     summary="Get a summary of a repository digest",
     description="Get a summary of a repository digest",
+    dependencies=[Depends(get_github)],
 )
 def get_summary_of_repository(
     author: str, repository_name: str, session: Session = Depends(get_session)
@@ -186,6 +193,7 @@ class GenerateDigestParams(BaseModel):
     response_class=FileResponse,
     summary="Create a digest of a repository",
     description="Create a digest of a repository. This will create a digest of the repository and return it as a file.",
+    dependencies=[Depends(get_github)],
 )
 def get_digest_of_repository(request: GenerateDigestParams) -> FileResponse:
     github = get_github()
