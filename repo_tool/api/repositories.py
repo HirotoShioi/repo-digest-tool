@@ -91,6 +91,12 @@ class FilterSettingsRepository:
             return True
         return False
 
+    def delete_all(self) -> None:
+        all_settings = self.session.exec(select(FilterSettingsTable)).all()
+        for settings in all_settings:
+            self.session.delete(settings)
+        self.session.commit()
+
 
 class SummaryCacheRepository:
     def __init__(self, session: Session):
@@ -141,12 +147,21 @@ class SummaryCacheRepository:
         """
         リポジトリIDでSummaryCacheを削除
         """
-        existing = self.get_by_repository_id(repository_id)
+        statement = select(SummaryCacheTable).where(
+            SummaryCacheTable.repository_id == repository_id
+        )
+        existing = self.session.exec(statement).first()
         if existing:
             self.session.delete(existing)
             self.session.commit()
             return True
         return False
+
+    def delete_all(self) -> None:
+        all_cache = self.session.exec(select(SummaryCacheTable)).all()
+        for cache in all_cache:
+            self.session.delete(cache)
+        self.session.commit()
 
 
 def main() -> None:

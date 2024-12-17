@@ -1,5 +1,6 @@
 import os
 import tempfile
+from datetime import datetime
 from typing import List, Optional
 
 from dotenv import load_dotenv
@@ -93,8 +94,12 @@ def clone_repository(
     summary="Delete all repositories",
     description="Delete all repositories",
 )
-def delete_all_repositories(github: GitHub = Depends(get_github)) -> Response:
+def delete_all_repositories(
+    session: Session = Depends(get_db), github: GitHub = Depends(get_github)
+) -> Response:
     github.clean()
+    get_filter_settings_repository(session).delete_all()
+    get_summary_cache_repository(session).delete_all()
     return Response(status="success")
 
 
@@ -105,11 +110,20 @@ def delete_all_repositories(github: GitHub = Depends(get_github)) -> Response:
     description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
 )
 def delete_repository(
-    author: str, repository_name: str, github: GitHub = Depends(get_github)
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_db),
+    github: GitHub = Depends(get_github),
 ) -> Response:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.remove(f"{author}/{repository_name}")
+    get_filter_settings_repository(session).delete_by_repository_id(
+        f"{author}/{repository_name}"
+    )
+    get_summary_cache_repository(session).delete_by_repository_id(
+        f"{author}/{repository_name}"
+    )
     return Response(status="success")
 
 
@@ -131,11 +145,17 @@ def update_all_repositories(github: GitHub = Depends(get_github)) -> Response:
     description="Update a repository. If the URL is not provided, all repositories will be updated.",
 )
 def update_repository(
-    author: str, repository_name: str, github: GitHub = Depends(get_github)
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_db),
+    github: GitHub = Depends(get_github),
 ) -> Response:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.update(f"{author}/{repository_name}")
+    get_summary_cache_repository(session).delete_by_repository_id(
+        f"{author}/{repository_name}"
+    )
     return Response(status="success")
 
 
@@ -154,10 +174,16 @@ def get_summary_of_repository(
     url = f"{author}/{repository_name}"
     if not github.repo_exists(url):
         raise HTTPException(status_code=404, detail="Repository not found")
+    maybe_cached_summary = get_summary_cache_repository(session).get_by_repository_id(
+        url
+    )
+    if maybe_cached_summary:
+        return maybe_cached_summary
     repo_path = GitHub.get_repo_path(url)
     filter_settings = get_filter_settings_repository(session).get_by_repository_id(url)
     filtered_files = filter_files_in_repo(repo_path, filter_settings=filter_settings)
     summary = generate_summary(repo_path, filtered_files)
+    get_summary_cache_repository(session).upsert(summary, datetime.now().isoformat())
     return summary
 
 
@@ -268,6 +294,9 @@ def update_settings_of_repository(
     request: Settings,
     session: Session = Depends(get_db),
 ) -> Settings:
+    get_summary_cache_repository(session).delete_by_repository_id(
+        f"{author}/{repository_name}"
+    )
     get_filter_settings_repository(session).upsert(
         f"{author}/{repository_name}",
         request.include_files,
