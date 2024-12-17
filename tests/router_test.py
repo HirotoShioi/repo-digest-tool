@@ -1,15 +1,15 @@
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Generator
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel
 
+from repo_tool.api.database import get_session
 from repo_tool.api.repositories import FilterSettingsRepository, SummaryCacheRepository
 from repo_tool.api.router import get_github, router
 from repo_tool.core.github import GitHub
@@ -20,11 +20,9 @@ repo_name = "query-cache"
 author = "HirotoShioi"
 
 
-@pytest.fixture(name="engine")
-def engine_fixture() -> Generator[Engine, None, None]:
+@pytest.fixture(name="session")
+def session_fixture() -> Generator[Session, None, None]:
     """Create a new in-memory database for each test."""
-    # Initialize the global engine for the database module
-    from repo_tool.api.database import init_db
 
     test_engine = create_engine(
         "sqlite:///file:memdb?mode=memory&cache=shared&uri=true",
@@ -32,16 +30,8 @@ def engine_fixture() -> Generator[Engine, None, None]:
     )
 
     # Set the global engine
-    init_db("sqlite:///file:memdb?mode=memory&cache=shared&uri=true")
-
     SQLModel.metadata.create_all(test_engine)
-    yield test_engine
-    SQLModel.metadata.drop_all(test_engine)
-
-
-@pytest.fixture(name="session")
-def session_fixture(engine: Engine) -> Generator[Session, None, None]:
-    with Session(engine) as session:
+    with Session(test_engine) as session:
         yield session
 
 
@@ -64,7 +54,7 @@ def github(github_dir: Path) -> GitHub:
 
 
 @pytest.fixture(autouse=True)
-def reset_github(github: GitHub, github_dir: Path) -> Generator[None, None, None]:
+def reset_github(github_dir: Path) -> Generator[None, None, None]:
     """Reset GitHub state before each test"""
     yield
     # Clean up contents if directory still exists
@@ -77,20 +67,18 @@ def reset_github(github: GitHub, github_dir: Path) -> Generator[None, None, None
 
 
 @pytest.fixture(name="client")
-def client_fixture(engine: Engine, github: GitHub) -> TestClient:
+def client_fixture(
+    session: Session, github: GitHub
+) -> Generator[TestClient, None, None]:
     """Create a new FastAPI test client with the in-memory database."""
     app = FastAPI()
     app.include_router(router)
 
     # Override the GitHub dependency with our temporary directory instance
     app.dependency_overrides[get_github] = lambda: github
-
-    return TestClient(app)
-
-
-def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    """Returns a new dictionary sorted by keys"""
-    return dict(sorted(d.items()))
+    app.dependency_overrides[get_session] = lambda: session
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 def test_get_repositories_empty(client: TestClient) -> None:
