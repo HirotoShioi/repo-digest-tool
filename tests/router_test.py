@@ -368,19 +368,22 @@ def test_summary_cache_persistence(
     clone_payload = {
         "url": test_repo_url,
         "branch": "main",
+        "force": True,  # Add force flag to ensure clean clone
     }
     response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
-    # Generate summary via API (assuming this endpoint exists)
+    # Verify repository exists before proceeding
+    response = client.get(f"/repositories/{author}/{repo_name}")
+    assert response.status_code == 200
+
+    # Generate summary via API
     response = client.get(f"/{author}/{repo_name}/summary")
     assert response.status_code == 200
 
-    # Verify summary cache in database directly
     cached_summary = summary_cache_repo.get_by_repository_id(repo_id)
     count = summary_cache_repo.count()
     assert count == 1
-    print(f"Cached summary: {cached_summary}")
     assert cached_summary is not None
     assert cached_summary.author == author
     assert cached_summary.repository == repo_name

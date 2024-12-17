@@ -256,7 +256,7 @@ class GitHub:
     def get_repo_info(self, url: str) -> Repository:
         repos = self.list()
         for repo in repos:
-            if repo.url == url:
+            if repo.url == url or url == f"{repo.author}/{repo.name}":
                 return repo
         raise ValueError(f"Repository not found: {url}")
 

@@ -169,6 +169,10 @@ class SummaryCacheRepository:
     def count(self) -> int:
         return len(self.session.exec(select(SummaryCacheTable)).all())
 
+    def get_all(self) -> List[Summary]:
+        result = self.session.exec(select(SummaryCacheTable)).all()
+        return [Summary.from_json(cache.summary_json) for cache in result]
+
 
 def main() -> None:
     engine = create_engine("sqlite:///repo_tool.db")
