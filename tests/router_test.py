@@ -1,6 +1,4 @@
-import datetime
-from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator
 
 import pytest
 from fastapi import FastAPI
@@ -11,76 +9,7 @@ from sqlmodel import Session, SQLModel
 
 from repo_tool.api.repositories import FilterSettingsRepository, SummaryCacheRepository
 from repo_tool.api.router import get_github, router
-from repo_tool.core.github import GitHub, Repository
-
-
-class InMemoryGitHub(GitHub):
-    def __init__(self) -> None:
-        self.repositories: Dict[str, Repository] = {}
-
-    def clone(
-        self, repo_url: str, branch: Optional[str] = None, force: bool = False
-    ) -> Repository:
-        # Extract author and repo_name from URL
-        author, repo_name = repo_url.split("/")[-2:]
-        repository_id = f"{author}/{repo_name}"
-
-        # Use repository_id as key instead of full URL
-        if force or repository_id not in self.repositories:
-            repository = Repository(
-                id=repository_id,
-                url=repo_url,
-                branch=branch,
-                path=Path(f"/tmp/{author}/{repo_name}"),
-                updated_at=datetime.datetime.now(),
-                name=repo_name,
-                author=author,
-                size=0,
-            )
-            self.repositories[repository_id] = repository
-
-        return self.repositories[repository_id]
-
-    def list(self) -> List[Repository]:
-        return list(self.repositories.values())
-
-    def remove(self, repo_url: str) -> None:
-        """Remove repository(ies) from storage.
-
-        Args:
-            repo_url: If None or empty string, clear all repositories.
-                     Otherwise, remove the specific repository.
-        """
-        try:
-            author, repo_name = repo_url.split("/")[-2:]
-            repository_id = f"{author}/{repo_name}"
-            if repository_id in self.repositories:
-                del self.repositories[repository_id]
-        except (ValueError, IndexError):
-            pass
-
-    def clean(self) -> None:
-        self.repositories.clear()
-
-    def repo_exists(self, repo_url: str) -> bool:
-        # Extract author and repo_name from URL
-        author, repo_name = repo_url.split("/")[-2:]
-        repository_id = f"{author}/{repo_name}"
-        return repository_id in self.repositories.keys()
-
-    def update(self, repo_url: Optional[str] = None) -> List[Repository]:
-        if repo_url:
-            # Extract repository_id from URL
-            author, repo_name = repo_url.split("/")[-2:]
-            repository_id = f"{author}/{repo_name}"
-            if repository_id in self.repositories:
-                self.repositories[repository_id].updated_at = datetime.datetime.now()
-                return [self.repositories[repository_id]]
-            return []
-        else:
-            for repo in self.repositories.values():
-                repo.updated_at = datetime.datetime.now()
-            return list(self.repositories.values())
+from repo_tool.core.github import GitHub
 
 
 @pytest.fixture(name="engine")
@@ -109,13 +38,13 @@ def session_fixture(engine: Engine) -> Generator[Session, None, None]:
 
 
 @pytest.fixture(name="client")
-def client_fixture(engine: Engine, github: InMemoryGitHub) -> TestClient:
+def client_fixture(engine: Engine) -> TestClient:
     """Create a new FastAPI test client with the in-memory database."""
     app = FastAPI()
     app.include_router(router)
 
     # Only override the GitHub dependency since database is initialized
-    app.dependency_overrides[get_github] = lambda: github
+    app.dependency_overrides[get_github] = lambda: GitHub(directory="./tmp")
 
     return TestClient(app)
 
@@ -126,15 +55,15 @@ def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @pytest.fixture
-def github() -> InMemoryGitHub:
+def github() -> GitHub:
     """Returns a shared InMemoryGitHub instance"""
-    return InMemoryGitHub()
+    return GitHub(directory="./tmp")
 
 
 @pytest.fixture(autouse=True)
-def reset_github(github: InMemoryGitHub) -> Generator[None, None, None]:
+def reset_github(github: GitHub) -> Generator[None, None, None]:
     """Reset GitHub state before each test"""
-    github.repositories.clear()
+    github.clean()
     yield
 
 
@@ -144,7 +73,7 @@ def test_get_repositories_empty(client: TestClient) -> None:
     assert response.json() == []
 
 
-def test_repository_lifecycle(client: TestClient, github: InMemoryGitHub) -> None:
+def test_repository_lifecycle(client: TestClient, github: GitHub) -> None:
     # 1. Clone repository
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
@@ -202,7 +131,7 @@ def test_get_summary_not_found(client: TestClient) -> None:
     assert response.json() == {"detail": "Repository not found"}
 
 
-def test_delete_all_repositories(client: TestClient, github: InMemoryGitHub) -> None:
+def test_delete_all_repositories(client: TestClient, github: GitHub) -> None:
     # First add a repository
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
@@ -290,9 +219,7 @@ def test_clone_repository_missing_url(client: TestClient) -> None:
     assert response.status_code == 422  # FastAPI validation error
 
 
-def test_get_repository_settings_default(
-    client: TestClient, github: InMemoryGitHub
-) -> None:
+def test_get_repository_settings_default(client: TestClient, github: GitHub) -> None:
     """Test getting repository settings when no custom settings exist"""
     # First add a repository
     clone_payload = {
@@ -316,7 +243,7 @@ def test_get_repository_settings_default(
     assert isinstance(settings["exclude_files"], list)
 
 
-def test_update_repository_settings(client: TestClient, github: InMemoryGitHub) -> None:
+def test_update_repository_settings(client: TestClient, github: GitHub) -> None:
     """Test updating repository settings"""
     # First add a repository
     clone_payload = {
@@ -354,7 +281,7 @@ def test_get_settings_nonexistent_repository(client: TestClient) -> None:
     assert "max_file_size" in settings
 
 
-def test_update_settings_validation(client: TestClient, github: InMemoryGitHub) -> None:
+def test_update_settings_validation(client: TestClient, github: GitHub) -> None:
     """Test settings validation during update"""
     # First add a repository
     clone_payload = {
@@ -411,7 +338,7 @@ def test_settings_persistence_in_db(client: TestClient, session: Session) -> Non
 
 
 def test_summary_cache_persistence(
-    client: TestClient, session: Session, github: InMemoryGitHub
+    client: TestClient, session: Session, github: GitHub
 ) -> None:
     """Test that repository summary is correctly cached in the database"""
     # Setup repositories

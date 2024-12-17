@@ -128,7 +128,7 @@ class GitHub:
         """
         Delete all repositories.
         """
-        shutil.rmtree(REPO_DIR, ignore_errors=True)
+        shutil.rmtree(self.directory, ignore_errors=True)
 
     def update(self, repo_url: Optional[str] = None) -> List[Repository]:
         """
