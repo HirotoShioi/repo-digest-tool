@@ -97,6 +97,9 @@ class FilterSettingsRepository:
             self.session.delete(settings)
         self.session.commit()
 
+    def count(self) -> int:
+        return len(self.session.exec(select(FilterSettingsTable)).all())
+
 
 class SummaryCacheRepository:
     def __init__(self, session: Session):
@@ -162,6 +165,9 @@ class SummaryCacheRepository:
         for cache in all_cache:
             self.session.delete(cache)
         self.session.commit()
+
+    def count(self) -> int:
+        return len(self.session.exec(select(SummaryCacheTable)).all())
 
 
 def main() -> None:

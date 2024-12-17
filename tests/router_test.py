@@ -402,6 +402,8 @@ def test_settings_persistence_in_db(client: TestClient, session: Session) -> Non
     db_settings = filter_settings_repo.get_by_repository_id(
         "HirotoShioi/repo-digest-tool"
     )
+    count = filter_settings_repo.count()
+    assert count == 1
     assert db_settings is not None
     assert db_settings.include_patterns == ["*.py", "*.md"]
     assert db_settings.exclude_patterns == ["tests/*", "*.pyc"]
@@ -431,16 +433,47 @@ def test_summary_cache_persistence(
     cached_summary = summary_cache_repo.get_by_repository_id(
         "HirotoShioi/repo-digest-tool"
     )
+    count = summary_cache_repo.count()
+    assert count == 1
     assert cached_summary is not None
     assert cached_summary.author == "HirotoShioi"
     assert cached_summary.repository == "repo-digest-tool"
+
+
+def test_summary_cache_deletion_in_db(client: TestClient, session: Session) -> None:
+    """Test that repository summary cache is correctly deleted from the database"""
+    # Setup repositories
+    summary_cache_repo = SummaryCacheRepository(session)
+
+    # Add a repository
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Generate summary to create cache entry
+    response = client.get("/HirotoShioi/repo-digest-tool/summary")
+    assert response.status_code == 200
+    count = summary_cache_repo.count()
+    assert count == 1
+    # Update settings via API
+    new_settings = {
+        "include_files": ["*.py", "*.md"],
+        "exclude_files": ["tests/*", "*.pyc"],
+        "max_file_size": 500000,
+    }
+    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=new_settings)
+    assert response.status_code == 200
+    count = summary_cache_repo.count()
+    assert count == 0
 
 
 def test_settings_deletion_in_db(client: TestClient, session: Session) -> None:
     """Test that repository settings are correctly deleted from the database"""
     # Setup repositories
     filter_settings_repo = FilterSettingsRepository(session)
-
     # First add a repository and its settings
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
