@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, memo, useCallback } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, Settings, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
@@ -18,8 +19,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Minimatch } from "minimatch";
 
 interface FilterSettingDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   onSave: () => void;
   author: string;
   repository: string;
@@ -115,8 +114,6 @@ const FileSizeInput = memo(function FileSizeInput({
 });
 
 export function FilterSettingDialog({
-  open,
-  onOpenChange,
   author,
   repository,
   onSave,
@@ -216,7 +213,6 @@ export function FilterSettingDialog({
             description: "Your settings have been updated successfully",
           });
           onSave();
-          onOpenChange(false);
         },
       }
     );
@@ -229,7 +225,6 @@ export function FilterSettingDialog({
     maxFileSize,
     toast,
     onSave,
-    onOpenChange,
   ]);
 
   const handleExcludePatternChange = useCallback((value: string) => {
@@ -245,7 +240,13 @@ export function FilterSettingDialog({
   }, []);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="lg" className="bg-primary hover:bg-primary/90">
+          <Settings className="w-4 h-4" />
+          Filter
+        </Button>
+      </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Filter Settings</DialogTitle>

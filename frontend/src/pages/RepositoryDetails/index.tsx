@@ -2,22 +2,21 @@ import { useParams, useNavigate } from "react-router";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
 import Report from "./components/Report";
-import { Button } from "@/components/ui/button";
-import { Download, FileText, Settings } from "lucide-react";
-import { useState } from "react";
+import { Download, FileText } from "lucide-react";
 import { FilterSettingDialog } from "./components/FilterSettingDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/LoadingButton";
+import React from "react";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
-  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { data: repository, isLoading } = useGetRepositoryById({
     author: author,
     name: name,
   });
+  const FilterDialog = React.memo(FilterSettingDialog);
   const {
     data: summary,
     refetch,
@@ -80,17 +79,7 @@ function RepositoryDetailsPage() {
             <Download className="w-4 h-4" />
             Get Digest
           </LoadingButton>
-          <Button
-            size="lg"
-            onClick={() => setOpen(true)}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Settings className="w-4 h-4" />
-            Filter
-          </Button>
-          <FilterSettingDialog
-            open={open}
-            onOpenChange={setOpen}
+          <FilterDialog
             onSave={() => {
               refetch({});
             }}
