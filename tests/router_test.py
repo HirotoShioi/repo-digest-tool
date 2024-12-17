@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel
 
+from repo_tool.api.repositories import FilterSettingsRepository, SummaryCacheRepository
 from repo_tool.api.router import get_github, router
 from repo_tool.core.github import GitHub, Repository
 
@@ -373,3 +374,133 @@ def test_update_settings_validation(client: TestClient, github: InMemoryGitHub) 
         "/HirotoShioi/repo-digest-tool/settings", json=invalid_settings
     )
     assert response.status_code == 422  # Validation error
+
+
+def test_settings_persistence_in_db(client: TestClient, session: Session) -> None:
+    """Test that repository settings are correctly persisted in the database"""
+    # Setup repositories
+    filter_settings_repo = FilterSettingsRepository(session)
+
+    # First add a repository
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Update settings via API
+    new_settings = {
+        "include_files": ["*.py", "*.md"],
+        "exclude_files": ["tests/*", "*.pyc"],
+        "max_file_size": 500000,
+    }
+    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=new_settings)
+    assert response.status_code == 200
+
+    # Verify settings in database directly
+    db_settings = filter_settings_repo.get_by_repository_id(
+        "HirotoShioi/repo-digest-tool"
+    )
+    assert db_settings is not None
+    assert db_settings.include_patterns == ["*.py", "*.md"]
+    assert db_settings.exclude_patterns == ["tests/*", "*.pyc"]
+    assert db_settings.max_file_size == 500000
+
+
+def test_summary_cache_persistence(
+    client: TestClient, session: Session, github: InMemoryGitHub
+) -> None:
+    """Test that repository summary is correctly cached in the database"""
+    # Setup repositories
+    summary_cache_repo = SummaryCacheRepository(session)
+
+    # Add a repository
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Generate summary via API (assuming this endpoint exists)
+    response = client.get("/HirotoShioi/repo-digest-tool/summary")
+    assert response.status_code == 200
+
+    # Verify summary cache in database directly
+    cached_summary = summary_cache_repo.get_by_repository_id(
+        "HirotoShioi/repo-digest-tool"
+    )
+    assert cached_summary is not None
+    assert cached_summary.author == "HirotoShioi"
+    assert cached_summary.repository == "repo-digest-tool"
+
+
+def test_settings_deletion_in_db(client: TestClient, session: Session) -> None:
+    """Test that repository settings are correctly deleted from the database"""
+    # Setup repositories
+    filter_settings_repo = FilterSettingsRepository(session)
+
+    # First add a repository and its settings
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Add settings
+    settings = {
+        "include_files": ["*.py"],
+        "exclude_files": [],
+        "max_file_size": 500000,
+    }
+    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=settings)
+    assert response.status_code == 200
+
+    # Delete repository via API
+    response = client.delete("/repositories/HirotoShioi/repo-digest-tool")
+    assert response.status_code == 200
+
+    # Verify settings were deleted from database
+    db_settings = filter_settings_repo.get_by_repository_id(
+        "HirotoShioi/repo-digest-tool"
+    )
+    assert db_settings is None
+
+
+def test_bulk_delete_db_cleanup(client: TestClient, session: Session) -> None:
+    """Test that bulk delete properly cleans up database entries"""
+    # Setup repositories
+    filter_settings_repo = FilterSettingsRepository(session)
+    summary_cache_repo = SummaryCacheRepository(session)
+
+    # Add multiple repositories
+    repos = [
+        "https://github.com/HirotoShioi/repo-digest-tool",
+        "https://github.com/HirotoShioi/query-cache",
+    ]
+
+    for url in repos:
+        response = client.post("/repositories", json={"url": url})
+        assert response.status_code == 200
+
+        # Add settings for each
+        settings = {
+            "include_files": ["*.py"],
+            "exclude_files": [],
+            "max_file_size": 500000,
+        }
+        repo_id = url.split("/")[-2] + "/" + url.split("/")[-1]
+        response = client.put(f"/{repo_id}/settings", json=settings)
+        assert response.status_code == 200
+
+    # Delete all repositories
+    response = client.delete("/repositories")
+    assert response.status_code == 200
+
+    # Verify all database entries were cleaned up
+    for url in repos:
+        repo_id = url.split("/")[-2] + "/" + url.split("/")[-1]
+        assert filter_settings_repo.get_by_repository_id(repo_id) is None
+        assert summary_cache_repo.get_by_repository_id(repo_id) is None
