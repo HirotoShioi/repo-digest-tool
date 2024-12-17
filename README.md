@@ -1,6 +1,6 @@
 # Repo Digest Tool: Features and Usage Guide
 
-![example](./examples/ScreenShot%202024-12-15%206.58.15.png)
+![example](https://github.com/user-attachments/assets/02461cf9-607c-4af4-9463-dcf6e667bc05)
 
 ## Features Overview
 
