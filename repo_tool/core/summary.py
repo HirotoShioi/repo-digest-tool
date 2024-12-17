@@ -10,6 +10,7 @@ import tiktoken
 from jinja2 import Environment, FileSystemLoader
 
 from repo_tool.core.contants import DIGEST_DIR
+from repo_tool.core.github import Repository
 
 # 型変数の定義
 T = TypeVar("T")
@@ -121,7 +122,7 @@ def format_number(value: int | float | str) -> str:
 
 
 def generate_summary(
-    repo_path: Path,
+    repo_info: Repository,
     file_list: List[Path],
 ) -> Summary:
     """
@@ -135,13 +136,12 @@ def generate_summary(
     if not os.path.exists(DIGEST_DIR):
         os.makedirs(DIGEST_DIR, exist_ok=True)
 
-    file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
+    file_infos = [FileInfo(Path(f), repo_info.path) for f in file_list]
     file_stats = asyncio.run(process_files(file_infos))
-    author = str(repo_path).split("/")[1]
 
     summary = Summary(
-        author=author,
-        repository=repo_path.name,
+        author=repo_info.author,
+        repository=repo_info.name,
         total_files=file_stats.file_count,
         total_size_kb=round(file_stats.total_size, precision),
         average_file_size_kb=round(file_stats.average_size, precision),

@@ -17,8 +17,8 @@ def main() -> None:
         github.update(repo_url)
 
         print("Processing repository...")
-        repo_path = github.get_repo_path(repo_url)
-        generate_digest(repo_path, prompt)
+        repo_info = github.get_repo_info(repo_url)
+        generate_digest(repo_info, prompt)
         repos = github.list()
         print(repos)
     except Exception as e:

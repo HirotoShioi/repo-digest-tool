@@ -253,6 +253,13 @@ class GitHub:
         # Create path using the REPO_DIR constant
         return Path(self.directory) / author / repo_name
 
+    def get_repo_info(self, url: str) -> Repository:
+        repos = self.list()
+        for repo in repos:
+            if repo.url == url:
+                return repo
+        raise ValueError(f"Repository not found: {url}")
+
     @staticmethod
     def is_valid_repo_url(url: str) -> bool:
         """

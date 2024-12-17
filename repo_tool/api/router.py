@@ -177,10 +177,12 @@ def get_summary_of_repository(
     )
     if maybe_cached_summary:
         return maybe_cached_summary
-    repo_path = github.get_repo_path(url)
+    repo_info = github.get_repo_info(url)
     filter_settings = get_filter_settings_repository(session).get_by_repository_id(url)
-    filtered_files = filter_files_in_repo(repo_path, filter_settings=filter_settings)
-    summary = generate_summary(repo_path, filtered_files)
+    filtered_files = filter_files_in_repo(
+        repo_info.path, filter_settings=filter_settings
+    )
+    summary = generate_summary(repo_info, filtered_files)
     get_summary_cache_repository(session).upsert(summary, datetime.now().isoformat())
     return summary
 
