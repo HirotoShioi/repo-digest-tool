@@ -130,7 +130,7 @@ def digest(
     Generate a digest for a repository.
     """
     try:
-        repo_path = GitHub.get_repo_path(repo_url)
+        repo_path = github.get_repo_path(repo_url)
         if not github.repo_exists(repo_url):
             typer.secho(f"Repository {repo_url} not found. Cloning...")
             github.clone(repo_url, branch)

@@ -165,12 +165,13 @@ def test_get_repo_path_valid_urls() -> None:
     """
     Test repository path generation for valid URLs.
     """
+    github = GitHub()
     assert (
-        GitHub.get_repo_path("https://github.com/octocat/hello-world")
+        github.get_repo_path("https://github.com/octocat/hello-world")
         == Path(REPO_DIR) / "octocat" / "hello-world"
     )
     assert (
-        GitHub.get_repo_path("https://github.com/octocat/hello-world.git")
+        github.get_repo_path("https://github.com/octocat/hello-world.git")
         == Path(REPO_DIR) / "octocat" / "hello-world"
     )
 
@@ -179,20 +180,22 @@ def test_get_repo_path_invalid_urls() -> None:
     """
     Test repository path generation for invalid URLs.
     """
+    github = GitHub()
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("http://github.com/octocat/hello-world")  # Not HTTPS
+        github.get_repo_path("http://github.com/octocat/hello-world")  # Not HTTPS
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("https://github.com/octocat")  # Missing repository name
+        github.get_repo_path("https://github.com/octocat")  # Missing repository name
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("invalid_url")  # Invalid format
+        github.get_repo_path("invalid_url")  # Invalid format
 
 
 def test_get_repo_path_edge_cases() -> None:
     """
     Test repository path generation for edge cases.
     """
+    github = GitHub()
     assert (
-        GitHub.get_repo_path("https://github.com/octocat-123/repo-name.git")
+        github.get_repo_path("https://github.com/octocat-123/repo-name.git")
         == Path(REPO_DIR) / "octocat-123" / "repo-name"
     )
 
@@ -242,11 +245,12 @@ def test_get_repo_path_security_cases() -> None:
     """
     Test repository path generation for security edge cases.
     """
+    github = GitHub()
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("https://github.com/../../malicious/repo")
+        github.get_repo_path("https://github.com/../../malicious/repo")
 
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("https://github.com/octocat/hello-world?.git")
+        github.get_repo_path("https://github.com/octocat/hello-world?.git")
 
 
 def test_resolve_repo_url() -> None:

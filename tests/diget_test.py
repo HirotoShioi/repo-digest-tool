@@ -31,7 +31,7 @@ def test_digest_file_generation() -> None:
     github = GitHub()
     github.clone(REPO_URL, branch=None, force=True)
 
-    repo_path = GitHub.get_repo_path(REPO_URL)
+    repo_path = github.get_repo_path(REPO_URL)
     generate_digest(repo_path, PROMPT)
 
     assert digest_path.exists(), "Digest file should be generated."

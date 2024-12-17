@@ -179,7 +179,7 @@ def get_summary_of_repository(
     )
     if maybe_cached_summary:
         return maybe_cached_summary
-    repo_path = GitHub.get_repo_path(url)
+    repo_path = github.get_repo_path(url)
     filter_settings = get_filter_settings_repository(session).get_by_repository_id(url)
     filtered_files = filter_files_in_repo(repo_path, filter_settings=filter_settings)
     summary = generate_summary(repo_path, filtered_files)
@@ -201,7 +201,7 @@ class GenerateDigestParams(BaseModel):
 def get_digest_of_repository(
     request: GenerateDigestParams, github: GitHub = Depends(get_github)
 ) -> FileResponse:
-    repo_path = GitHub.get_repo_path(request.url)
+    repo_path = github.get_repo_path(request.url)
     if not github.repo_exists(request.url):
         github.clone(request.url, request.branch)
     elif request.branch:
