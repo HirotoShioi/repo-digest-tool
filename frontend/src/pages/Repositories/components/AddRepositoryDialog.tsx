@@ -7,21 +7,16 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCloneRepository } from "@/services/repositories/mutations";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingButton } from "@/components/LoadingButton";
-interface AddRepositoryDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
-export function AddRepositoryDialog({
-  isOpen,
-  onClose,
-}: AddRepositoryDialogProps) {
+export function AddRepositoryDialog() {
+  const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const { toast } = useToast();
   const { mutate: cloneRepository, isPending } = useCloneRepository();
@@ -34,7 +29,7 @@ export function AddRepositoryDialog({
         {
           onSuccess: () => {
             setUrl("");
-            onClose();
+            setOpen(false);
             toast({
               title: "Repository cloned successfully",
               description: "The repository has been added to your list.",
@@ -47,7 +42,10 @@ export function AddRepositoryDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Add Repository</Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -79,7 +77,11 @@ export function AddRepositoryDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <LoadingButton

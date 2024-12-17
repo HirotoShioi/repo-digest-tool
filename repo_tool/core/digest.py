@@ -6,26 +6,27 @@ from typing import List, Optional, TypeVar
 
 from repo_tool.core.contants import DIGEST_DIR
 from repo_tool.core.filter import filter_files_in_repo
+from repo_tool.core.github import Repository
 from repo_tool.core.summary import generate_summary
 
 T = TypeVar("T")  # Define a type variable for the Future's return type
 
 
-def generateSummaryAndReport(repo_path: Path, file_list: List[Path]) -> None:
-    summary = generate_summary(repo_path, file_list)
+def generateSummaryAndReport(repo_info: Repository, file_list: List[Path]) -> None:
+    summary = generate_summary(repo_info, file_list)
     summary.generate_report()
 
 
-def generate_digest(repo_path: Path, prompt: Optional[str] = None) -> None:
+def generate_digest(repo_info: Repository, prompt: Optional[str] = None) -> None:
     try:
-        file_list = filter_files_in_repo(repo_path, prompt)
+        file_list = filter_files_in_repo(repo_info.path, prompt)
         if file_list:
             print("Generating summary and digest...")
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 # Create properly typed futures list
                 futures: List[Future[None]] = [
-                    executor.submit(store_result_to_file, repo_path, file_list),
-                    executor.submit(generateSummaryAndReport, repo_path, file_list),
+                    executor.submit(store_result_to_file, repo_info.path, file_list),
+                    executor.submit(generateSummaryAndReport, repo_info, file_list),
                 ]
                 # Wait for all tasks to complete
                 concurrent.futures.wait(futures)

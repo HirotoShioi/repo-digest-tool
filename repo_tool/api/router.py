@@ -1,5 +1,6 @@
 import os
 import tempfile
+from datetime import datetime
 from typing import List, Optional
 
 from dotenv import load_dotenv
@@ -7,15 +8,28 @@ from fastapi import Depends, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
+from sqlmodel import Session
 
+from repo_tool.api.database import get_session
+from repo_tool.api.repositories import (
+    FilterSettingsRepository,
+    SummaryCacheRepository,
+)
 from repo_tool.core.digest import generate_digest_content
-from repo_tool.core.filter import filter_files_in_repo, get_filter_settings
+from repo_tool.core.filter import filter_files_in_repo, get_filter_settings_from_env
 from repo_tool.core.github import GitHub, Repository
 from repo_tool.core.summary import Summary, generate_summary
 
 router = APIRouter()
 
 load_dotenv(override=True)
+
+
+class Repositories:
+    def __init__(self, session: Session):
+        self.session = session
+        self.summary_cache_repo = SummaryCacheRepository(session)
+        self.filter_settings_repo = FilterSettingsRepository(session)
 
 
 def get_github() -> GitHub:
@@ -74,8 +88,16 @@ def clone_repository(
     summary="Delete all repositories",
     description="Delete all repositories",
 )
-def delete_all_repositories(github: GitHub = Depends(get_github)) -> Response:
+def delete_all_repositories(
+    session: Session = Depends(get_session), github: GitHub = Depends(get_github)
+) -> Response:
     github.clean()
+    repositories = Repositories(session)
+    filter_settings_repo = repositories.filter_settings_repo
+    summary_cache_repo = repositories.summary_cache_repo
+
+    filter_settings_repo.delete_all()
+    summary_cache_repo.delete_all()
     return Response(status="success")
 
 
@@ -86,11 +108,20 @@ def delete_all_repositories(github: GitHub = Depends(get_github)) -> Response:
     description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
 )
 def delete_repository(
-    author: str, repository_name: str, github: GitHub = Depends(get_github)
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_session),
+    github: GitHub = Depends(get_github),
 ) -> Response:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.remove(f"{author}/{repository_name}")
+    repositories = Repositories(session)
+    filter_settings_repo = repositories.filter_settings_repo
+    summary_cache_repo = repositories.summary_cache_repo
+
+    filter_settings_repo.delete_by_repository_id(f"{author}/{repository_name}")
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
     return Response(status="success")
 
 
@@ -100,8 +131,13 @@ def delete_repository(
     summary="Update all repositories",
     description="Update all repositories",
 )
-def update_all_repositories(github: GitHub = Depends(get_github)) -> Response:
+def update_all_repositories(
+    session: Session = Depends(get_session), github: GitHub = Depends(get_github)
+) -> Response:
     github.update()
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    summary_cache_repo.delete_all()
     return Response(status="success")
 
 
@@ -112,11 +148,17 @@ def update_all_repositories(github: GitHub = Depends(get_github)) -> Response:
     description="Update a repository. If the URL is not provided, all repositories will be updated.",
 )
 def update_repository(
-    author: str, repository_name: str, github: GitHub = Depends(get_github)
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_session),
+    github: GitHub = Depends(get_github),
 ) -> Response:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.update(f"{author}/{repository_name}")
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
     return Response(status="success")
 
 
@@ -127,14 +169,30 @@ def update_repository(
     description="Get a summary of a repository digest",
 )
 def get_summary_of_repository(
-    author: str, repository_name: str, github: GitHub = Depends(get_github)
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_session),
+    github: GitHub = Depends(get_github),
 ) -> Summary:
     url = f"{author}/{repository_name}"
     if not github.repo_exists(url):
         raise HTTPException(status_code=404, detail="Repository not found")
-    repo_path = GitHub.get_repo_path(url)
-    filtered_files = filter_files_in_repo(repo_path, None)
-    summary = generate_summary(repo_path, filtered_files)
+
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    filter_settings_repo = repositories.filter_settings_repo
+
+    maybe_cached_summary = summary_cache_repo.get_by_repository_id(url)
+    if maybe_cached_summary:
+        return maybe_cached_summary
+
+    repo_info = github.get_repo_info(url)
+    filter_settings = filter_settings_repo.get_by_repository_id(url)
+    filtered_files = filter_files_in_repo(
+        repo_info.path, filter_settings=filter_settings
+    )
+    summary = generate_summary(repo_info, filtered_files)
+    summary_cache_repo.upsert(summary, datetime.now().isoformat())
     return summary
 
 
@@ -152,7 +210,8 @@ class GenerateDigestParams(BaseModel):
 def get_digest_of_repository(
     request: GenerateDigestParams, github: GitHub = Depends(get_github)
 ) -> FileResponse:
-    repo_path = GitHub.get_repo_path(request.url)
+    repo_path = github.get_repo_path(request.url)
+    repo_path = github.get_repo_path(request.url)
     if not github.repo_exists(request.url):
         github.clone(request.url, request.branch)
     elif request.branch:
@@ -189,14 +248,18 @@ class Settings(BaseModel):
     exclude_files: List[str] = Field(
         ..., description="The files to exclude from the digest"
     )
+    max_file_size: int = Field(
+        ..., description="The maximum file size to include in the digest"
+    )
 
 
 @router.get("/settings")
 def get_settings() -> Settings:
-    settings = get_filter_settings()
+    settings = get_filter_settings_from_env()
     return Settings(
-        include_files=settings.include_list,
-        exclude_files=settings.ignore_list,
+        include_files=settings.exclude_patterns,
+        exclude_files=settings.include_patterns,
+        max_file_size=1000000,
     )
 
 
@@ -209,4 +272,48 @@ def update_settings(request: Settings) -> Settings:
     return Settings(
         include_files=request.include_files,
         exclude_files=request.exclude_files,
+        max_file_size=request.max_file_size,
     )
+
+
+@router.get("/{author}/{repository_name}/settings")
+def get_settings_of_repository(
+    author: str, repository_name: str, session: Session = Depends(get_session)
+) -> Settings:
+    filter_settings_repo = FilterSettingsRepository(session)
+    maybe_settings = filter_settings_repo.get_by_repository_id(
+        f"{author}/{repository_name}"
+    )
+    if maybe_settings:
+        return Settings(
+            include_files=maybe_settings.include_patterns,
+            exclude_files=maybe_settings.exclude_patterns,
+            max_file_size=maybe_settings.max_file_size,
+        )
+    default_settings = get_filter_settings_from_env()
+    return Settings(
+        include_files=default_settings.include_patterns,
+        exclude_files=default_settings.exclude_patterns,
+        max_file_size=1000000,
+    )
+
+
+@router.put("/{author}/{repository_name}/settings")
+def update_settings_of_repository(
+    author: str,
+    repository_name: str,
+    request: Settings,
+    session: Session = Depends(get_session),
+) -> Settings:
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    filter_settings_repo = repositories.filter_settings_repo
+
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
+    filter_settings_repo.upsert(
+        f"{author}/{repository_name}",
+        request.include_files,
+        request.exclude_files,
+        request.max_file_size,
+    )
+    return request

@@ -101,8 +101,8 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
       <CardContent className="p-4 pt-0">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="bg-muted p-3 rounded-md">
-            <p className="text-muted-foreground">Author</p>
-            <p className="font-semibold">{repository.author}</p>
+            <p className="text-muted-foreground">Branch</p>
+            <p className="font-semibold">{repository.branch || "main"}</p>
           </div>
           <div className="bg-muted p-3 rounded-md">
             <p className="text-muted-foreground">Last Updated</p>

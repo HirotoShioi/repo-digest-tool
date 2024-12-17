@@ -1,68 +1,69 @@
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Generator
 
 import pytest
 from git import GitCommandError
 
-from repo_tool.core.github import REPO_DIR, GitHub
+from repo_tool.core.github import GitHub
 
 # Constants for testing
 TEST_REPO_URL = "https://github.com/octocat/hello-world"  # Small public repository
 TEST_REPO_AUTHOR = "octocat"
 TEST_REPO_NAME = "hello-world"
-TEST_REPO_PATH = Path(REPO_DIR) / TEST_REPO_AUTHOR / TEST_REPO_NAME
 
 
-@pytest.fixture(scope="function")
-def clean_test_environment() -> Generator[None, None, None]:
-    """
-    Fixture to clean the repository directory before and after each test.
-    """
-    if Path(REPO_DIR).exists():
-        shutil.rmtree(REPO_DIR)
-    yield
-    if Path(REPO_DIR).exists():
-        shutil.rmtree(REPO_DIR)
+@pytest.fixture(name="github_dir")
+def github_dir_fixture() -> Generator[Path, None, None]:
+    """Create a temporary directory for GitHub operations"""
+    tmp_dir = tempfile.mkdtemp()
+    yield Path(tmp_dir)
+    # Clean up after all tests
+    try:
+        shutil.rmtree(tmp_dir)
+    except FileNotFoundError:
+        pass
 
 
-def test_clone_repository(clean_test_environment: Generator[None, None, None]) -> None:
+@pytest.fixture(name="github")
+def github_fixture(github_dir: Path) -> GitHub:
+    return GitHub(directory=str(github_dir))
+
+
+def test_clone_repository(github: GitHub) -> None:
     """
     Test if a repository can be cloned successfully.
     """
-    github = GitHub()
     github.clone(TEST_REPO_URL)
-    assert TEST_REPO_PATH.exists()  # Check if the repository path exists
-    assert (TEST_REPO_PATH / ".git").exists()  # Check if the repository is Git-managed
+    assert (
+        github.get_repo_path(TEST_REPO_URL)
+    ).exists()  # Check if the repository path exists
+    assert (
+        github.get_repo_path(TEST_REPO_URL) / ".git"
+    ).exists()  # Check if the repository is Git-managed
 
 
-def test_clone_repository_invalid_url(
-    clean_test_environment: Generator[None, None, None]
-) -> None:
+def test_clone_repository_invalid_url(github: GitHub) -> None:
     """
     Test cloning a repository with an invalid URL.
     """
-    github = GitHub()
     with pytest.raises(GitCommandError):
         github.clone("https://github.com/octocat/invalid-repo")
 
 
-def test_update_nonexistent_repository(
-    clean_test_environment: Generator[None, None, None]
-) -> None:
+def test_update_nonexistent_repository(github: GitHub) -> None:
     """
     Test updating a repository that does not exist locally.
     """
-    github = GitHub()
     with pytest.raises(ValueError, match="Repository does not exist"):
         github.update(TEST_REPO_URL)
 
 
-def test_list_repositories(clean_test_environment: Generator[None, None, None]) -> None:
+def test_list_repositories(github: GitHub) -> None:
     """
     Test if cloned repositories are listed correctly.
     """
-    github = GitHub()
     github.clone(TEST_REPO_URL)
     repositories = github.list()
     assert len(repositories) == 1  # Verify there is one repository
@@ -72,51 +73,44 @@ def test_list_repositories(clean_test_environment: Generator[None, None, None]) 
     assert repository.url == TEST_REPO_URL  # Verify repository URL
 
 
-def test_list_repositories_empty_directory(
-    clean_test_environment: Generator[None, None, None]
-) -> None:
+def test_list_repositories_empty_directory(github: GitHub) -> None:
     """
     Test listing repositories when no repositories exist.
     """
-    github = GitHub()
     repositories = github.list()
     assert len(repositories) == 0  # Should return an empty list
 
 
-def test_remove_repository(clean_test_environment: Generator[None, None, None]) -> None:
+def test_remove_repository(github: GitHub) -> None:
     """
     Test if a repository can be removed successfully.
     """
-    github = GitHub()
     github.clone(TEST_REPO_URL)
     github.remove(TEST_REPO_URL)
-    assert not TEST_REPO_PATH.exists()  # Check if the repository is removed
-    author_path = Path(REPO_DIR) / TEST_REPO_AUTHOR
-    assert not author_path.exists()  # Check if the author directory is removed
+    assert not (
+        github.get_repo_path(TEST_REPO_URL)
+    ).exists()  # Check if the repository is removed
+    assert not (
+        github.get_repo_path(TEST_REPO_URL).parent
+    ).exists()  # Check if the author directory is removed
 
 
-def test_remove_nonexistent_repository(
-    clean_test_environment: Generator[None, None, None]
-) -> None:
+def test_remove_nonexistent_repository(github: GitHub) -> None:
     """
     Test removing a repository that does not exist.
     """
-    github = GitHub()
     github.remove(
         "https://github.com/octocat/nonexistent-repo"
     )  # Should not raise an exception
 
 
-def test_clean_all_repositories(
-    clean_test_environment: Generator[None, None, None]
-) -> None:
+def test_clean_all_repositories(github: GitHub, github_dir: Path) -> None:
     """
     Test if all repositories can be cleaned at once.
     """
-    github = GitHub()
     github.clone(TEST_REPO_URL)
     github.clean()
-    assert not Path(REPO_DIR).exists()  # Check if the base directory is removed
+    assert not Path(github_dir).exists()  # Check if the base directory is removed
 
 
 def test_is_valid_repo_url_valid_urls() -> None:
@@ -161,39 +155,39 @@ def test_is_valid_repo_url_edge_cases() -> None:
     )
 
 
-def test_get_repo_path_valid_urls() -> None:
+def test_get_repo_path_valid_urls(github: GitHub, github_dir: Path) -> None:
     """
     Test repository path generation for valid URLs.
     """
     assert (
-        GitHub.get_repo_path("https://github.com/octocat/hello-world")
-        == Path(REPO_DIR) / "octocat" / "hello-world"
+        github.get_repo_path("https://github.com/octocat/hello-world")
+        == github_dir / "octocat" / "hello-world"
     )
     assert (
-        GitHub.get_repo_path("https://github.com/octocat/hello-world.git")
-        == Path(REPO_DIR) / "octocat" / "hello-world"
+        github.get_repo_path("https://github.com/octocat/hello-world.git")
+        == github_dir / "octocat" / "hello-world"
     )
 
 
-def test_get_repo_path_invalid_urls() -> None:
+def test_get_repo_path_invalid_urls(github: GitHub) -> None:
     """
     Test repository path generation for invalid URLs.
     """
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("http://github.com/octocat/hello-world")  # Not HTTPS
+        github.get_repo_path("http://github.com/octocat/hello-world")  # Not HTTPS
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("https://github.com/octocat")  # Missing repository name
+        github.get_repo_path("https://github.com/octocat")  # Missing repository name
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("invalid_url")  # Invalid format
+        github.get_repo_path("invalid_url")  # Invalid format
 
 
-def test_get_repo_path_edge_cases() -> None:
+def test_get_repo_path_edge_cases(github: GitHub, github_dir: Path) -> None:
     """
     Test repository path generation for edge cases.
     """
     assert (
-        GitHub.get_repo_path("https://github.com/octocat-123/repo-name.git")
-        == Path(REPO_DIR) / "octocat-123" / "repo-name"
+        github.get_repo_path("https://github.com/octocat-123/repo-name.git")
+        == github_dir / "octocat-123" / "repo-name"
     )
 
 
@@ -242,11 +236,12 @@ def test_get_repo_path_security_cases() -> None:
     """
     Test repository path generation for security edge cases.
     """
+    github = GitHub()
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("https://github.com/../../malicious/repo")
+        github.get_repo_path("https://github.com/../../malicious/repo")
 
     with pytest.raises(ValueError, match="Invalid repository URL"):
-        GitHub.get_repo_path("https://github.com/octocat/hello-world?.git")
+        github.get_repo_path("https://github.com/octocat/hello-world?.git")
 
 
 def test_resolve_repo_url() -> None:

@@ -36,8 +36,11 @@ class Repository:
 
 
 class GitHub:
-    def __init__(self, github_token: Optional[str] = None) -> None:
+    def __init__(
+        self, github_token: Optional[str] = None, directory: Optional[str] = None
+    ) -> None:
         self.github_token = github_token or os.getenv("GITHUB_TOKEN")
+        self.directory = directory or REPO_DIR
 
     def getByUrl(self, repo_url: str) -> Repository:
         repositories = self.list()
@@ -70,8 +73,8 @@ class GitHub:
         Raises:
             e: GitCommandError
         """
-        if not Path(REPO_DIR).exists():
-            Path(REPO_DIR).mkdir(parents=True, exist_ok=True)
+        if not Path(self.directory).exists():
+            Path(self.directory).mkdir(parents=True, exist_ok=True)
 
         try:
             if GitHub.is_short_hand_url(repo_url):
@@ -125,7 +128,7 @@ class GitHub:
         """
         Delete all repositories.
         """
-        shutil.rmtree(REPO_DIR, ignore_errors=True)
+        shutil.rmtree(self.directory, ignore_errors=True)
 
     def update(self, repo_url: Optional[str] = None) -> List[Repository]:
         """
@@ -184,8 +187,8 @@ class GitHub:
         try:
             # Get only the repository root directories
             repo_paths = []
-            if Path(REPO_DIR).exists():
-                for author_dir in Path(REPO_DIR).iterdir():
+            if Path(self.directory).exists():
+                for author_dir in Path(self.directory).iterdir():
                     if author_dir.is_dir():
                         for repo_dir in author_dir.iterdir():
                             if repo_dir.is_dir() and (repo_dir / ".git").exists():
@@ -221,8 +224,7 @@ class GitHub:
             log_error(e)
             return []
 
-    @staticmethod
-    def get_repo_path(url: str) -> Path:
+    def get_repo_path(self, url: str) -> Path:
         """
         Generate the local repository path from a GitHub URL.
 
@@ -249,7 +251,14 @@ class GitHub:
         author, repo_name = match.groups()
 
         # Create path using the REPO_DIR constant
-        return Path(REPO_DIR) / author / repo_name
+        return Path(self.directory) / author / repo_name
+
+    def get_repo_info(self, url: str) -> Repository:
+        repos = self.list()
+        for repo in repos:
+            if repo.url == url or url == f"{repo.author}/{repo.name}":
+                return repo
+        raise ValueError(f"Repository not found: {url}")
 
     @staticmethod
     def is_valid_repo_url(url: str) -> bool:

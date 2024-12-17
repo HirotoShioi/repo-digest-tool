@@ -130,15 +130,15 @@ def digest(
     Generate a digest for a repository.
     """
     try:
-        repo_path = GitHub.get_repo_path(repo_url)
+        repo_info = github.get_repo_info(repo_url)
         if not github.repo_exists(repo_url):
             typer.secho(f"Repository {repo_url} not found. Cloning...")
             github.clone(repo_url, branch)
         elif branch:
-            github.checkout(repo_path, branch)
-        generate_digest(repo_path, prompt)
+            github.checkout(repo_info.path, branch)
+        generate_digest(repo_info, prompt)
         typer.secho(
-            f"Digest generated successfully at digests/{repo_path.name}.txt",
+            f"Digest generated successfully at digests/{repo_info.name}.txt",
         )
     except Exception as e:
         typer.secho(f"An unexpected error occurred: {e}", fg=typer.colors.RED)

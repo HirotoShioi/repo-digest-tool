@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
 import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
 import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetRepositories } from "@/services/repositories/queries";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import React from "react";
 
 function RepositoriesPage() {
   const { data: repositories, isLoading } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
+  const AddRepository = React.memo(AddRepositoryDialog);
   const filteredRepositories = (repositories ?? [])
     .filter(
       (repo) =>
@@ -32,13 +30,7 @@ function RepositoriesPage() {
             placeholder="Search repositories..."
           />
         </div>
-        <Button
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus className="w-5 h-5" />
-          Add Repository
-        </Button>
+        <AddRepository />
       </div>
 
       {isLoading ? (
@@ -46,11 +38,6 @@ function RepositoriesPage() {
       ) : (
         <RepositoryList repositories={filteredRepositories} />
       )}
-
-      <AddRepositoryDialog
-        isOpen={isAddDialogOpen}
-        onClose={() => setIsAddDialogOpen(false)}
-      />
     </div>
   );
 }

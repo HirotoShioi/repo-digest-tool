@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,6 +10,7 @@ import tiktoken
 from jinja2 import Environment, FileSystemLoader
 
 from repo_tool.core.contants import DIGEST_DIR
+from repo_tool.core.github import Repository
 
 # 型変数の定義
 T = TypeVar("T")
@@ -57,6 +59,7 @@ class FileStats:
 
 @dataclass
 class Summary:
+    author: str
     repository: str
     total_files: int
     total_size_kb: float
@@ -66,6 +69,17 @@ class Summary:
     file_types: List[FileType]
     context_length: int
     file_data: List[FileData]
+
+    def to_json(self) -> str:
+        return json.dumps(self, default=lambda o: o.__dict__, ensure_ascii=False)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "Summary":
+        data = json.loads(json_str)
+        # Reconstruct nested objects
+        data["file_types"] = [FileType(**ft) for ft in data["file_types"]]
+        data["file_data"] = [FileData(**fd) for fd in data["file_data"]]
+        return cls(**data)
 
     def generate_report(self, data_size: int = 20) -> None:
         """
@@ -108,7 +122,7 @@ def format_number(value: int | float | str) -> str:
 
 
 def generate_summary(
-    repo_path: Path,
+    repo_info: Repository,
     file_list: List[Path],
 ) -> Summary:
     """
@@ -122,11 +136,12 @@ def generate_summary(
     if not os.path.exists(DIGEST_DIR):
         os.makedirs(DIGEST_DIR, exist_ok=True)
 
-    file_infos = [FileInfo(Path(f), repo_path) for f in file_list]
+    file_infos = [FileInfo(Path(f), repo_info.path) for f in file_list]
     file_stats = asyncio.run(process_files(file_infos))
 
     summary = Summary(
-        repository=repo_path.name,
+        author=repo_info.author,
+        repository=repo_info.name,
         total_files=file_stats.file_count,
         total_size_kb=round(file_stats.total_size, precision),
         average_file_size_kb=round(file_stats.average_size, precision),
