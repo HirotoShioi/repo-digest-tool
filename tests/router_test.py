@@ -287,3 +287,89 @@ def test_clone_repository_missing_url(client: TestClient) -> None:
     """Test cloning with missing URL"""
     response = client.post("/repositories", json={"branch": "main"})
     assert response.status_code == 422  # FastAPI validation error
+
+
+def test_get_repository_settings_default(
+    client: TestClient, github: InMemoryGitHub
+) -> None:
+    """Test getting repository settings when no custom settings exist"""
+    # First add a repository
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Get default settings
+    response = client.get("/HirotoShioi/repo-digest-tool/settings")
+    assert response.status_code == 200
+    settings = response.json()
+
+    # Verify default settings structure
+    assert "include_files" in settings
+    assert "exclude_files" in settings
+    assert "max_file_size" in settings
+    assert settings["max_file_size"] == 1000000
+    assert isinstance(settings["include_files"], list)
+    assert isinstance(settings["exclude_files"], list)
+
+
+def test_update_repository_settings(client: TestClient, github: InMemoryGitHub) -> None:
+    """Test updating repository settings"""
+    # First add a repository
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Update settings
+    new_settings = {
+        "include_files": ["*.py", "*.md"],
+        "exclude_files": ["tests/*", "*.pyc"],
+        "max_file_size": 500000,
+    }
+    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=new_settings)
+    assert response.status_code == 200
+    updated_settings = response.json()
+    assert updated_settings == new_settings
+
+    # Verify settings were persisted
+    response = client.get("/HirotoShioi/repo-digest-tool/settings")
+    assert response.status_code == 200
+    persisted_settings = response.json()
+    assert persisted_settings == new_settings
+
+
+def test_get_settings_nonexistent_repository(client: TestClient) -> None:
+    """Test getting settings for a repository that doesn't exist"""
+    response = client.get("/nonexistent/repo/settings")
+    assert response.status_code == 200  # Returns default settings
+    settings = response.json()
+    assert "include_files" in settings
+    assert "exclude_files" in settings
+    assert "max_file_size" in settings
+
+
+def test_update_settings_validation(client: TestClient, github: InMemoryGitHub) -> None:
+    """Test settings validation during update"""
+    # First add a repository
+    clone_payload = {
+        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Test with invalid settings structure
+    invalid_settings = {
+        "include_files": "not_a_list",  # Should be a list
+        "exclude_files": ["tests/*"],
+        "max_file_size": 500000,
+    }
+    response = client.put(
+        "/HirotoShioi/repo-digest-tool/settings", json=invalid_settings
+    )
+    assert response.status_code == 422  # Validation error
