@@ -14,6 +14,11 @@ from repo_tool.api.repositories import FilterSettingsRepository, SummaryCacheRep
 from repo_tool.api.router import get_github, router
 from repo_tool.core.github import GitHub
 
+test_repo_url = "https://github.com/HirotoShioi/query-cache"
+repo_id = "HirotoShioi/query-cache"
+repo_name = "query-cache"
+author = "HirotoShioi"
+
 
 @pytest.fixture(name="engine")
 def engine_fixture() -> Generator[Engine, None, None]:
@@ -97,7 +102,7 @@ def test_get_repositories_empty(client: TestClient) -> None:
 def test_repository_lifecycle(client: TestClient, github: GitHub) -> None:
     # 1. Clone repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
@@ -110,27 +115,25 @@ def test_repository_lifecycle(client: TestClient, github: GitHub) -> None:
     repos = response.json()
     assert len(repos) == 1
     repo = repos[0]
-    assert repo["id"] == "HirotoShioi/repo-digest-tool"
-    assert repo["name"] == "repo-digest-tool"
-    assert repo["author"] == "HirotoShioi"
+    assert repo["id"] == repo_id
+    assert repo["name"] == repo_name
+    assert repo["author"] == author
     assert repo["branch"] == "main"
     assert "updated_at" in repo
 
     # 3. Get single repository
-    response = client.get("/repositories/HirotoShioi/repo-digest-tool")
+    response = client.get(f"/repositories/{author}/{repo_name}")
     assert response.status_code == 200
     repo = response.json()
-    assert repo["id"] == "HirotoShioi/repo-digest-tool"
+    assert repo["id"] == repo_id
 
     # 4. Update repository
-    response = client.put("/repositories/HirotoShioi/repo-digest-tool")
+    response = client.put(f"/repositories/{author}/{repo_name}")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
     # 5. Delete repository
-    response = client.delete(
-        "/repositories/HirotoShioi/repo-digest-tool",
-    )
+    response = client.delete(f"/repositories/{author}/{repo_name}")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
@@ -141,13 +144,13 @@ def test_repository_lifecycle(client: TestClient, github: GitHub) -> None:
 
 
 def test_update_repository_not_found(client: TestClient) -> None:
-    response = client.put("/repositories/HirotoShioi/repo-digest-tool")
+    response = client.put(f"/repositories/{author}/{repo_name}")
     assert response.status_code == 404
     assert response.json() == {"detail": "Repository not found"}
 
 
 def test_get_summary_not_found(client: TestClient) -> None:
-    response = client.get("/HirotoShioi/repo-digest-tool/summary")
+    response = client.get(f"/{author}/{repo_name}/summary")
     assert response.status_code == 404
     assert response.json() == {"detail": "Repository not found"}
 
@@ -155,7 +158,7 @@ def test_get_summary_not_found(client: TestClient) -> None:
 def test_delete_all_repositories(client: TestClient, github: GitHub) -> None:
     # First add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
@@ -185,7 +188,7 @@ def test_clone_repository_invalid_url(client: TestClient) -> None:
 def test_clone_repository_duplicate(client: TestClient) -> None:
     """Test cloning same repository twice without force flag"""
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     # First clone should succeed
@@ -208,8 +211,8 @@ def test_update_all_repositories(client: TestClient) -> None:
     """Test updating all repositories"""
     # Add two repositories
     repos = [
+        test_repo_url,
         "https://github.com/HirotoShioi/repo-digest-tool",
-        "https://github.com/HirotoShioi/query-cache",
     ]
 
     for url in repos:
@@ -244,14 +247,14 @@ def test_get_repository_settings_default(client: TestClient, github: GitHub) -> 
     """Test getting repository settings when no custom settings exist"""
     # First add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
     # Get default settings
-    response = client.get("/HirotoShioi/repo-digest-tool/settings")
+    response = client.get(f"/{author}/{repo_name}/settings")
     assert response.status_code == 200
     settings = response.json()
 
@@ -268,7 +271,7 @@ def test_update_repository_settings(client: TestClient, github: GitHub) -> None:
     """Test updating repository settings"""
     # First add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
@@ -280,13 +283,13 @@ def test_update_repository_settings(client: TestClient, github: GitHub) -> None:
         "exclude_files": ["tests/*", "*.pyc"],
         "max_file_size": 500000,
     }
-    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=new_settings)
+    response = client.put(f"/{author}/{repo_name}/settings", json=new_settings)
     assert response.status_code == 200
     updated_settings = response.json()
     assert updated_settings == new_settings
 
     # Verify settings were persisted
-    response = client.get("/HirotoShioi/repo-digest-tool/settings")
+    response = client.get(f"/{author}/{repo_name}/settings")
     assert response.status_code == 200
     persisted_settings = response.json()
     assert persisted_settings == new_settings
@@ -306,7 +309,7 @@ def test_update_settings_validation(client: TestClient, github: GitHub) -> None:
     """Test settings validation during update"""
     # First add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
@@ -318,9 +321,7 @@ def test_update_settings_validation(client: TestClient, github: GitHub) -> None:
         "exclude_files": ["tests/*"],
         "max_file_size": 500000,
     }
-    response = client.put(
-        "/HirotoShioi/repo-digest-tool/settings", json=invalid_settings
-    )
+    response = client.put(f"/{author}/{repo_name}/settings", json=invalid_settings)
     assert response.status_code == 422  # Validation error
 
 
@@ -331,7 +332,7 @@ def test_settings_persistence_in_db(client: TestClient, session: Session) -> Non
 
     # First add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
@@ -343,13 +344,11 @@ def test_settings_persistence_in_db(client: TestClient, session: Session) -> Non
         "exclude_files": ["tests/*", "*.pyc"],
         "max_file_size": 500000,
     }
-    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=new_settings)
+    response = client.put(f"/{author}/{repo_name}/settings", json=new_settings)
     assert response.status_code == 200
 
     # Verify settings in database directly
-    db_settings = filter_settings_repo.get_by_repository_id(
-        "HirotoShioi/repo-digest-tool"
-    )
+    db_settings = filter_settings_repo.get_by_repository_id(repo_id)
     count = filter_settings_repo.count()
     assert count == 1
     assert db_settings is not None
@@ -367,25 +366,24 @@ def test_summary_cache_persistence(
 
     # Add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
     # Generate summary via API (assuming this endpoint exists)
-    response = client.get("/HirotoShioi/repo-digest-tool/summary")
+    response = client.get(f"/{author}/{repo_name}/summary")
     assert response.status_code == 200
 
     # Verify summary cache in database directly
-    cached_summary = summary_cache_repo.get_by_repository_id(
-        "HirotoShioi/repo-digest-tool"
-    )
+    cached_summary = summary_cache_repo.get_by_repository_id(repo_id)
     count = summary_cache_repo.count()
     assert count == 1
+    print(f"Cached summary: {cached_summary}")
     assert cached_summary is not None
-    assert cached_summary.author == "HirotoShioi"
-    assert cached_summary.repository == "repo-digest-tool"
+    assert cached_summary.author == author
+    assert cached_summary.repository == repo_name
 
 
 def test_summary_cache_deletion_in_db(client: TestClient, session: Session) -> None:
@@ -395,14 +393,14 @@ def test_summary_cache_deletion_in_db(client: TestClient, session: Session) -> N
 
     # Add a repository
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
     # Generate summary to create cache entry
-    response = client.get("/HirotoShioi/repo-digest-tool/summary")
+    response = client.get(f"/{author}/{repo_name}/summary")
     assert response.status_code == 200
     count = summary_cache_repo.count()
     assert count == 1
@@ -412,7 +410,7 @@ def test_summary_cache_deletion_in_db(client: TestClient, session: Session) -> N
         "exclude_files": ["tests/*", "*.pyc"],
         "max_file_size": 500000,
     }
-    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=new_settings)
+    response = client.put(f"/{author}/{repo_name}/settings", json=new_settings)
     assert response.status_code == 200
     count = summary_cache_repo.count()
     assert count == 0
@@ -424,7 +422,7 @@ def test_settings_deletion_in_db(client: TestClient, session: Session) -> None:
     filter_settings_repo = FilterSettingsRepository(session)
     # First add a repository and its settings
     clone_payload = {
-        "url": "https://github.com/HirotoShioi/repo-digest-tool",
+        "url": test_repo_url,
         "branch": "main",
     }
     response = client.post("/repositories", json=clone_payload)
@@ -436,17 +434,15 @@ def test_settings_deletion_in_db(client: TestClient, session: Session) -> None:
         "exclude_files": [],
         "max_file_size": 500000,
     }
-    response = client.put("/HirotoShioi/repo-digest-tool/settings", json=settings)
+    response = client.put(f"/{author}/{repo_name}/settings", json=settings)
     assert response.status_code == 200
 
     # Delete repository via API
-    response = client.delete("/repositories/HirotoShioi/repo-digest-tool")
+    response = client.delete(f"/repositories/{author}/{repo_name}")
     assert response.status_code == 200
 
     # Verify settings were deleted from database
-    db_settings = filter_settings_repo.get_by_repository_id(
-        "HirotoShioi/repo-digest-tool"
-    )
+    db_settings = filter_settings_repo.get_by_repository_id(repo_id)
     assert db_settings is None
 
 
@@ -458,8 +454,8 @@ def test_bulk_delete_db_cleanup(client: TestClient, session: Session) -> None:
 
     # Add multiple repositories
     repos = [
+        test_repo_url,
         "https://github.com/HirotoShioi/repo-digest-tool",
-        "https://github.com/HirotoShioi/query-cache",
     ]
 
     for url in repos:
@@ -472,8 +468,7 @@ def test_bulk_delete_db_cleanup(client: TestClient, session: Session) -> None:
             "exclude_files": [],
             "max_file_size": 500000,
         }
-        repo_id = url.split("/")[-2] + "/" + url.split("/")[-1]
-        response = client.put(f"/{repo_id}/settings", json=settings)
+        response = client.put(f"/{author}/{repo_name}/settings", json=settings)
         assert response.status_code == 200
 
     # Delete all repositories

@@ -162,7 +162,6 @@ def update_repository(
     response_model=Summary,
     summary="Get a summary of a repository digest",
     description="Get a summary of a repository digest",
-    dependencies=[Depends(get_github)],
 )
 def get_summary_of_repository(
     author: str,
