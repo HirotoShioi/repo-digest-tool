@@ -1,3 +1,6 @@
+import shutil
+import tempfile
+from pathlib import Path
 from typing import Any, Dict, Generator
 
 import pytest
@@ -37,14 +40,45 @@ def session_fixture(engine: Engine) -> Generator[Session, None, None]:
         yield session
 
 
+@pytest.fixture(name="github_dir")
+def github_dir_fixture() -> Generator[Path, None, None]:
+    """Create a temporary directory for GitHub operations"""
+    tmp_dir = tempfile.mkdtemp()
+    yield Path(tmp_dir)
+    # Clean up after all tests
+    try:
+        shutil.rmtree(tmp_dir)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.fixture
+def github(github_dir: Path) -> GitHub:
+    """Returns a GitHub instance with temporary directory"""
+    return GitHub(directory=str(github_dir))
+
+
+@pytest.fixture(autouse=True)
+def reset_github(github: GitHub, github_dir: Path) -> Generator[None, None, None]:
+    """Reset GitHub state before each test"""
+    yield
+    # Clean up contents if directory still exists
+    if github_dir.exists():
+        for item in github_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                shutil.rmtree(item)
+
+
 @pytest.fixture(name="client")
-def client_fixture(engine: Engine) -> TestClient:
+def client_fixture(engine: Engine, github: GitHub) -> TestClient:
     """Create a new FastAPI test client with the in-memory database."""
     app = FastAPI()
     app.include_router(router)
 
-    # Only override the GitHub dependency since database is initialized
-    app.dependency_overrides[get_github] = lambda: GitHub(directory="./tmp")
+    # Override the GitHub dependency with our temporary directory instance
+    app.dependency_overrides[get_github] = lambda: github
 
     return TestClient(app)
 
@@ -52,19 +86,6 @@ def client_fixture(engine: Engine) -> TestClient:
 def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
     """Returns a new dictionary sorted by keys"""
     return dict(sorted(d.items()))
-
-
-@pytest.fixture
-def github() -> GitHub:
-    """Returns a shared InMemoryGitHub instance"""
-    return GitHub(directory="./tmp")
-
-
-@pytest.fixture(autouse=True)
-def reset_github(github: GitHub) -> Generator[None, None, None]:
-    """Reset GitHub state before each test"""
-    github.clean()
-    yield
 
 
 def test_get_repositories_empty(client: TestClient) -> None:
