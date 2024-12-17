@@ -25,16 +25,15 @@ router = APIRouter()
 load_dotenv(override=True)
 
 
+class Repositories:
+    def __init__(self, session: Session):
+        self.session = session
+        self.summary_cache_repo = SummaryCacheRepository(session)
+        self.filter_settings_repo = FilterSettingsRepository(session)
+
+
 def get_github() -> GitHub:
     return GitHub()
-
-
-def get_summary_cache_repository(session: Session) -> SummaryCacheRepository:
-    return SummaryCacheRepository(session)
-
-
-def get_filter_settings_repository(session: Session) -> FilterSettingsRepository:
-    return FilterSettingsRepository(session)
 
 
 class Response(BaseModel):
@@ -93,8 +92,12 @@ def delete_all_repositories(
     session: Session = Depends(get_session), github: GitHub = Depends(get_github)
 ) -> Response:
     github.clean()
-    get_filter_settings_repository(session).delete_all()
-    get_summary_cache_repository(session).delete_all()
+    repositories = Repositories(session)
+    filter_settings_repo = repositories.filter_settings_repo
+    summary_cache_repo = repositories.summary_cache_repo
+
+    filter_settings_repo.delete_all()
+    summary_cache_repo.delete_all()
     return Response(status="success")
 
 
@@ -113,12 +116,12 @@ def delete_repository(
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.remove(f"{author}/{repository_name}")
-    get_filter_settings_repository(session).delete_by_repository_id(
-        f"{author}/{repository_name}"
-    )
-    get_summary_cache_repository(session).delete_by_repository_id(
-        f"{author}/{repository_name}"
-    )
+    repositories = Repositories(session)
+    filter_settings_repo = repositories.filter_settings_repo
+    summary_cache_repo = repositories.summary_cache_repo
+
+    filter_settings_repo.delete_by_repository_id(f"{author}/{repository_name}")
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
     return Response(status="success")
 
 
@@ -132,7 +135,9 @@ def update_all_repositories(
     session: Session = Depends(get_session), github: GitHub = Depends(get_github)
 ) -> Response:
     github.update()
-    get_summary_cache_repository(session).delete_all()
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    summary_cache_repo.delete_all()
     return Response(status="success")
 
 
@@ -151,9 +156,9 @@ def update_repository(
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.update(f"{author}/{repository_name}")
-    get_summary_cache_repository(session).delete_by_repository_id(
-        f"{author}/{repository_name}"
-    )
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
     return Response(status="success")
 
 
@@ -172,18 +177,22 @@ def get_summary_of_repository(
     url = f"{author}/{repository_name}"
     if not github.repo_exists(url):
         raise HTTPException(status_code=404, detail="Repository not found")
-    maybe_cached_summary = get_summary_cache_repository(session).get_by_repository_id(
-        url
-    )
+
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    filter_settings_repo = repositories.filter_settings_repo
+
+    maybe_cached_summary = summary_cache_repo.get_by_repository_id(url)
     if maybe_cached_summary:
         return maybe_cached_summary
+
     repo_info = github.get_repo_info(url)
-    filter_settings = get_filter_settings_repository(session).get_by_repository_id(url)
+    filter_settings = filter_settings_repo.get_by_repository_id(url)
     filtered_files = filter_files_in_repo(
         repo_info.path, filter_settings=filter_settings
     )
     summary = generate_summary(repo_info, filtered_files)
-    get_summary_cache_repository(session).upsert(summary, datetime.now().isoformat())
+    summary_cache_repo.upsert(summary, datetime.now().isoformat())
     return summary
 
 
@@ -271,7 +280,8 @@ def update_settings(request: Settings) -> Settings:
 def get_settings_of_repository(
     author: str, repository_name: str, session: Session = Depends(get_session)
 ) -> Settings:
-    maybe_settings = get_filter_settings_repository(session).get_by_repository_id(
+    filter_settings_repo = FilterSettingsRepository(session)
+    maybe_settings = filter_settings_repo.get_by_repository_id(
         f"{author}/{repository_name}"
     )
     if maybe_settings:
@@ -295,10 +305,12 @@ def update_settings_of_repository(
     request: Settings,
     session: Session = Depends(get_session),
 ) -> Settings:
-    get_summary_cache_repository(session).delete_by_repository_id(
-        f"{author}/{repository_name}"
-    )
-    get_filter_settings_repository(session).upsert(
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    filter_settings_repo = repositories.filter_settings_repo
+
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
+    filter_settings_repo.upsert(
         f"{author}/{repository_name}",
         request.include_files,
         request.exclude_files,
