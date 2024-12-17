@@ -5,14 +5,12 @@ from typing import Any, Dict, Generator, List, Optional
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
+from sqlmodel import Session, SQLModel
 
 from repo_tool.api.router import get_github, router
 from repo_tool.core.github import GitHub, Repository
-
-
-def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    """Returns a new dictionary sorted by keys"""
-    return dict(sorted(d.items()))
 
 
 class InMemoryGitHub(GitHub):
@@ -52,8 +50,6 @@ class InMemoryGitHub(GitHub):
             repo_url: If None or empty string, clear all repositories.
                      Otherwise, remove the specific repository.
         """
-
-        # Extract repository_id from URL
         try:
             author, repo_name = repo_url.split("/")[-2:]
             repository_id = f"{author}/{repo_name}"
@@ -86,19 +82,52 @@ class InMemoryGitHub(GitHub):
             return list(self.repositories.values())
 
 
+@pytest.fixture(name="engine")
+def engine_fixture() -> Generator[Engine, None, None]:
+    """Create a new in-memory database for each test."""
+    # Initialize the global engine for the database module
+    from repo_tool.api.database import init_db
+
+    test_engine = create_engine(
+        "sqlite:///file:memdb?mode=memory&cache=shared&uri=true",
+        connect_args={"check_same_thread": False},
+    )
+
+    # Set the global engine
+    init_db("sqlite:///file:memdb?mode=memory&cache=shared&uri=true")
+
+    SQLModel.metadata.create_all(test_engine)
+    yield test_engine
+    SQLModel.metadata.drop_all(test_engine)
+
+
+@pytest.fixture(name="session")
+def session_fixture(engine: Engine) -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
+
+
+@pytest.fixture(name="client")
+def client_fixture(engine: Engine, github: InMemoryGitHub) -> TestClient:
+    """Create a new FastAPI test client with the in-memory database."""
+    app = FastAPI()
+    app.include_router(router)
+
+    # Only override the GitHub dependency since database is initialized
+    app.dependency_overrides[get_github] = lambda: github
+
+    return TestClient(app)
+
+
+def sort_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+    """Returns a new dictionary sorted by keys"""
+    return dict(sorted(d.items()))
+
+
 @pytest.fixture
 def github() -> InMemoryGitHub:
     """Returns a shared InMemoryGitHub instance"""
     return InMemoryGitHub()
-
-
-@pytest.fixture
-def test_client(github: InMemoryGitHub) -> TestClient:
-    """Returns a FastAPI test client with InMemoryGitHub dependency injection"""
-    app = FastAPI()
-    app.include_router(router)
-    app.dependency_overrides[get_github] = lambda: github
-    return TestClient(app)
 
 
 @pytest.fixture(autouse=True)
@@ -108,24 +137,24 @@ def reset_github(github: InMemoryGitHub) -> Generator[None, None, None]:
     yield
 
 
-def test_get_repositories_empty(test_client: TestClient) -> None:
-    response = test_client.get("/repositories")
+def test_get_repositories_empty(client: TestClient) -> None:
+    response = client.get("/repositories")
     assert response.status_code == 200
     assert response.json() == []
 
 
-def test_repository_lifecycle(test_client: TestClient, github: InMemoryGitHub) -> None:
+def test_repository_lifecycle(client: TestClient, github: InMemoryGitHub) -> None:
     # 1. Clone repository
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
         "branch": "main",
     }
-    response = test_client.post("/repositories", json=clone_payload)
+    response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
     # 2. Get repository list
-    response = test_client.get("/repositories")
+    response = client.get("/repositories")
     assert response.status_code == 200
     repos = response.json()
     assert len(repos) == 1
@@ -137,96 +166,94 @@ def test_repository_lifecycle(test_client: TestClient, github: InMemoryGitHub) -
     assert "updated_at" in repo
 
     # 3. Get single repository
-    response = test_client.get("/repositories/HirotoShioi/repo-digest-tool")
+    response = client.get("/repositories/HirotoShioi/repo-digest-tool")
     assert response.status_code == 200
     repo = response.json()
     assert repo["id"] == "HirotoShioi/repo-digest-tool"
 
     # 4. Update repository
-    response = test_client.put("/repositories/HirotoShioi/repo-digest-tool")
+    response = client.put("/repositories/HirotoShioi/repo-digest-tool")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
     # 5. Delete repository
-    response = test_client.delete(
+    response = client.delete(
         "/repositories/HirotoShioi/repo-digest-tool",
     )
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
     # 6. Verify repository list is empty after deletion
-    response = test_client.get("/repositories")
+    response = client.get("/repositories")
     assert response.status_code == 200
     assert response.json() == []
 
 
-def test_update_repository_not_found(test_client: TestClient) -> None:
-    response = test_client.put("/repositories/HirotoShioi/repo-digest-tool")
+def test_update_repository_not_found(client: TestClient) -> None:
+    response = client.put("/repositories/HirotoShioi/repo-digest-tool")
     assert response.status_code == 404
     assert response.json() == {"detail": "Repository not found"}
 
 
-def test_get_summary_not_found(test_client: TestClient) -> None:
-    response = test_client.get("/HirotoShioi/repo-digest-tool/summary")
+def test_get_summary_not_found(client: TestClient) -> None:
+    response = client.get("/HirotoShioi/repo-digest-tool/summary")
     assert response.status_code == 404
     assert response.json() == {"detail": "Repository not found"}
 
 
-def test_delete_all_repositories(
-    test_client: TestClient, github: InMemoryGitHub
-) -> None:
+def test_delete_all_repositories(client: TestClient, github: InMemoryGitHub) -> None:
     # First add a repository
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
         "branch": "main",
     }
-    response = test_client.post("/repositories", json=clone_payload)
+    response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
     # Delete all repositories
-    response = test_client.delete("/repositories")
+    response = client.delete("/repositories")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
     # Verify repository list is empty
-    response = test_client.get("/repositories")
+    response = client.get("/repositories")
     assert response.status_code == 200
     assert response.json() == []
 
 
-def test_clone_repository_invalid_url(test_client: TestClient) -> None:
+def test_clone_repository_invalid_url(client: TestClient) -> None:
     """Test cloning with invalid URL format"""
     clone_payload = {
         "url": "invalid-url",
         "branch": "main",
     }
-    response = test_client.post("/repositories", json=clone_payload)
+    response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 400
 
 
-def test_clone_repository_duplicate(test_client: TestClient) -> None:
+def test_clone_repository_duplicate(client: TestClient) -> None:
     """Test cloning same repository twice without force flag"""
     clone_payload = {
         "url": "https://github.com/HirotoShioi/repo-digest-tool",
         "branch": "main",
     }
     # First clone should succeed
-    response = test_client.post("/repositories", json=clone_payload)
+    response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
 
     # Second clone should return success (idempotent behavior)
-    response = test_client.post("/repositories", json=clone_payload)
+    response = client.post("/repositories", json=clone_payload)
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
 
-def test_get_repository_invalid_author_repo(test_client: TestClient) -> None:
+def test_get_repository_invalid_author_repo(client: TestClient) -> None:
     """Test getting repository with invalid author/repo format"""
-    response = test_client.get("/repositories/invalid-format")
+    response = client.get("/repositories/invalid-format")
     assert response.status_code == 404
 
 
-def test_update_all_repositories(test_client: TestClient) -> None:
+def test_update_all_repositories(client: TestClient) -> None:
     """Test updating all repositories"""
     # Add two repositories
     repos = [
@@ -235,28 +262,28 @@ def test_update_all_repositories(test_client: TestClient) -> None:
     ]
 
     for url in repos:
-        response = test_client.post("/repositories", json={"url": url})
+        response = client.post("/repositories", json={"url": url})
         assert response.status_code == 200
 
     # Update all repositories
-    response = test_client.put("/repositories")
+    response = client.put("/repositories")
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
 
     # Verify all repositories were updated
-    response = test_client.get("/repositories")
+    response = client.get("/repositories")
     assert response.status_code == 200
     assert len(response.json()) == 2
 
 
-def test_delete_nonexistent_repository(test_client: TestClient) -> None:
+def test_delete_nonexistent_repository(client: TestClient) -> None:
     """Test deleting a repository that doesn't exist"""
-    response = test_client.delete("/repositories/nonexistent/repo")
+    response = client.delete("/repositories/nonexistent/repo")
     assert response.status_code == 404
     assert "Repository not found" in response.json()["detail"]
 
 
-def test_clone_repository_missing_url(test_client: TestClient) -> None:
+def test_clone_repository_missing_url(client: TestClient) -> None:
     """Test cloning with missing URL"""
-    response = test_client.post("/repositories", json={"branch": "main"})
+    response = client.post("/repositories", json={"branch": "main"})
     assert response.status_code == 422  # FastAPI validation error
