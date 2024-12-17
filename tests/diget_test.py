@@ -1,4 +1,5 @@
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Generator
 
@@ -26,9 +27,25 @@ def cleanup() -> Generator[None, None, None]:
         shutil.rmtree(DIGEST_DIR)
 
 
-def test_digest_file_generation() -> None:
+@pytest.fixture(name="github_dir")
+def github_dir_fixture() -> Generator[Path, None, None]:
+    """Create a temporary directory for GitHub operations"""
+    tmp_dir = tempfile.mkdtemp()
+    yield Path(tmp_dir)
+    # Clean up after all tests
+    try:
+        shutil.rmtree(tmp_dir)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.fixture(name="github")
+def github_fixture(github_dir: Path) -> GitHub:
+    return GitHub(directory=str(github_dir))
+
+
+def test_digest_file_generation(github: GitHub) -> None:
     digest_path = Path(DIGEST_DIR) / "repo-digest-tool.txt"
-    github = GitHub()
     github.clone(REPO_URL, branch=None, force=True)
 
     repo_info = github.get_repo_info(REPO_URL)
