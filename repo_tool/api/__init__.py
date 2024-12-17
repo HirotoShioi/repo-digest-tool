@@ -8,7 +8,16 @@ from sqlmodel import SQLModel
 
 from repo_tool.api.router import router
 
-app = FastAPI(title="Repo Tool API", version="1.0.0")
+
+@asynccontextmanager  # noqa: B902
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    engine = create_engine("sqlite:///repo_tool.db")
+    SQLModel.metadata.create_all(engine)
+    yield
+    engine.dispose()
+
+
+app = FastAPI(title="Repo Tool API", version="1.0.0", lifespan=lifespan)
 
 origins = ["*"]
 
@@ -19,14 +28,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@asynccontextmanager  # noqa: B902
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    engine = create_engine("sqlite:///repo_tool.db")
-    SQLModel.metadata.create_all(engine)
-    yield
-    engine.dispose()
 
 
 app.include_router(router)

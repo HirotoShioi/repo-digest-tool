@@ -52,7 +52,14 @@ function useExcludeFiles() {
     mutationFn: async (params: ExcludeFilesParams) => {
       let settings = queryClient.getQueryData<Settings>(["settings"]);
       if (!settings) {
-        const response = await client.GET("/settings");
+        const response = await client.GET("/{author}/{repository_name}/settings", {
+          params: {
+            path: {
+              author: params.author!,
+              repository_name: params.name!,
+            },
+          },
+        });
         if (!response.data) {
           throw new Error("Failed to fetch settings");
         }

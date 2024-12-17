@@ -255,8 +255,8 @@ def get_settings_of_repository(
         )
     default_settings = get_filter_settings_from_env()
     return Settings(
-        include_files=default_settings.exclude_patterns,
-        exclude_files=default_settings.include_patterns,
+        include_files=default_settings.include_patterns,
+        exclude_files=default_settings.exclude_patterns,
         max_file_size=1000000,
     )
 

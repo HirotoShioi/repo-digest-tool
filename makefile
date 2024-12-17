@@ -1,12 +1,14 @@
-.PHONY: build run-dev run down logs shell clean
+.PHONY: build run-dev run down logs shell clean init-db
 
 build:
 	docker compose build
 
 run-dev:
+	make init-db
 	docker compose up --watch api
 
 run:
+	make init-db
 	docker compose up -d
 
 down:
@@ -20,3 +22,9 @@ shell:
 
 clean:
 	docker compose down --remove-orphans -v
+
+
+init-db:
+	touch repo_tool.db
+
+	
