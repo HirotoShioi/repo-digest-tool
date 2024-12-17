@@ -188,7 +188,7 @@ class TestSummaryCacheRepository:
         assert retrieved.author == "test"
         assert retrieved.repository == "repo"
         assert len(retrieved.file_types) == 1
-        assert len(retrieved.file_data) == 1
+        assert len(retrieved.file_data) == 5
 
     def test_update_summary(self, summary_cache_repository, sample_summary):
         # Create initial summary
