@@ -9,3 +9,4 @@ __pycache__/
 .vite/
 repo_tool_rust/target/
 repo_tool.db
+screenshots/

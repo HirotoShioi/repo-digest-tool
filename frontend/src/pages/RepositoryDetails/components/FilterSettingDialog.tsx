@@ -242,7 +242,11 @@ export function FilterSettingDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="lg" className="bg-primary hover:bg-primary/90">
+        <Button
+          size="lg"
+          className="bg-primary hover:bg-primary/90"
+          data-testid="filter-dialog-button"
+        >
           <Settings className="w-4 h-4" />
           Filter
         </Button>

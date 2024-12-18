@@ -189,6 +189,70 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Test database operation failures
 
 4. Data Model Tests
+
    - Test FilterSettings serialization
    - Test Summary serialization
    - Test data model validation
+
+5. UI Testing
+   - Test navigation to home page
+   - Test Add Repository button click
+   - Test modal dialog visibility
+   - Take screenshots for visual regression
+   - Validate page title
+6. Component Tests
+
+   - Test button interactions
+   - Test modal behavior
+   - Test form inputs
+   - Test error states
+
+7. Integration Tests
+
+   - Test repository addition flow
+   - Test repository deletion
+   - Test repository updates
+   - Test search functionality
+
+8. Visual Regression Tests
+   - Capture baseline screenshots
+   - Compare against visual changes
+   - Test responsive layouts
+   - Test different themes/modes
+
+# UI Testing Requirements
+
+1. Test Environment Setup
+
+   - Configure Playwright with Vitest
+   - Set up browser and page management
+   - Handle test lifecycle properly
+   - Configure screenshot directory
+   - Clean up screenshots before test execution
+
+2. Visual Testing
+
+   - Capture homepage screenshot
+   - Verify page title
+   - Store screenshots in designated directory
+   - Support full page screenshots
+
+3. Interactive Testing
+
+   - Test Add Repository button functionality
+   - Verify modal dialog behavior
+   - Wait for elements to be visible
+   - Handle loading states
+
+4. Error Handling
+
+   - Proper error reporting
+   - Clean up resources after tests
+   - Handle network conditions
+   - Timeout configuration
+
+5. Configuration
+   - Browser settings
+   - Viewport dimensions
+   - Test timeouts
+   - Screenshot behavior

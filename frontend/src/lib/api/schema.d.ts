@@ -184,11 +184,6 @@ export interface components {
              * @description The URL of the repository to create a digest
              */
             url: string;
-            /**
-             * Branch
-             * @description The branch to generate digest for
-             */
-            branch?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

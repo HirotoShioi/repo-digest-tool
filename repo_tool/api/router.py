@@ -198,7 +198,6 @@ def get_summary_of_repository(
 
 class GenerateDigestParams(BaseModel):
     url: str = Field(..., description="The URL of the repository to create a digest")
-    branch: Optional[str] = Field(None, description="The branch to generate digest for")
 
 
 @router.post(
@@ -208,17 +207,18 @@ class GenerateDigestParams(BaseModel):
     description="Create a digest of a repository. This will create a digest of the repository and return it as a file.",
 )
 def get_digest_of_repository(
-    request: GenerateDigestParams, github: GitHub = Depends(get_github)
+    request: GenerateDigestParams,
+    session: Session = Depends(get_session),
+    github: GitHub = Depends(get_github),
 ) -> FileResponse:
-    repo_path = github.get_repo_path(request.url)
-    repo_path = github.get_repo_path(request.url)
-    if not github.repo_exists(request.url):
-        github.clone(request.url, request.branch)
-    elif request.branch:
-        github.checkout(repo_path, request.branch)
-
-    filtered_files = filter_files_in_repo(repo_path)
-    digest = generate_digest_content(repo_path, filtered_files)
+    repo_info = github.get_repo_info(request.url)
+    repositories = Repositories(session)
+    filter_settings_repo = repositories.filter_settings_repo
+    filter_settings = filter_settings_repo.get_by_repository_id(repo_info.id)
+    filtered_files = filter_files_in_repo(
+        repo_info.path, filter_settings=filter_settings
+    )
+    digest = generate_digest_content(repo_info.path, filtered_files)
 
     # Create temporary file
     fd, temp_path = tempfile.mkstemp(suffix=".txt")
