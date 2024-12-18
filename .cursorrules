@@ -228,6 +228,7 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Set up browser and page management
    - Handle test lifecycle properly
    - Configure screenshot directory
+   - Clean up screenshots before test execution
 
 2. Visual Testing
 
