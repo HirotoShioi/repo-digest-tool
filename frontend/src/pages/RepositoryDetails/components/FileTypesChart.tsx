@@ -1,5 +1,11 @@
 import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  TooltipItem,
+} from "chart.js";
 import {
   Card,
   CardHeader,
@@ -21,7 +27,6 @@ interface FileTypesChartParams {
 }
 
 function FileTypesChart({ fileTypes }: FileTypesChartParams) {
-  // tokens (context length) で降順ソート
   const sortedFileTypes = [...fileTypes].sort((a, b) => b.tokens - a.tokens);
 
   const labels = sortedFileTypes.map((fileType) => fileType.extension);
@@ -48,6 +53,31 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
     ],
   };
 
+  const options = {
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: TooltipItem<"pie">) => {
+            const fileType = sortedFileTypes[context.dataIndex];
+            if (!fileType) return [];
+
+            const totalTokens = data.reduce((a, b) => a + b, 0);
+            const percentage = ((fileType.tokens / totalTokens) * 100).toFixed(
+              1
+            );
+
+            return [
+              `${fileType.tokens.toLocaleString()} tokens (${percentage}%)`,
+            ];
+          },
+        },
+      },
+    },
+  };
+
   return (
     <Card className="shadow-md rounded-lg p-2">
       <CardHeader className="p-4">
@@ -58,7 +88,7 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
       </CardHeader>
       <CardContent>
         <div className="chart-container">
-          <Pie data={chartData} />
+          <Pie data={chartData} options={options} />
         </div>
       </CardContent>
     </Card>
