@@ -41,7 +41,11 @@ export function Layout() {
                 rel="noopener noreferrer"
               >
                 <Button variant="ghost" size="icon">
-                  <img src={githubIcon} alt="GitHub" className="h-5 w-5" />
+                  <img
+                    src={githubIcon}
+                    alt="GitHub"
+                    className="h-5 w-5 dark:invert"
+                  />
                   <span className="sr-only">GitHub repository</span>
                 </Button>
               </a>
