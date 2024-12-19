@@ -164,7 +164,7 @@ export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
         orientation="vertical"
         dir="ltr"
         defaultValue="exclude"
-        className="flex min-h-[300px]"
+        className="flex min-h-[500px]"
       >
         <TabsList className="flex flex-col h-full space-y-1 bg-background px-2 justify-start">
           <TabItem value="exclude">Exclude</TabItem>
@@ -194,7 +194,11 @@ export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
             />
           </TabsContent>
           <TabsContent value="ai" className="mt-0">
-            <AITab aiPrompt={aiPrompt} setAiPrompt={setAiPrompt} />
+            <AITab
+              aiPrompt={aiPrompt}
+              setAiPrompt={setAiPrompt}
+              onSave={handleSave}
+            />
           </TabsContent>
           <TabsContent value="advanced" className="mt-0">
             <AdvancedTab

@@ -20,15 +20,15 @@ export function AdvancedTab({
           Set the maximum file size that will be processed (in MB)
         </p>
       </div>
-      <Input
-        type="number"
-        value={maxFileSize}
-        onChange={(e) => setMaxFileSize(Number(e.target.value))}
-        className="max-w-xs"
-        placeholder="Maximum file size (MB)"
-      />
-      <div className="flex justify-end mt-4">
-        <Button onClick={onSave}>Save Settings</Button>
+      <div className="flex gap-2">
+        <Input
+          type="number"
+          value={maxFileSize}
+          onChange={(e) => setMaxFileSize(Number(e.target.value))}
+          className="max-w-xs"
+          placeholder="Maximum file size (MB)"
+        />
+        <Button onClick={onSave}>Save</Button>
       </div>
     </div>
   );
