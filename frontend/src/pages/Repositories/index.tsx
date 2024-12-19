@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
 import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,24 @@ import { useGetRepositories } from "@/services/repositories/queries";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Search } from "lucide-react";
 import React from "react";
+import { useToast } from "@/hooks/use-toast";
 
 function RepositoriesPage() {
-  const { data: repositories, isLoading } = useGetRepositories();
+  const { data: repositories, isLoading, error } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
   const AddRepository = React.memo(AddRepositoryDialog);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch repositories. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
   const filteredRepositories = (repositories ?? [])
     .filter(
       (repo) =>
