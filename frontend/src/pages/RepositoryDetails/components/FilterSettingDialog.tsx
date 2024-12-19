@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import FilterTabs from "./FilterTabs";
+import { FilterTabs } from "./FilterTabs";
 import { Settings } from "lucide-react";
 
 interface FilterSettingDialogProps {

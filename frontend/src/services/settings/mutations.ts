@@ -24,6 +24,7 @@ function useUpdateSettings() {
           include_files: params.settings.includePatterns,
           exclude_files: params.settings.excludePatterns,
           max_file_size: params.settings.maxFileSize,
+          ai_prompt: params.settings.aiPrompt,
         },
       }),
     onSuccess: () => {

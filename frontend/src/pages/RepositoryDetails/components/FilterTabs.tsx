@@ -1,14 +1,14 @@
-import { useState, useCallback, useEffect, memo } from "react";
-import { Plus, X } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
 import { Minimatch } from "minimatch";
+import { ExcludeTab } from "./tabs/ExcludeTab";
+import { IncludeTab } from "./tabs/IncludeTab";
+import { AITab } from "./tabs/AITab";
+import { AdvancedTab } from "./tabs/AdvancedTab";
 
 interface FilterTabsProps {
   onSave: () => void;
@@ -27,66 +27,7 @@ function isValidGlob(pattern: string): boolean {
   }
 }
 
-const PatternInput = memo(function PatternInput({
-  value,
-  onChange,
-  onAdd,
-  placeholder,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  onAdd: () => void;
-  placeholder: string;
-}) {
-  return (
-    <div className="flex gap-2 mb-2">
-      <Input
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && onAdd()}
-      />
-      <Button onClick={onAdd} size="icon">
-        <Plus className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-});
-
-const PatternList = memo(function PatternList({
-  patterns,
-  type,
-  onRemove,
-}: {
-  patterns: string[];
-  type: "exclude" | "include";
-  onRemove: (pattern: string, type: "exclude" | "include") => void;
-}) {
-  return (
-    <ScrollArea className="h-[300px] rounded-md border p-4">
-      <div className="flex flex-wrap gap-2">
-        {patterns.map((pattern) => (
-          <Badge
-            key={pattern}
-            variant="secondary"
-            className="flex items-center gap-1"
-          >
-            {pattern}
-            <button
-              onClick={() => onRemove(pattern, type)}
-              className="ml-1 hover:text-destructive"
-              aria-label={`Remove ${pattern} pattern`}
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-      </div>
-    </ScrollArea>
-  );
-});
-
-function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
+export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
   const { data: filterSettings } = useGetSettings({
     author,
     repository,
@@ -97,6 +38,7 @@ function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
   const [excludePatterns, setExcludePatterns] = useState<string[]>([]);
   const [includePatterns, setIncludePatterns] = useState<string[]>([]);
   const [maxFileSize, setMaxFileSize] = useState<number>(10);
+  const [aiPrompt, setAiPrompt] = useState<string>("");
   const [newExcludePattern, setNewExcludePattern] = useState("");
   const [newIncludePattern, setNewIncludePattern] = useState("");
 
@@ -105,6 +47,7 @@ function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
       setExcludePatterns(filterSettings.excludePatterns || []);
       setIncludePatterns(filterSettings.includePatterns || []);
       setMaxFileSize(filterSettings.maxFileSize || 10);
+      setAiPrompt(filterSettings.aiPrompt || "");
     }
   }, [filterSettings]);
 
@@ -173,6 +116,7 @@ function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
           includePatterns,
           excludePatterns,
           maxFileSize,
+          aiPrompt,
         },
       },
       {
@@ -193,6 +137,7 @@ function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
     includePatterns,
     excludePatterns,
     maxFileSize,
+    aiPrompt,
     toast,
     onSave,
   ]);
@@ -208,85 +153,68 @@ function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
         <TabsList className="flex flex-col h-full space-y-1 bg-background px-2 justify-start">
           <TabsTrigger
             value="exclude"
-            className="justify-start w-full px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
+            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
           >
             Exclude
           </TabsTrigger>
           <TabsTrigger
             value="include"
-            className="justify-start w-full px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
+            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
           >
             Include
           </TabsTrigger>
           <TabsTrigger
+            value="ai"
+            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
+          >
+            AI
+          </TabsTrigger>
+          <TabsTrigger
             value="advanced"
-            className="justify-start w-full px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
+            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
           >
             Advanced
           </TabsTrigger>
         </TabsList>
         <div className="flex-grow px-4">
-          <TabsContent value="exclude" className="mt-0 space-y-4">
-            <div>
-              <h3 className="font-medium">Exclude Patterns</h3>
-              <p className="text-sm text-muted-foreground">
-                Specify patterns for files and directories to exclude from
-                processing
-              </p>
-            </div>
-            <PatternInput
-              value={newExcludePattern}
-              onChange={setNewExcludePattern}
+          <TabsContent value="exclude" className="mt-0">
+            <ExcludeTab
+              newExcludePattern={newExcludePattern}
+              setNewExcludePattern={setNewExcludePattern}
+              excludePatterns={excludePatterns}
               onAdd={() => addPattern("exclude")}
-              placeholder="Add new exclude pattern (e.g. *.log)"
-            />
-            <PatternList
-              patterns={excludePatterns}
-              type="exclude"
               onRemove={removePattern}
             />
-          </TabsContent>
-          <TabsContent value="include" className="mt-0 space-y-4">
-            <div>
-              <h3 className="font-medium">Include Patterns</h3>
-              <p className="text-sm text-muted-foreground">
-                Specify patterns for files that should always be included
-              </p>
+            <div className="flex justify-end mt-4">
+              <Button onClick={handleSave}>Save Settings</Button>
             </div>
-            <PatternInput
-              value={newIncludePattern}
-              onChange={setNewIncludePattern}
+          </TabsContent>
+          <TabsContent value="include" className="mt-0">
+            <IncludeTab
+              newIncludePattern={newIncludePattern}
+              setNewIncludePattern={setNewIncludePattern}
+              includePatterns={includePatterns}
               onAdd={() => addPattern("include")}
-              placeholder="Add new include pattern (e.g. *.md)"
-            />
-            <PatternList
-              patterns={includePatterns}
-              type="include"
               onRemove={removePattern}
             />
-          </TabsContent>
-          <TabsContent value="advanced" className="mt-0 space-y-4">
-            <div>
-              <h3 className="font-medium">File Size Limit</h3>
-              <p className="text-sm text-muted-foreground">
-                Set the maximum file size that will be processed (in MB)
-              </p>
+            <div className="flex justify-end mt-4">
+              <Button onClick={handleSave}>Save Settings</Button>
             </div>
-            <Input
-              type="number"
-              value={maxFileSize}
-              onChange={(e) => setMaxFileSize(Number(e.target.value))}
-              className="max-w-xs"
-              placeholder="Maximum file size (MB)"
+          </TabsContent>
+          <TabsContent value="ai" className="mt-0">
+            <AITab aiPrompt={aiPrompt} setAiPrompt={setAiPrompt} />
+          </TabsContent>
+          <TabsContent value="advanced" className="mt-0">
+            <AdvancedTab
+              maxFileSize={maxFileSize}
+              setMaxFileSize={setMaxFileSize}
             />
+            <div className="flex justify-end mt-4">
+              <Button onClick={handleSave}>Save Settings</Button>
+            </div>
           </TabsContent>
         </div>
       </Tabs>
-      <div className="flex justify-end mt-4 px-4">
-        <Button onClick={handleSave}>Save Settings</Button>
-      </div>
     </div>
   );
 }
-
-export default FilterTabs;
