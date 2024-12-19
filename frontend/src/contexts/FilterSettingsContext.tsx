@@ -24,6 +24,7 @@ interface FilterSettingsContextType {
   addPattern: (type: "exclude" | "include") => void;
   removePattern: (pattern: string, type: "exclude" | "include") => void;
   handleSave: () => void;
+  onSave: () => void;
 }
 
 const FilterSettingsContext = createContext<
@@ -179,6 +180,7 @@ export function FilterSettingsProvider({
     addPattern,
     removePattern,
     handleSave,
+    onSave,
   };
 
   return (

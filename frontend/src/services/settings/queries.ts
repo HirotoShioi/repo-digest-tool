@@ -22,7 +22,6 @@ function useGetSettings(params: GetSettingParams) {
       includePatterns: [],
       excludePatterns: [],
       maxFileSize: 10,
-      aiPrompt: "",
     },
     queryFn: async () => {
       const response = await client.GET("/{author}/{repository_name}/settings", {

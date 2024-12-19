@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
+import { useState } from "react";
 
 export function AITab() {
-  const { aiPrompt, setAiPrompt, handleSave } = useFilterSettings();
+  const { onSave } = useFilterSettings();
+  const [aiPrompt, setAiPrompt] = useState<string>("");
   return (
     <div className="space-y-4">
       <div>
@@ -21,7 +23,7 @@ export function AITab() {
         rows={10}
       />
       <div className="flex justify-end">
-        <Button onClick={handleSave}>Start</Button>
+        <Button onClick={onSave}>Start</Button>
       </div>
     </div>
   );
