@@ -14,7 +14,6 @@ interface FilterSettingsContextType {
   excludePatterns: string[];
   includePatterns: string[];
   maxFileSize: number;
-  aiPrompt: string;
   newExcludePattern: string;
   newIncludePattern: string;
   setNewExcludePattern: (pattern: string) => void;
@@ -22,7 +21,6 @@ interface FilterSettingsContextType {
   setExcludePatterns: (patterns: string[]) => void;
   setIncludePatterns: (patterns: string[]) => void;
   setMaxFileSize: (size: number) => void;
-  setAiPrompt: (prompt: string) => void;
   addPattern: (type: "exclude" | "include") => void;
   removePattern: (pattern: string, type: "exclude" | "include") => void;
   handleSave: () => void;
@@ -66,7 +64,6 @@ export function FilterSettingsProvider({
   const [excludePatterns, setExcludePatterns] = useState<string[]>([]);
   const [includePatterns, setIncludePatterns] = useState<string[]>([]);
   const [maxFileSize, setMaxFileSize] = useState<number>(10);
-  const [aiPrompt, setAiPrompt] = useState<string>("");
   const [newExcludePattern, setNewExcludePattern] = useState("");
   const [newIncludePattern, setNewIncludePattern] = useState("");
 
@@ -76,7 +73,6 @@ export function FilterSettingsProvider({
       setExcludePatterns(filterSettings.excludePatterns || []);
       setIncludePatterns(filterSettings.includePatterns || []);
       setMaxFileSize(filterSettings.maxFileSize || 10);
-      setAiPrompt(filterSettings.aiPrompt || "");
     }
   }, [filterSettings]);
 
@@ -145,7 +141,6 @@ export function FilterSettingsProvider({
           includePatterns,
           excludePatterns,
           maxFileSize,
-          aiPrompt,
         },
       },
       {
@@ -166,7 +161,6 @@ export function FilterSettingsProvider({
     includePatterns,
     excludePatterns,
     maxFileSize,
-    aiPrompt,
     toast,
     onSave,
   ]);
@@ -175,7 +169,6 @@ export function FilterSettingsProvider({
     excludePatterns,
     includePatterns,
     maxFileSize,
-    aiPrompt,
     newExcludePattern,
     newIncludePattern,
     setNewExcludePattern,
@@ -183,7 +176,6 @@ export function FilterSettingsProvider({
     setExcludePatterns,
     setIncludePatterns,
     setMaxFileSize,
-    setAiPrompt,
     addPattern,
     removePattern,
     handleSave,

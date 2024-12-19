@@ -52,7 +52,6 @@ type Settings = {
   includePatterns: string[];
   excludePatterns: string[];
   maxFileSize: number;
-  aiPrompt?: string;
 }
 
 export type { Repository, FileStats, FileFilter, Summary, FileTypeAggregation, FileData, Settings };
