@@ -7,6 +7,7 @@ function toSettings(data: components["schemas"]["Settings"]): Settings {
   return {
     includePatterns: data.include_files,
     excludePatterns: data.exclude_files,
+    maxFileSize: data.max_file_size,
   };
 }
 
@@ -20,6 +21,7 @@ function useGetSettings(params: GetSettingParams) {
     initialData: {
       includePatterns: [],
       excludePatterns: [],
+      maxFileSize: 10,
     },
     queryFn: async () => {
       const response = await client.GET("/{author}/{repository_name}/settings", {

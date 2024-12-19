@@ -14,27 +14,62 @@ import {
 } from "@/services/repositories/mutations";
 import { usePrefetchRepositoryById } from "@/services/repositories/queries";
 import { useNavigate } from "react-router";
+import { useToast } from "@/hooks/use-toast";
 
 interface RepositoryCardProps {
   repository: Repository;
 }
 
 export function RepositoryCard({ repository }: RepositoryCardProps) {
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const { mutate: deleteRepository } = useDeleteRepository();
+  const { mutate: deleteRepository, isPending: isDeleting } =
+    useDeleteRepository();
   const { mutate: updateRepository, isPending: isUpdating } =
     useUpdateRepository();
   function handleDelete() {
-    deleteRepository({
-      author: repository.author,
-      repositoryName: repository.name,
-    });
+    deleteRepository(
+      {
+        author: repository.author,
+        repositoryName: repository.name,
+      },
+      {
+        onSuccess: () => {
+          toast({
+            variant: "destructive",
+            title: "Repository deleted",
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            title: "Failed to delete repository",
+          });
+        },
+      }
+    );
   }
   function handleUpdate() {
-    updateRepository({
-      author: repository.author,
-      repositoryName: repository.name,
-    });
+    updateRepository(
+      {
+        author: repository.author,
+        repositoryName: repository.name,
+      },
+      {
+        onSuccess: () => {
+          toast({
+            variant: "success",
+            title: "Repository successfully updated",
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            title: "Failed to update repository",
+          });
+        },
+      }
+    );
   }
 
   const prefetch = usePrefetchRepositoryById({
@@ -90,7 +125,11 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
                   variant="ghost"
                   className="hover:text-destructive hover:bg-destructive/10"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Delete repository</TooltipContent>

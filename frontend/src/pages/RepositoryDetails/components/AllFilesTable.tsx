@@ -185,4 +185,4 @@ function AllFilesTable({ fileData, author, name }: AllFilesTableParams) {
   );
 }
 
-export default AllFilesTable;
+export { AllFilesTable };

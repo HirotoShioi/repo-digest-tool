@@ -1,21 +1,38 @@
 import { useParams, useNavigate } from "react-router";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
-import Report from "./components/Report";
+import { Report } from "./components/Report";
 import { Download, FileText } from "lucide-react";
 import { FilterSettingDialog } from "./components/FilterSettingDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/LoadingButton";
-import React from "react";
+import React, { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 function RepositoryDetailsPage() {
   const { author, name } = useParams<{ author: string; name: string }>();
   const navigate = useNavigate();
-  const { data: repository, isLoading } = useGetRepositoryById({
+  const {
+    data: repository,
+    isLoading,
+    error,
+  } = useGetRepositoryById({
     author: author,
     name: name,
   });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch repository. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
   const FilterDialog = React.memo(FilterSettingDialog);
   const {
     data: summary,

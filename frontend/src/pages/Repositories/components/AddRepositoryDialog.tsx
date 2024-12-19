@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { GitBranch } from "lucide-react";
+import { GitBranch, PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,10 @@ export function AddRepositoryDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add Repository</Button>
+        <Button>
+          <PlusCircle className="w-5 h-5" />
+          Add Repository
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
