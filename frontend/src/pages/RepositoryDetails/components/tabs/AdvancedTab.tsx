@@ -1,9 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
+import { useState, useEffect, useCallback } from "react";
 
 export function AdvancedTab() {
-  const { maxFileSize, setMaxFileSize, handleSave } = useFilterSettings();
+  const { initialSettings, handleSaveSize } = useFilterSettings();
+  const [maxFileSize, setMaxFileSize] = useState(10);
+
+  useEffect(() => {
+    if (initialSettings) {
+      setMaxFileSize(initialSettings.maxFileSize || 10);
+    }
+  }, [initialSettings]);
+
+  const handleSave = useCallback(() => {
+    handleSaveSize({ maxFileSize });
+  }, [handleSaveSize, maxFileSize]);
+
   return (
     <div className="space-y-4">
       <div>

@@ -1,46 +1,30 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import { createContext, useContext, useCallback } from "react";
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
-import { Minimatch } from "minimatch";
+
+interface SavePatternSettings {
+  includePatterns: string[];
+  excludePatterns: string[];
+}
+
+interface SaveSizeSettings {
+  maxFileSize: number;
+}
 
 interface FilterSettingsContextType {
-  excludePatterns: string[];
-  includePatterns: string[];
-  maxFileSize: number;
-  newExcludePattern: string;
-  newIncludePattern: string;
-  setNewExcludePattern: (pattern: string) => void;
-  setNewIncludePattern: (pattern: string) => void;
-  setExcludePatterns: (patterns: string[]) => void;
-  setIncludePatterns: (patterns: string[]) => void;
-  setMaxFileSize: (size: number) => void;
-  addPattern: (type: "exclude" | "include") => void;
-  removePattern: (pattern: string, type: "exclude" | "include") => void;
-  handleSave: () => void;
-  onSave: () => void;
+  initialSettings: {
+    includePatterns: string[];
+    excludePatterns: string[];
+    maxFileSize: number;
+  } | null;
+  handleSavePatterns: (settings: SavePatternSettings) => void;
+  handleSaveSize: (settings: SaveSizeSettings) => void;
 }
 
 const FilterSettingsContext = createContext<
   FilterSettingsContextType | undefined
 >(undefined);
-
-function isValidGlob(pattern: string): boolean {
-  if (!pattern || pattern.trim().length === 0) return false;
-
-  try {
-    new Minimatch(pattern);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 interface FilterSettingsProviderProps {
   children: React.ReactNode;
@@ -62,125 +46,79 @@ export function FilterSettingsProvider({
   const { toast } = useToast();
   const { mutate: updateSettings } = useUpdateSettings();
 
-  const [excludePatterns, setExcludePatterns] = useState<string[]>([]);
-  const [includePatterns, setIncludePatterns] = useState<string[]>([]);
-  const [maxFileSize, setMaxFileSize] = useState<number>(10);
-  const [newExcludePattern, setNewExcludePattern] = useState("");
-  const [newIncludePattern, setNewIncludePattern] = useState("");
-
-  // Initialize state from filterSettings
-  useEffect(() => {
-    if (filterSettings) {
-      setExcludePatterns(filterSettings.excludePatterns || []);
-      setIncludePatterns(filterSettings.includePatterns || []);
-      setMaxFileSize(filterSettings.maxFileSize || 10);
-    }
-  }, [filterSettings]);
-
-  const showErrorToast = useCallback(() => {
-    toast({
-      title: "Invalid Pattern",
-      description: "Pattern is empty, invalid or already exists.",
-      variant: "destructive",
-    });
-  }, [toast]);
-
-  const addPattern = useCallback(
-    (type: "exclude" | "include") => {
-      if (type === "exclude") {
-        const trimmedPattern = newExcludePattern.trim();
-        if (
-          trimmedPattern &&
-          isValidGlob(trimmedPattern) &&
-          !excludePatterns.includes(trimmedPattern)
-        ) {
-          setExcludePatterns((prev) => [...prev, trimmedPattern]);
-          setNewExcludePattern("");
-        } else {
-          showErrorToast();
+  const handleSavePatterns = useCallback(
+    (settings: SavePatternSettings) => {
+      updateSettings(
+        {
+          author,
+          name: repository,
+          settings: {
+            ...settings,
+            maxFileSize: filterSettings?.maxFileSize || 10,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Settings updated",
+              variant: "default",
+              description:
+                "Your pattern settings have been updated successfully",
+            });
+            onSave();
+          },
         }
-      } else {
-        const trimmedPattern = newIncludePattern.trim();
-        if (
-          trimmedPattern &&
-          isValidGlob(trimmedPattern) &&
-          !includePatterns.includes(trimmedPattern)
-        ) {
-          setIncludePatterns((prev) => [...prev, trimmedPattern]);
-          setNewIncludePattern("");
-        } else {
-          showErrorToast();
-        }
-      }
+      );
     },
     [
-      newExcludePattern,
-      newIncludePattern,
-      excludePatterns,
-      includePatterns,
-      showErrorToast,
+      updateSettings,
+      author,
+      repository,
+      filterSettings?.maxFileSize,
+      toast,
+      onSave,
     ]
   );
 
-  const removePattern = useCallback(
-    (pattern: string, type: "exclude" | "include") => {
-      if (type === "exclude") {
-        setExcludePatterns((prev) => prev.filter((p) => p !== pattern));
-      } else {
-        setIncludePatterns((prev) => prev.filter((p) => p !== pattern));
-      }
+  const handleSaveSize = useCallback(
+    (settings: SaveSizeSettings) => {
+      updateSettings(
+        {
+          author,
+          name: repository,
+          settings: {
+            includePatterns: filterSettings?.includePatterns || [],
+            excludePatterns: filterSettings?.excludePatterns || [],
+            ...settings,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Settings updated",
+              variant: "default",
+              description: "Your size settings have been updated successfully",
+            });
+            onSave();
+          },
+        }
+      );
     },
-    []
+    [
+      updateSettings,
+      author,
+      repository,
+      filterSettings?.includePatterns,
+      filterSettings?.excludePatterns,
+      toast,
+      onSave,
+    ]
   );
 
-  const handleSave = useCallback(() => {
-    updateSettings(
-      {
-        author,
-        name: repository,
-        settings: {
-          includePatterns,
-          excludePatterns,
-          maxFileSize,
-        },
-      },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Settings updated",
-            variant: "default",
-            description: "Your settings have been updated successfully",
-          });
-          onSave();
-        },
-      }
-    );
-  }, [
-    updateSettings,
-    author,
-    repository,
-    includePatterns,
-    excludePatterns,
-    maxFileSize,
-    toast,
-    onSave,
-  ]);
-
   const value = {
-    excludePatterns,
-    includePatterns,
-    maxFileSize,
-    newExcludePattern,
-    newIncludePattern,
-    setNewExcludePattern,
-    setNewIncludePattern,
-    setExcludePatterns,
-    setIncludePatterns,
-    setMaxFileSize,
-    addPattern,
-    removePattern,
-    handleSave,
-    onSave,
+    initialSettings: filterSettings,
+    handleSavePatterns,
+    handleSaveSize,
   };
 
   return (
