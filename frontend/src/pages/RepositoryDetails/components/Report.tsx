@@ -1,7 +1,7 @@
-import FileTypesChart from "./FileTypesChart";
-import DigestStatistics from "./DigestStatistics";
-import TopFilesChart from "./TopFilesChart";
-import AllFilesTable from "./AllFilesTable";
+import { FileTypesChart } from "./FileTypesChart";
+import { DigestStatistics } from "./DigestStatistics";
+import { TopFilesChart } from "./TopFilesChart";
+import { AllFilesTable } from "./AllFilesTable";
 import { Summary } from "@/types";
 interface ReportParams {
   summary: Summary;
@@ -25,4 +25,4 @@ function Report({ summary, author, name }: ReportParams) {
   );
 }
 
-export default Report;
+export { Report };

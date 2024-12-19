@@ -91,4 +91,4 @@ function TopFilesChart({ fileData }: TopFilesChartParams) {
   );
 }
 
-export default TopFilesChart;
+export { TopFilesChart };

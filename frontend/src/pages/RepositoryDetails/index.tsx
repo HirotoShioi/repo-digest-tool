@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
-import Report from "./components/Report";
+import { Report } from "./components/Report";
 import { Download, FileText } from "lucide-react";
-import FilterSettingDialog from "./components/zFilterSettingDialog";
+import { FilterSettingDialog } from "./components/FilterSettingDialog";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/LoadingButton";

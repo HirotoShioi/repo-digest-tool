@@ -96,4 +96,4 @@ function DigestStatistics({ summary }: DigestStatisticsParams) {
   );
 }
 
-export default DigestStatistics;
+export { DigestStatistics };

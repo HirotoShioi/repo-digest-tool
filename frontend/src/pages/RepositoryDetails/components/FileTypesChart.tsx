@@ -95,4 +95,4 @@ function FileTypesChart({ fileTypes }: FileTypesChartParams) {
   );
 }
 
-export default FileTypesChart;
+export { FileTypesChart };
