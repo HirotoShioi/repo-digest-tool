@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { PatternInput } from "@/pages/RepositoryDetails/components/PatternInput";
 import { PatternList } from "@/pages/RepositoryDetails/components/PatternList";
 
@@ -7,6 +8,7 @@ interface ExcludeTabProps {
   excludePatterns: string[];
   onAdd: () => void;
   onRemove: (pattern: string, type: "exclude" | "include") => void;
+  onSave: () => void;
 }
 
 export function ExcludeTab({
@@ -15,6 +17,7 @@ export function ExcludeTab({
   excludePatterns,
   onAdd,
   onRemove,
+  onSave,
 }: ExcludeTabProps) {
   return (
     <div className="space-y-4">
@@ -35,6 +38,9 @@ export function ExcludeTab({
         type="exclude"
         onRemove={onRemove}
       />
+      <div className="flex justify-end mt-4">
+        <Button onClick={onSave}>Save Settings</Button>
+      </div>
     </div>
   );
 }

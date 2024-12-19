@@ -15,7 +15,7 @@ export function AITab({ aiPrompt, setAiPrompt }: AITabProps) {
         </p>
       </div>
       <Textarea
-        className="max-w-xs"
+        className="w-full"
         placeholder="AI prompt"
         value={aiPrompt}
         onChange={(e) => setAiPrompt(e.target.value)}

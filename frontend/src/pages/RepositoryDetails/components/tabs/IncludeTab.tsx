@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { PatternInput } from "../PatternInput";
 import { PatternList } from "../PatternList";
 
@@ -7,6 +8,7 @@ interface IncludeTabProps {
   includePatterns: string[];
   onAdd: () => void;
   onRemove: (pattern: string, type: "exclude" | "include") => void;
+  onSave: () => void;
 }
 
 export function IncludeTab({
@@ -15,6 +17,7 @@ export function IncludeTab({
   includePatterns,
   onAdd,
   onRemove,
+  onSave,
 }: IncludeTabProps) {
   return (
     <div className="space-y-4">
@@ -35,6 +38,9 @@ export function IncludeTab({
         type="include"
         onRemove={onRemove}
       />
+      <div className="flex justify-end mt-4">
+        <Button onClick={onSave}>Save Settings</Button>
+      </div>
     </div>
   );
 }

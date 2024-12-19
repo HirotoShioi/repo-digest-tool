@@ -1,11 +1,17 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface AdvancedTabProps {
   maxFileSize: number;
   setMaxFileSize: (value: number) => void;
+  onSave: () => void;
 }
 
-export function AdvancedTab({ maxFileSize, setMaxFileSize }: AdvancedTabProps) {
+export function AdvancedTab({
+  maxFileSize,
+  setMaxFileSize,
+  onSave,
+}: AdvancedTabProps) {
   return (
     <div className="space-y-4">
       <div>
@@ -21,6 +27,9 @@ export function AdvancedTab({ maxFileSize, setMaxFileSize }: AdvancedTabProps) {
         className="max-w-xs"
         placeholder="Maximum file size (MB)"
       />
+      <div className="flex justify-end mt-4">
+        <Button onClick={onSave}>Save Settings</Button>
+      </div>
     </div>
   );
 }

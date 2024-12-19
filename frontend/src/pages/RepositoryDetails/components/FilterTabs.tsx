@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { useGetSettings } from "@/services/settings/queries";
 import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +24,23 @@ function isValidGlob(pattern: string): boolean {
   } catch {
     return false;
   }
+}
+
+function TabItem({
+  value,
+  children,
+}: {
+  value: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <TabsTrigger
+      value={value}
+      className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
+    >
+      {children}
+    </TabsTrigger>
+  );
 }
 
 export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
@@ -151,30 +167,10 @@ export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
         className="flex min-h-[300px]"
       >
         <TabsList className="flex flex-col h-full space-y-1 bg-background px-2 justify-start">
-          <TabsTrigger
-            value="exclude"
-            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
-          >
-            Exclude
-          </TabsTrigger>
-          <TabsTrigger
-            value="include"
-            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
-          >
-            Include
-          </TabsTrigger>
-          <TabsTrigger
-            value="ai"
-            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
-          >
-            AI
-          </TabsTrigger>
-          <TabsTrigger
-            value="advanced"
-            className="justify-start px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px]"
-          >
-            Advanced
-          </TabsTrigger>
+          <TabItem value="exclude">Exclude</TabItem>
+          <TabItem value="include">Include</TabItem>
+          <TabItem value="ai">AI</TabItem>
+          <TabItem value="advanced">Advanced</TabItem>
         </TabsList>
         <div className="flex-grow px-4">
           <TabsContent value="exclude" className="mt-0">
@@ -184,10 +180,8 @@ export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
               excludePatterns={excludePatterns}
               onAdd={() => addPattern("exclude")}
               onRemove={removePattern}
+              onSave={handleSave}
             />
-            <div className="flex justify-end mt-4">
-              <Button onClick={handleSave}>Save Settings</Button>
-            </div>
           </TabsContent>
           <TabsContent value="include" className="mt-0">
             <IncludeTab
@@ -196,10 +190,8 @@ export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
               includePatterns={includePatterns}
               onAdd={() => addPattern("include")}
               onRemove={removePattern}
+              onSave={handleSave}
             />
-            <div className="flex justify-end mt-4">
-              <Button onClick={handleSave}>Save Settings</Button>
-            </div>
           </TabsContent>
           <TabsContent value="ai" className="mt-0">
             <AITab aiPrompt={aiPrompt} setAiPrompt={setAiPrompt} />
@@ -208,10 +200,8 @@ export function FilterTabs({ author, repository, onSave }: FilterTabsProps) {
             <AdvancedTab
               maxFileSize={maxFileSize}
               setMaxFileSize={setMaxFileSize}
+              onSave={handleSave}
             />
-            <div className="flex justify-end mt-4">
-              <Button onClick={handleSave}>Save Settings</Button>
-            </div>
           </TabsContent>
         </div>
       </Tabs>
