@@ -1,13 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 
-interface AITabProps {
-  aiPrompt: string;
-  setAiPrompt: (value: string) => void;
-  onSave: () => void;
-}
-
-export function AITab({ aiPrompt, setAiPrompt, onSave }: AITabProps) {
+export function AITab() {
+  const { aiPrompt, setAiPrompt, handleSave } = useFilterSettings();
   return (
     <div className="space-y-4">
       <div>
@@ -25,7 +21,7 @@ export function AITab({ aiPrompt, setAiPrompt, onSave }: AITabProps) {
         rows={10}
       />
       <div className="flex justify-end">
-        <Button onClick={onSave}>Start</Button>
+        <Button onClick={handleSave}>Start</Button>
       </div>
     </div>
   );

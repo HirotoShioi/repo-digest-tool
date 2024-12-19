@@ -1,24 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { PatternInput } from "../PatternInput";
 import { PatternList } from "../PatternList";
+import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 
-interface IncludeTabProps {
-  newIncludePattern: string;
-  setNewIncludePattern: (value: string) => void;
-  includePatterns: string[];
-  onAdd: () => void;
-  onRemove: (pattern: string, type: "exclude" | "include") => void;
-  onSave: () => void;
-}
-
-export function IncludeTab({
-  newIncludePattern,
-  setNewIncludePattern,
-  includePatterns,
-  onAdd,
-  onRemove,
-  onSave,
-}: IncludeTabProps) {
+export function IncludeTab() {
+  const {
+    newIncludePattern,
+    setNewIncludePattern,
+    includePatterns,
+    addPattern,
+    removePattern,
+    handleSave,
+  } = useFilterSettings();
   return (
     <div className="space-y-4">
       <div>
@@ -30,16 +23,16 @@ export function IncludeTab({
       <PatternInput
         value={newIncludePattern}
         onChange={setNewIncludePattern}
-        onAdd={onAdd}
+        onAdd={() => addPattern("include")}
         placeholder="Add new include pattern (e.g. *.md)"
       />
       <PatternList
         patterns={includePatterns}
         type="include"
-        onRemove={onRemove}
+        onRemove={(pattern) => removePattern(pattern, "include")}
       />
       <div className="flex justify-end mt-4">
-        <Button onClick={onSave}>Save Settings</Button>
+        <Button onClick={handleSave}>Save Settings</Button>
       </div>
     </div>
   );

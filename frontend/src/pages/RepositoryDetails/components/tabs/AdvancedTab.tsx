@@ -1,17 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 
-interface AdvancedTabProps {
-  maxFileSize: number;
-  setMaxFileSize: (value: number) => void;
-  onSave: () => void;
-}
-
-export function AdvancedTab({
-  maxFileSize,
-  setMaxFileSize,
-  onSave,
-}: AdvancedTabProps) {
+export function AdvancedTab() {
+  const { maxFileSize, setMaxFileSize, handleSave } = useFilterSettings();
   return (
     <div className="space-y-4">
       <div>
@@ -28,7 +20,7 @@ export function AdvancedTab({
           className="max-w-xs"
           placeholder="Maximum file size (MB)"
         />
-        <Button onClick={onSave}>Save</Button>
+        <Button onClick={handleSave}>Save</Button>
       </div>
     </div>
   );

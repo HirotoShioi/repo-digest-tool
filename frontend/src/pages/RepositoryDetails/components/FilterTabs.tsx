@@ -1,8 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  FilterSettingsProvider,
-  useFilterSettings,
-} from "@/contexts/FilterSettingsContext";
+import { FilterSettingsProvider } from "@/contexts/FilterSettingsContext";
 import { ExcludeTab } from "./tabs/ExcludeTab";
 import { IncludeTab } from "./tabs/IncludeTab";
 import { AITab } from "./tabs/AITab";
@@ -32,22 +29,6 @@ function TabItem({
 }
 
 function FilterTabsContent() {
-  const {
-    excludePatterns,
-    includePatterns,
-    maxFileSize,
-    aiPrompt,
-    newExcludePattern,
-    newIncludePattern,
-    setNewExcludePattern,
-    setNewIncludePattern,
-    setMaxFileSize,
-    setAiPrompt,
-    addPattern,
-    removePattern,
-    handleSave,
-  } = useFilterSettings();
-
   return (
     <div className="flex-grow overflow-y-auto bg-background">
       <Tabs
@@ -64,38 +45,16 @@ function FilterTabsContent() {
         </TabsList>
         <div className="flex-grow px-4">
           <TabsContent value="exclude" className="mt-0">
-            <ExcludeTab
-              newExcludePattern={newExcludePattern}
-              setNewExcludePattern={setNewExcludePattern}
-              excludePatterns={excludePatterns}
-              onAdd={() => addPattern("exclude")}
-              onRemove={removePattern}
-              onSave={handleSave}
-            />
+            <ExcludeTab />
           </TabsContent>
           <TabsContent value="include" className="mt-0">
-            <IncludeTab
-              newIncludePattern={newIncludePattern}
-              setNewIncludePattern={setNewIncludePattern}
-              includePatterns={includePatterns}
-              onAdd={() => addPattern("include")}
-              onRemove={removePattern}
-              onSave={handleSave}
-            />
+            <IncludeTab />
           </TabsContent>
           <TabsContent value="ai" className="mt-0">
-            <AITab
-              aiPrompt={aiPrompt}
-              setAiPrompt={setAiPrompt}
-              onSave={handleSave}
-            />
+            <AITab />
           </TabsContent>
           <TabsContent value="advanced" className="mt-0">
-            <AdvancedTab
-              maxFileSize={maxFileSize}
-              setMaxFileSize={setMaxFileSize}
-              onSave={handleSave}
-            />
+            <AdvancedTab />
           </TabsContent>
         </div>
       </Tabs>
