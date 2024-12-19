@@ -34,7 +34,7 @@ function TabItem({
   return (
     <TabsTrigger
       value={value}
-      className="text-left px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[120px] rounded-lg transition-all flex items-center gap-2"
+      className="text-left px-3 py-2 hover:bg-muted/80 data-[state=active]:bg-muted w-[140px] rounded-lg transition-all flex items-center gap-2"
     >
       <Icon className="w-4 h-4" />
       {children}

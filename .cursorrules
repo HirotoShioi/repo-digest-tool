@@ -45,7 +45,7 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
 
 5. UI Testing
    - Test navigation to home page
-   - Test Add Repository button click
+   - Test Add Repository button click and icon visibility
    - Test modal dialog visibility
    - Take screenshots for visual regression
    - Validate page title

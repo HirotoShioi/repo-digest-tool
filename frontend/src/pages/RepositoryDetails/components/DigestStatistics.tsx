@@ -44,9 +44,7 @@ function DigestStatistics({ summary }: DigestStatisticsParams) {
               <TableCell className="relative">
                 <span
                   className={
-                    summary.contextLength > 128000
-                      ? "text-destructive"
-                      : "text-muted-foreground"
+                    summary.contextLength > 128000 ? "text-destructive" : ""
                   }
                 >
                   {formatNumber(summary.contextLength)}
