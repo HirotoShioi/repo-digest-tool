@@ -1,95 +1,3 @@
-# AI Behavior Customization for Repo Digest Tool
-
-## Expertise and Focus
-
-- You are an expert in CLI application development, Git repository management, and Python tooling, with a strong focus on frameworks such as Typer and GitPython.
-
-## Key Principles
-
-1. Provide concise, technical responses with clear Python examples.
-2. Emphasize readability and maintainability in code and CLI workflows.
-3. Use descriptive variable and function names that convey purpose explicitly.
-4. Adhere to PEP 8 for Python coding style.
-5. Highlight best practices for repository handling and digest generation.
-
-## CLI Application Design
-
-- **CLI Framework:** Use Typer for clean, user-friendly command definitions.
-- **Repository Operations:** Implement robust handling for cloning, updating, and deleting repositories using GitPython.
-- **Digest Generation:** Prioritize flexibility by supporting custom prompts and allowing dynamic digest formats.
-- **Error Handling:** Ensure clear error messages for invalid inputs or failed operations.
-
-## Performance Optimization
-
-1. Minimize redundant operations, e.g., use `git pull` for updates instead of re-cloning.
-2. Cache repository metadata for faster lookups.
-3. Utilize batch operations for managing multiple repositories efficiently.
-
-## Directory Structure and Configuration
-
-- **Repo Storage:** Maintain repositories in the `repo/` directory with a clear naming convention (`{author}@{repo}`).
-- **Digest Output:** Store digests in the `digests/` directory with intuitive naming (`{repo_name}_digest.txt`).
-
-## Testing and Documentation
-
-1. Write modular unit tests using `pytest` for all commands and utility functions.
-2. Provide usage examples and clear descriptions in `README.md`.
-3. Maintain inline comments and docstrings for better code understanding.
-
-## Extension Roadmap
-
-- Add support for multiple repository hosting services (e.g., GitLab, Bitbucket).
-- Enhance digest generation to allow filtering by file extensions or directory paths.
-- Introduce batch operations for adding or removing repositories.
-- Optimize CLI commands with additional flags for granular control.
-
-## Error Handling Guidelines
-
-- Use `try-except` blocks for file I/O and Git operations.
-- Validate inputs (e.g., URL formats, branch names) before executing operations.
-- Provide actionable feedback on errors (e.g., "Invalid repo URL. Ensure it follows the format `https://github.com/{author}/{repo}`").
-
-## Example Code Guidelines
-
-- **Repository Addition Example**
-
-  ```python
-  from git import Repo
-
-  def add_repository(repo_url: str, branch: str = 'main', force: bool = False):
-      repo_id = convert_to_repo_id(repo_url)
-      repo_path = f"./repo/{repo_id}"
-      if not force and os.path.exists(repo_path):
-          print(f"Repository {repo_id} already exists. Use --force to overwrite.")
-          return
-      Repo.clone_from(repo_url, repo_path, branch=branch)
-      print(f"Repository {repo_id} added successfully.")
-  ```
-
-- **Digest Generation Example**
-  ```python
-  def generate_digest(repo_path: str, output_path: str, prompt: str = None):
-      files = list_files_in_repo(repo_path)
-      digest_content = create_digest(files, prompt)
-      with open(output_path, 'w') as f:
-          f.write(digest_content)
-      print(f"Digest saved to {output_path}")
-  ```
-
-## Dependencies
-
-- Typer
-- GitPython
-- pytest
-- Rich (optional, for better CLI output formatting)
-
-## Conventions
-
-1. Begin repository operations by validating URLs and paths.
-2. Keep CLI commands intuitive and well-documented.
-3. Use modular design for extensibility and maintainability.
-4. Log key operations and errors for debugging and audits.
-
 IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a step by step description of the project user is trying to build, do not embelish, add or take away any detail. just translate user request to a nicely formated instructions
 
 # Repository Tool Project Requirements
@@ -134,6 +42,15 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Validate response formats
    - Reset test state between test runs
    - Test URL validation
+
+5. UI Testing
+   - Test navigation to home page
+   - Test Add Repository button click
+   - Test modal dialog visibility
+   - Take screenshots for visual regression
+   - Validate page title
+   - Test search input with icon functionality
+   - Test tab icons visibility and alignment
 
 # Repository Tool Database Requirements
 
@@ -193,66 +110,3 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Test FilterSettings serialization
    - Test Summary serialization
    - Test data model validation
-
-5. UI Testing
-   - Test navigation to home page
-   - Test Add Repository button click
-   - Test modal dialog visibility
-   - Take screenshots for visual regression
-   - Validate page title
-6. Component Tests
-
-   - Test button interactions
-   - Test modal behavior
-   - Test form inputs
-   - Test error states
-
-7. Integration Tests
-
-   - Test repository addition flow
-   - Test repository deletion
-   - Test repository updates
-   - Test search functionality
-
-8. Visual Regression Tests
-   - Capture baseline screenshots
-   - Compare against visual changes
-   - Test responsive layouts
-   - Test different themes/modes
-
-# UI Testing Requirements
-
-1. Test Environment Setup
-
-   - Configure Playwright with Vitest
-   - Set up browser and page management
-   - Handle test lifecycle properly
-   - Configure screenshot directory
-   - Clean up screenshots before test execution
-
-2. Visual Testing
-
-   - Capture homepage screenshot
-   - Verify page title
-   - Store screenshots in designated directory
-   - Support full page screenshots
-
-3. Interactive Testing
-
-   - Test Add Repository button functionality
-   - Verify modal dialog behavior
-   - Wait for elements to be visible
-   - Handle loading states
-
-4. Error Handling
-
-   - Proper error reporting
-   - Clean up resources after tests
-   - Handle network conditions
-   - Timeout configuration
-
-5. Configuration
-   - Browser settings
-   - Viewport dimensions
-   - Test timeouts
-   - Screenshot behavior

@@ -21,7 +21,8 @@ interface RepositoryCardProps {
 
 export function RepositoryCard({ repository }: RepositoryCardProps) {
   const navigate = useNavigate();
-  const { mutate: deleteRepository } = useDeleteRepository();
+  const { mutate: deleteRepository, isPending: isDeleting } =
+    useDeleteRepository();
   const { mutate: updateRepository, isPending: isUpdating } =
     useUpdateRepository();
   function handleDelete() {
@@ -90,7 +91,11 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
                   variant="ghost"
                   className="hover:text-destructive hover:bg-destructive/10"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Delete repository</TooltipContent>
