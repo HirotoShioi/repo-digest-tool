@@ -15,6 +15,7 @@ import { AITab } from "./tabs/AITab";
 import { ExcludeTab } from "./tabs/ExcludeTab";
 import { IncludeTab } from "./tabs/IncludeTab";
 import { FilterSettingsProvider } from "@/contexts/FilterSettingsContext";
+import { useState } from "react";
 
 interface FilterSettingDialogProps {
   onSave: () => void;
@@ -47,13 +48,15 @@ function FilterSettingDialog({
   author,
   repository,
 }: FilterSettingDialogProps) {
+  const [open, setOpen] = useState(false);
   return (
     <FilterSettingsProvider
       author={author}
       repository={repository}
       onSave={onSave}
+      setOpen={setOpen}
     >
-      <Dialog>
+      <Dialog open={open} onOpenChange={setOpen} modal={true}>
         <DialogTrigger asChild>
           <Button
             size="lg"

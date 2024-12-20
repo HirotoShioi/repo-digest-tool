@@ -23,6 +23,7 @@ interface FilterSettingsContextType {
   onSave: () => void;
   author: string;
   repository: string;
+  closeDialog: () => void;
 }
 
 const FilterSettingsContext = createContext<
@@ -34,6 +35,7 @@ interface FilterSettingsProviderProps {
   author: string;
   repository: string;
   onSave: () => void;
+  setOpen: (open: boolean) => void;
 }
 
 export function FilterSettingsProvider({
@@ -41,6 +43,7 @@ export function FilterSettingsProvider({
   author,
   repository,
   onSave,
+  setOpen,
 }: FilterSettingsProviderProps) {
   const { data: filterSettings } = useGetSettings({
     author,
@@ -125,6 +128,7 @@ export function FilterSettingsProvider({
     onSave,
     author,
     repository,
+    closeDialog: () => setOpen(false),
   };
 
   return (
