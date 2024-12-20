@@ -78,7 +78,6 @@ def clone_repository(
     try:
         github.clone(request.url, request.branch)
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=400, detail=str(e))
     return Response(status="success")
 
@@ -285,7 +284,6 @@ def get_settings_of_repository(
     maybe_settings = filter_settings_repo.get_by_repository_id(
         f"{author}/{repository_name}"
     )
-    print(maybe_settings)
     if maybe_settings:
         return Settings(
             include_files=maybe_settings.include_patterns,

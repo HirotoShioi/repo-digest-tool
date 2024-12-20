@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 import { useFilterFilesWithLLM } from "@/services/settings/mutations";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export function AITab() {
@@ -40,7 +41,7 @@ export function AITab() {
       />
       <div className="flex justify-end">
         <Button onClick={onStart} disabled={isPending}>
-          {isPending ? "Running..." : "Start"}
+          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Start"}
         </Button>
       </div>
     </div>
