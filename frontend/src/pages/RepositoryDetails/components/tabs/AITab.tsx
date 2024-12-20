@@ -1,27 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
-import { useFilterFilesWithLLM } from "@/services/settings/mutations";
-import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export function AITab() {
-  const { onSave, author, repository } = useFilterSettings();
+  const { filterFilesWithLLM } = useFilterSettings();
   const [aiPrompt, setAiPrompt] = useState<string>("");
-  const { mutate: filterFilesWithLLM, isPending } = useFilterFilesWithLLM();
   function onStart() {
-    filterFilesWithLLM(
-      {
-        author,
-        name: repository,
-        prompt: aiPrompt,
-      },
-      {
-        onSuccess: () => {
-          onSave();
-        },
-      }
-    );
+    filterFilesWithLLM({
+      prompt: aiPrompt,
+    });
   }
   return (
     <div className="space-y-4">
@@ -40,9 +28,7 @@ export function AITab() {
         rows={10}
       />
       <div className="flex justify-end">
-        <Button onClick={onStart} disabled={isPending}>
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Start"}
-        </Button>
+        <Button onClick={onStart}>Start</Button>
       </div>
     </div>
   );
