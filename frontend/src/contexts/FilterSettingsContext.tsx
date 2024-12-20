@@ -21,6 +21,8 @@ interface FilterSettingsContextType {
   handleSavePatterns: (settings: SavePatternSettings) => void;
   handleSaveSize: (settings: SaveSizeSettings) => void;
   onSave: () => void;
+  author: string;
+  repository: string;
 }
 
 const FilterSettingsContext = createContext<
@@ -121,6 +123,8 @@ export function FilterSettingsProvider({
     handleSavePatterns,
     handleSaveSize,
     onSave,
+    author,
+    repository,
   };
 
   return (
