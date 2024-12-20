@@ -1,26 +1,13 @@
 import { LoadingButton } from "@/components/LoadingButton";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
-import { useFilterFilesWithLLM } from "@/services/settings/mutations";
 import { useState } from "react";
 
 export function AITab() {
-  const { mutate: filterFilesWithLLM, isPending } = useFilterFilesWithLLM();
-  const { repository, author, onSave } = useFilterSettings();
+  const { onFilterFilesWithLLM, isPending } = useFilterSettings();
   const [aiPrompt, setAiPrompt] = useState<string>("");
   function onStart() {
-    filterFilesWithLLM(
-      {
-        prompt: aiPrompt,
-        author: author,
-        name: repository,
-      },
-      {
-        onSuccess: () => {
-          onSave();
-        },
-      }
-    );
+    onFilterFilesWithLLM(aiPrompt);
   }
   return (
     <div className="space-y-4">

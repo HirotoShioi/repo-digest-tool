@@ -1,6 +1,9 @@
 import { createContext, useContext, useCallback } from "react";
 import { useGetSettings } from "@/services/settings/queries";
-import { useUpdateSettings } from "@/services/settings/mutations";
+import {
+  useFilterFilesWithLLM,
+  useUpdateSettings,
+} from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
 
 interface SavePatternSettings {
@@ -24,6 +27,8 @@ interface FilterSettingsContextType {
   author: string;
   repository: string;
   closeDialog: () => void;
+  onFilterFilesWithLLM: (prompt: string) => void;
+  isPending: boolean;
 }
 
 const FilterSettingsContext = createContext<
@@ -120,6 +125,19 @@ export function FilterSettingsProvider({
       onSave,
     ]
   );
+  const { mutate, isPending } = useFilterFilesWithLLM();
+
+  function onFilterFilesWithLLM(prompt: string) {
+    mutate(
+      {
+        prompt,
+        author,
+        name: repository,
+      },
+      { onSuccess: () => onSave() }
+    );
+  }
+
   const value = {
     initialSettings: filterSettings,
     handleSavePatterns,
@@ -128,6 +146,8 @@ export function FilterSettingsProvider({
     author,
     repository,
     closeDialog: () => setOpen(false),
+    onFilterFilesWithLLM,
+    isPending,
   };
 
   return (
