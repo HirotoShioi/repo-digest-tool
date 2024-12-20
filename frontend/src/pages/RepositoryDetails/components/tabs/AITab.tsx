@@ -1,11 +1,14 @@
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/LoadingButton";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 import { useState } from "react";
 
 export function AITab() {
-  const { onSave } = useFilterSettings();
+  const { onFilterFilesWithLLM, isPending } = useFilterSettings();
   const [aiPrompt, setAiPrompt] = useState<string>("");
+  function onStart() {
+    onFilterFilesWithLLM(aiPrompt);
+  }
   return (
     <div className="space-y-4">
       <div>
@@ -23,7 +26,13 @@ export function AITab() {
         rows={10}
       />
       <div className="flex justify-end">
-        <Button onClick={onSave}>Start</Button>
+        <LoadingButton
+          isLoading={isPending}
+          onClick={onStart}
+          loadingText="Filtering..."
+        >
+          Start
+        </LoadingButton>
       </div>
     </div>
   );

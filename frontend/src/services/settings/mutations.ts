@@ -88,4 +88,35 @@ function useExcludeFiles() {
   });
 }
 
-export { useUpdateSettings, useExcludeFiles };
+type FilterFilesWithLLMParams = {
+  author: string;
+  name: string;
+  prompt: string;
+};
+
+function useFilterFilesWithLLM() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: FilterFilesWithLLMParams) => {
+      await client.POST("/{author}/{repository_name}/filter/ai", {
+        params: {
+          path: {
+            author: params.author,
+            repository_name: params.name,
+          },
+        },
+        body: {
+          prompt: params.prompt,
+        },
+      });
+    },
+    onSuccess: (_, params) => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({
+        queryKey: ["summary", params.author, params.name],
+      });
+    },
+  });
+}
+
+export { useUpdateSettings, useExcludeFiles, useFilterFilesWithLLM };

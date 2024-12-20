@@ -14,7 +14,11 @@ import { AdvancedTab } from "./tabs/AdvancedTab";
 import { AITab } from "./tabs/AITab";
 import { ExcludeTab } from "./tabs/ExcludeTab";
 import { IncludeTab } from "./tabs/IncludeTab";
-import { FilterSettingsProvider } from "@/contexts/FilterSettingsContext";
+import {
+  FilterSettingsProvider,
+  useFilterSettings,
+} from "@/contexts/FilterSettingsContext";
+import { useState } from "react";
 
 interface FilterSettingDialogProps {
   onSave: () => void;
@@ -42,29 +46,78 @@ function TabItem({
   );
 }
 
+function DialogContent_({ children }: { children: React.ReactNode }) {
+  const { isPending } = useFilterSettings();
+  return (
+    <DialogContent
+      className="p-4 gap-0 max-w-2xl"
+      onPointerDownOutside={(e) => {
+        if (isPending) {
+          e.preventDefault();
+        }
+      }}
+      onEscapeKeyDown={(e) => {
+        if (isPending) {
+          e.preventDefault();
+        }
+      }}
+    >
+      {children}
+    </DialogContent>
+  );
+}
+
+function DialogWrapper({
+  open,
+  setOpen,
+  children,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  children: React.ReactNode;
+}) {
+  const { isPending } = useFilterSettings();
+  return (
+    <Dialog
+      open={open}
+      modal={true}
+      onOpenChange={(isOpen) => {
+        if (!isPending) {
+          setOpen(isOpen);
+        }
+      }}
+    >
+      {children}
+    </Dialog>
+  );
+}
+
 function FilterSettingDialog({
   onSave,
   author,
   repository,
 }: FilterSettingDialogProps) {
+  const [open, setOpen] = useState(false);
   return (
     <FilterSettingsProvider
       author={author}
       repository={repository}
       onSave={onSave}
+      setOpen={setOpen}
     >
-      <Dialog>
+      <DialogWrapper open={open} setOpen={setOpen}>
         <DialogTrigger asChild>
           <Button
             size="lg"
             className="bg-primary hover:bg-primary/90"
             data-testid="filter-dialog-button"
+            onClick={() => setOpen(true)}
           >
             <Settings className="w-4 h-4" />
             Filter
           </Button>
         </DialogTrigger>
-        <DialogContent className="p-4 gap-0 max-w-2xl">
+        <DialogContent_>
           <DialogHeader className="p-4">
             <DialogTitle className="text-2xl font-semibold">
               Filter Settings
@@ -108,8 +161,8 @@ function FilterSettingDialog({
               </div>
             </Tabs>
           </div>
-        </DialogContent>
-      </Dialog>
+        </DialogContent_>
+      </DialogWrapper>
     </FilterSettingsProvider>
   );
 }

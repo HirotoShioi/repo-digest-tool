@@ -44,8 +44,11 @@ const useDeleteRepository = () => {
         }
       );
     },
-    onSuccess: () => {
+    onSuccess: (_, params: DeleteRepositoryParams) => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });
+      queryClient.invalidateQueries({
+        queryKey: ["summary", params.author, params.repositoryName],
+      });
     },
   });
 

@@ -1,6 +1,9 @@
 import { createContext, useContext, useCallback } from "react";
 import { useGetSettings } from "@/services/settings/queries";
-import { useUpdateSettings } from "@/services/settings/mutations";
+import {
+  useFilterFilesWithLLM,
+  useUpdateSettings,
+} from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
 
 interface SavePatternSettings {
@@ -21,6 +24,11 @@ interface FilterSettingsContextType {
   handleSavePatterns: (settings: SavePatternSettings) => void;
   handleSaveSize: (settings: SaveSizeSettings) => void;
   onSave: () => void;
+  author: string;
+  repository: string;
+  closeDialog: () => void;
+  onFilterFilesWithLLM: (prompt: string) => void;
+  isPending: boolean;
 }
 
 const FilterSettingsContext = createContext<
@@ -32,6 +40,7 @@ interface FilterSettingsProviderProps {
   author: string;
   repository: string;
   onSave: () => void;
+  setOpen: (open: boolean) => void;
 }
 
 export function FilterSettingsProvider({
@@ -39,6 +48,7 @@ export function FilterSettingsProvider({
   author,
   repository,
   onSave,
+  setOpen,
 }: FilterSettingsProviderProps) {
   const { data: filterSettings } = useGetSettings({
     author,
@@ -115,12 +125,29 @@ export function FilterSettingsProvider({
       onSave,
     ]
   );
+  const { mutate, isPending } = useFilterFilesWithLLM();
+
+  function onFilterFilesWithLLM(prompt: string) {
+    mutate(
+      {
+        prompt,
+        author,
+        name: repository,
+      },
+      { onSuccess: () => onSave() }
+    );
+  }
 
   const value = {
     initialSettings: filterSettings,
     handleSavePatterns,
     handleSaveSize,
     onSave,
+    author,
+    repository,
+    closeDialog: () => setOpen(false),
+    onFilterFilesWithLLM,
+    isPending,
   };
 
   return (
