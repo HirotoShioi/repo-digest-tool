@@ -1,11 +1,7 @@
 import { createContext, useContext, useCallback } from "react";
 import { useGetSettings } from "@/services/settings/queries";
-import {
-  useFilterFilesWithLLM,
-  useUpdateSettings,
-} from "@/services/settings/mutations";
+import { useUpdateSettings } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
 
 interface SavePatternSettings {
   includePatterns: string[];
@@ -14,10 +10,6 @@ interface SavePatternSettings {
 
 interface SaveSizeSettings {
   maxFileSize: number;
-}
-
-interface FilterFilesWithLLMSettings {
-  prompt: string;
 }
 
 interface FilterSettingsContextType {
@@ -32,7 +24,6 @@ interface FilterSettingsContextType {
   author: string;
   repository: string;
   closeDialog: () => void;
-  filterFilesWithLLM: (settings: FilterFilesWithLLMSettings) => void;
 }
 
 const FilterSettingsContext = createContext<
@@ -129,41 +120,6 @@ export function FilterSettingsProvider({
       onSave,
     ]
   );
-
-  const { mutate } = useFilterFilesWithLLM();
-  const filterFilesWithLLM = useCallback(
-    (settings: FilterFilesWithLLMSettings) => {
-      mutate(
-        {
-          author,
-          name: repository,
-          prompt: settings.prompt,
-        },
-        {
-          onSettled: () => {
-            toast({
-              title: "Filtering finished",
-              variant: "success",
-              description: "Filtering finished successfully",
-            });
-            onSave();
-          },
-        }
-      );
-      toast({
-        title: "Filtering started",
-        duration: 10000,
-        description: (
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Filtering...
-          </div>
-        ),
-        variant: "default",
-      });
-    },
-    [mutate, author, repository, toast, onSave]
-  );
   const value = {
     initialSettings: filterSettings,
     handleSavePatterns,
@@ -172,7 +128,6 @@ export function FilterSettingsProvider({
     author,
     repository,
     closeDialog: () => setOpen(false),
-    filterFilesWithLLM,
   };
 
   return (

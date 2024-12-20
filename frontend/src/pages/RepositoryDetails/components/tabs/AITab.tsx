@@ -1,15 +1,26 @@
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/LoadingButton";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
+import { useFilterFilesWithLLM } from "@/services/settings/mutations";
 import { useState } from "react";
 
 export function AITab() {
-  const { filterFilesWithLLM } = useFilterSettings();
+  const { mutate: filterFilesWithLLM, isPending } = useFilterFilesWithLLM();
+  const { repository, author, onSave } = useFilterSettings();
   const [aiPrompt, setAiPrompt] = useState<string>("");
   function onStart() {
-    filterFilesWithLLM({
-      prompt: aiPrompt,
-    });
+    filterFilesWithLLM(
+      {
+        prompt: aiPrompt,
+        author: author,
+        name: repository,
+      },
+      {
+        onSuccess: () => {
+          onSave();
+        },
+      }
+    );
   }
   return (
     <div className="space-y-4">
@@ -28,7 +39,13 @@ export function AITab() {
         rows={10}
       />
       <div className="flex justify-end">
-        <Button onClick={onStart}>Start</Button>
+        <LoadingButton
+          isLoading={isPending}
+          onClick={onStart}
+          loadingText="Filtering..."
+        >
+          Start
+        </LoadingButton>
       </div>
     </div>
   );

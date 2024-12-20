@@ -350,15 +350,16 @@ def get_ai_filter_of_repository(
     include_patterns_str = [
         str(pattern.relative_to(repo_info.path)) for pattern in include_patterns
     ]
+    all_include_patterns = set(filter_settings.include_patterns + include_patterns_str)
     filter_settings_repo.upsert(
         f"{author}/{repository_name}",
-        include_patterns=filter_settings.include_patterns + include_patterns_str,
+        include_patterns=list(all_include_patterns),
         exclude_patterns=filter_settings.exclude_patterns,
         max_file_size=filter_settings.max_file_size,
     )
     summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
     return Settings(
-        include_files=filter_settings.include_patterns + include_patterns_str,
+        include_files=list(all_include_patterns),
         exclude_files=filter_settings.exclude_patterns,
         max_file_size=filter_settings.max_file_size,
     )
