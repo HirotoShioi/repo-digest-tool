@@ -18,6 +18,7 @@ from repo_tool.api.repositories import (
 from repo_tool.core.digest import generate_digest_content
 from repo_tool.core.filter import filter_files_in_repo, get_filter_settings_from_env
 from repo_tool.core.github import GitHub, Repository
+from repo_tool.core.llm import filter_files_with_llm
 from repo_tool.core.summary import Summary, generate_summary
 
 router = APIRouter()
@@ -284,6 +285,7 @@ def get_settings_of_repository(
     maybe_settings = filter_settings_repo.get_by_repository_id(
         f"{author}/{repository_name}"
     )
+    print(maybe_settings)
     if maybe_settings:
         return Settings(
             include_files=maybe_settings.include_patterns,
@@ -317,3 +319,48 @@ def update_settings_of_repository(
         request.max_file_size,
     )
     return request
+
+
+class AiFilterParams(BaseModel):
+    prompt: str = Field(..., description="The prompt to filter the files")
+
+
+@router.post("/{author}/{repository_name}/filter/ai")
+def get_ai_filter_of_repository(
+    author: str,
+    repository_name: str,
+    request: AiFilterParams,
+    session: Session = Depends(get_session),
+    github: GitHub = Depends(get_github),
+) -> Settings:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(status_code=404, detail="Repository not found")
+    repo_info = github.get_repo_info(f"{author}/{repository_name}")
+    repositories = Repositories(session)
+    summary_cache_repo = repositories.summary_cache_repo
+    filter_settings_repo = repositories.filter_settings_repo
+    filter_settings = filter_settings_repo.get_by_repository_id(
+        f"{author}/{repository_name}"
+    )
+    if not filter_settings:
+        filter_settings = get_filter_settings_from_env()
+    filtered_files = filter_files_in_repo(
+        repo_info.path,
+        filter_settings=filter_settings,
+    )
+    include_patterns = filter_files_with_llm(filtered_files, request.prompt)
+    include_patterns_str = [
+        str(pattern.relative_to(repo_info.path)) for pattern in include_patterns
+    ]
+    filter_settings_repo.upsert(
+        f"{author}/{repository_name}",
+        include_patterns=filter_settings.include_patterns + include_patterns_str,
+        exclude_patterns=filter_settings.exclude_patterns,
+        max_file_size=filter_settings.max_file_size,
+    )
+    summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
+    return Settings(
+        include_files=filter_settings.include_patterns + include_patterns_str,
+        exclude_files=filter_settings.exclude_patterns,
+        max_file_size=filter_settings.max_file_size,
+    )
