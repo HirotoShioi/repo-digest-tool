@@ -24,7 +24,7 @@ class FilterSettings:
         return json.dumps(self, ensure_ascii=False, default=lambda o: o.__dict__)
 
 
-max_tokens = 500000
+max_tokens = 50000
 
 
 def get_filter_settings_from_env() -> FilterSettings:
