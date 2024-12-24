@@ -23,7 +23,7 @@ function useUpdateSettings() {
         body: {
           include_files: params.settings.includePatterns,
           exclude_files: params.settings.excludePatterns,
-          max_file_size: params.settings.maxFileSize,
+          max_tokens: params.settings.maxTokens,
         },
       }),
     onSuccess: () => {
@@ -36,7 +36,7 @@ function toSettings(data: components["schemas"]["Settings"]): Settings {
   return {
     includePatterns: data.include_files,
     excludePatterns: data.exclude_files,
-    maxFileSize: data.max_file_size,
+    maxTokens: data.max_tokens,
   };
 }
 
@@ -75,7 +75,7 @@ function useExcludeFiles() {
         body: {
           include_files: settings.includePatterns,
           exclude_files: [...settings.excludePatterns, ...params.paths],
-          max_file_size: settings.maxFileSize,
+          max_tokens: settings.maxTokens,
         },
       });
     },

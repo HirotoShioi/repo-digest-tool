@@ -89,7 +89,7 @@ class TestFilterSettingsRepository:
         assert isinstance(settings, FilterSettings)
         assert settings.include_patterns == ["*.py"]
         assert settings.exclude_patterns == ["*.pyc"]
-        assert settings.max_file_size == 1000
+        assert settings.max_tokens == 1000
 
         # Get settings
         retrieved = filter_settings_repository.get_by_repository_id("test/repo")

@@ -12,14 +12,14 @@ interface SavePatternSettings {
 }
 
 interface SaveSizeSettings {
-  maxFileSize: number;
+  maxTokens: number;
 }
 
 interface FilterSettingsContextType {
   initialSettings: {
     includePatterns: string[];
     excludePatterns: string[];
-    maxFileSize: number;
+    maxTokens: number;
   } | null;
   handleSavePatterns: (settings: SavePatternSettings) => void;
   handleSaveSize: (settings: SaveSizeSettings) => void;
@@ -65,7 +65,7 @@ export function FilterSettingsProvider({
           name: repository,
           settings: {
             ...settings,
-            maxFileSize: filterSettings?.maxFileSize || 10,
+            maxTokens: filterSettings?.maxTokens || 10,
           },
         },
         {
@@ -85,7 +85,7 @@ export function FilterSettingsProvider({
       updateSettings,
       author,
       repository,
-      filterSettings?.maxFileSize,
+      filterSettings?.maxTokens,
       toast,
       onSave,
     ]

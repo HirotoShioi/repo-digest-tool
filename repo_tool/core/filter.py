@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
+import tiktoken
+
 from repo_tool.core.llm import filter_files_with_llm
 from repo_tool.core.logger import log_error
 
@@ -12,7 +14,7 @@ from repo_tool.core.logger import log_error
 class FilterSettings:
     include_patterns: List[str]
     exclude_patterns: List[str]
-    max_file_size: int
+    max_tokens: int
 
     @staticmethod
     def from_json(json_str: str) -> "FilterSettings":
@@ -22,13 +24,13 @@ class FilterSettings:
         return json.dumps(self, ensure_ascii=False, default=lambda o: o.__dict__)
 
 
-max_file_size = 1024 * 1024 * 1024  # 1GB
+max_tokens = 500000
 
 
 def get_filter_settings_from_env() -> FilterSettings:
     include_patterns = read_pattern_file(Path(".") / ".gptinclude")
     exclude_patterns = read_pattern_file(Path(".") / ".gptignore")
-    return FilterSettings(include_patterns, exclude_patterns, max_file_size)
+    return FilterSettings(include_patterns, exclude_patterns, max_tokens)
 
 
 def read_pattern_file(file_path: Path) -> List[str]:
@@ -73,11 +75,15 @@ def should_ignore(file_path: Path, repo_path: Path, ignore_patterns: List[str]) 
     return False
 
 
+encoding = tiktoken.get_encoding("o200k_base")
+
+
 def filter_files(
     all_files: List[Path],
     repo_path: Path,
     ignore_patterns: List[str],
     include_patterns: List[str],
+    max_tokens: int,
 ) -> List[Path]:
     """
     Filters the files based on .gptignore and .gptinclude patterns.
@@ -96,6 +102,16 @@ def filter_files(
 
         # If include patterns are provided, skip files that do not match
         if include_patterns and not include_match:
+            continue
+
+        if file_path.is_dir():
+            continue
+
+        with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+            file_size = len(encoding.encode(content))
+
+        if file_size >= max_tokens:
             continue
 
         filtered_files.append(file_path)
@@ -124,6 +140,7 @@ def filter_files_in_repo(
             repo_path,
             filter_settings.exclude_patterns,
             filter_settings.include_patterns,
+            filter_settings.max_tokens,
         )
         if prompt:
             filtered_files = filter_files_with_llm(filtered_files, prompt)

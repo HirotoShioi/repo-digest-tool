@@ -48,7 +48,7 @@ class FilterSettingsRepository:
         repository_id: str,
         include_patterns: List[str],
         exclude_patterns: List[str],
-        max_file_size: int,
+        max_tokens: int,
     ) -> FilterSettings:
         """
         Create or update FilterSettings
@@ -57,7 +57,7 @@ class FilterSettingsRepository:
         settings = FilterSettings(
             include_patterns=include_patterns,
             exclude_patterns=exclude_patterns,
-            max_file_size=max_file_size,
+            max_tokens=max_tokens,
         )
 
         statement = select(FilterSettingsTable).where(

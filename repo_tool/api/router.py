@@ -248,8 +248,8 @@ class Settings(BaseModel):
     exclude_files: List[str] = Field(
         ..., description="The files to exclude from the digest"
     )
-    max_file_size: int = Field(
-        ..., description="The maximum file size to include in the digest"
+    max_tokens: int = Field(
+        ..., description="The maximum tokens to include in the digest"
     )
 
 
@@ -259,7 +259,7 @@ def get_settings() -> Settings:
     return Settings(
         include_files=settings.exclude_patterns,
         exclude_files=settings.include_patterns,
-        max_file_size=1000000,
+        max_tokens=settings.max_tokens,
     )
 
 
@@ -272,7 +272,7 @@ def update_settings(request: Settings) -> Settings:
     return Settings(
         include_files=request.include_files,
         exclude_files=request.exclude_files,
-        max_file_size=request.max_file_size,
+        max_tokens=request.max_tokens,
     )
 
 
@@ -288,13 +288,13 @@ def get_settings_of_repository(
         return Settings(
             include_files=maybe_settings.include_patterns,
             exclude_files=maybe_settings.exclude_patterns,
-            max_file_size=maybe_settings.max_file_size,
+            max_tokens=maybe_settings.max_tokens,
         )
     default_settings = get_filter_settings_from_env()
     return Settings(
         include_files=default_settings.include_patterns,
         exclude_files=default_settings.exclude_patterns,
-        max_file_size=1000000,
+        max_tokens=default_settings.max_tokens,
     )
 
 
@@ -314,7 +314,7 @@ def update_settings_of_repository(
         f"{author}/{repository_name}",
         request.include_files,
         request.exclude_files,
-        request.max_file_size,
+        request.max_tokens,
     )
     return request
 
@@ -355,11 +355,11 @@ def get_ai_filter_of_repository(
         f"{author}/{repository_name}",
         include_patterns=list(all_include_patterns),
         exclude_patterns=filter_settings.exclude_patterns,
-        max_file_size=filter_settings.max_file_size,
+        max_tokens=filter_settings.max_tokens,
     )
     summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
     return Settings(
         include_files=list(all_include_patterns),
         exclude_files=filter_settings.exclude_patterns,
-        max_file_size=filter_settings.max_file_size,
+        max_tokens=filter_settings.max_tokens,
     )

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Settings, Ban, Filter, Brain, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { AdvancedTab } from "./tabs/AdvancedTab";
+import { MaxTokensTab } from "./tabs/MaxTokensTab";
 import { AITab } from "./tabs/AITab";
 import { ExcludeTab } from "./tabs/ExcludeTab";
 import { IncludeTab } from "./tabs/IncludeTab";
@@ -141,8 +141,8 @@ function FilterSettingDialog({
                 <TabItem value="ai" icon={Brain}>
                   AI
                 </TabItem>
-                <TabItem value="advanced" icon={Wrench}>
-                  Advanced
+                <TabItem value="max-tokens" icon={Wrench}>
+                  Max Tokens
                 </TabItem>
               </TabsList>
               <div className="flex-grow px-4">
@@ -155,8 +155,8 @@ function FilterSettingDialog({
                 <TabsContent value="ai" className="mt-0">
                   <AITab />
                 </TabsContent>
-                <TabsContent value="advanced" className="mt-0">
-                  <AdvancedTab />
+                <TabsContent value="max-tokens" className="mt-0">
+                  <MaxTokensTab />
                 </TabsContent>
               </div>
             </Tabs>

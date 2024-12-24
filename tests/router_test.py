@@ -342,7 +342,7 @@ def test_settings_persistence_in_db(client: TestClient, session: Session) -> Non
     assert db_settings is not None
     assert db_settings.include_patterns == ["*.py", "*.md"]
     assert db_settings.exclude_patterns == ["tests/*", "*.pyc"]
-    assert db_settings.max_file_size == 500000
+    assert db_settings.max_tokens == 500000
 
 
 def test_summary_cache_persistence(

@@ -264,10 +264,10 @@ export interface components {
              */
             exclude_files: string[];
             /**
-             * Max File Size
-             * @description The maximum file size to include in the digest
+             * Max Tokens
+             * @description The maximum tokens to include in the digest
              */
-            max_file_size: number;
+            max_tokens: number;
         };
         /** Summary */
         Summary: {
