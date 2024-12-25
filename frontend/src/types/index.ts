@@ -51,7 +51,7 @@ type Summary = {
 type Settings = {
   includePatterns: string[];
   excludePatterns: string[];
-  maxFileSize: number;
+  maxTokens: number;
 }
 
 export type { Repository, FileStats, FileFilter, Summary, FileTypeAggregation, FileData, Settings };

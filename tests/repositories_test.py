@@ -83,20 +83,20 @@ class TestFilterSettingsRepository:
             repository_id="test/repo",
             include_patterns=["*.py"],
             exclude_patterns=["*.pyc"],
-            max_file_size=1000,
+            max_tokens=1000,
         )
 
         assert isinstance(settings, FilterSettings)
         assert settings.include_patterns == ["*.py"]
         assert settings.exclude_patterns == ["*.pyc"]
-        assert settings.max_file_size == 1000
+        assert settings.max_tokens == 1000
 
         # Get settings
         retrieved = filter_settings_repository.get_by_repository_id("test/repo")
         assert retrieved is not None
         assert retrieved.include_patterns == ["*.py"]
         assert retrieved.exclude_patterns == ["*.pyc"]
-        assert retrieved.max_file_size == 1000
+        assert retrieved.max_tokens == 1000
 
     def test_update_settings(self, filter_settings_repository):
         # Create initial settings
@@ -104,7 +104,7 @@ class TestFilterSettingsRepository:
             repository_id="test/repo",
             include_patterns=["*.py"],
             exclude_patterns=["*.pyc"],
-            max_file_size=1000,
+            max_tokens=1000,
         )
 
         # Update settings
@@ -112,19 +112,19 @@ class TestFilterSettingsRepository:
             repository_id="test/repo",
             include_patterns=["*.js"],
             exclude_patterns=["*.min.js"],
-            max_file_size=2000,
+            max_tokens=2000,
         )
 
         assert updated.include_patterns == ["*.js"]
         assert updated.exclude_patterns == ["*.min.js"]
-        assert updated.max_file_size == 2000
+        assert updated.max_tokens == 2000
 
         # Verify update
         retrieved = filter_settings_repository.get_by_repository_id("test/repo")
         assert retrieved is not None
         assert retrieved.include_patterns == ["*.js"]
         assert retrieved.exclude_patterns == ["*.min.js"]
-        assert retrieved.max_file_size == 2000
+        assert retrieved.max_tokens == 2000
 
     def test_delete_settings(self, filter_settings_repository):
         # Create settings
@@ -132,7 +132,7 @@ class TestFilterSettingsRepository:
             repository_id="test/repo",
             include_patterns=["*.py"],
             exclude_patterns=["*.pyc"],
-            max_file_size=1000,
+            max_tokens=1000,
         )
 
         # Delete settings
@@ -154,7 +154,7 @@ class TestFilterSettingsRepository:
                 repository_id=f"test/repo{i}",
                 include_patterns=["*.py"],
                 exclude_patterns=["*.pyc"],
-                max_file_size=1000,
+                max_tokens=1000,
             )
 
         # Delete all settings
