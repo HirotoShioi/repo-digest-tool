@@ -1,0 +1,20 @@
+name: Docker Build Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-builds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API Docker image
+        run: docker build -t repo-tool-api .
+
+      - name: Build Frontend Docker image
+        working-directory: ./frontend
+        run: docker build -t repo-tool-frontend .
