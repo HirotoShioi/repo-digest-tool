@@ -7,6 +7,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FullScreenLoader } from "./components/full-screen-loader";
+import { ErrorPage } from "./components/error-page";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,7 +28,9 @@ const router = createRouter({
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
   defaultPendingComponent: () => <FullScreenLoader label="Loading..." />,
-  defaultErrorComponent: () => <FullScreenLoader label="Error..." />,
+  defaultErrorComponent: ({ error }: { error: Error }) => (
+    <ErrorPage error={error} />
+  ),
 });
 
 // Register the router instance for type safety

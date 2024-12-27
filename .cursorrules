@@ -26,6 +26,8 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Descriptive error messages for URL validation
    - Show toast notifications for API errors
    - Display user-friendly error messages in UI
+   - Implement custom error page with clear messaging and home navigation
+   - Use consistent error styling with application theme
 
 3. Path Management
 
