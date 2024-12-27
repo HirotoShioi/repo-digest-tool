@@ -3,7 +3,6 @@ import {
   useNavigate,
   useParams,
 } from "@tanstack/react-router";
-import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
 import { Report } from "@/components/repository-info/report";
 import { Download, FileText } from "lucide-react";
@@ -13,8 +12,33 @@ import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/loading-button";
 import React, { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { getRepositoryById } from "@/services/repositories/service";
+
+type GetRepositoryQueryOptionsParams = {
+  author: string;
+  name: string;
+};
+
+function getRepositoryQueryOptions({
+  author,
+  name,
+}: GetRepositoryQueryOptionsParams) {
+  return queryOptions({
+    queryKey: ["repository", author, name],
+    queryFn: async () => getRepositoryById({ author, name }),
+  });
+}
 
 export const Route = createFileRoute("/$author/$name")({
+  loader: (opts) => {
+    opts.context.queryClient.ensureQueryData(
+      getRepositoryQueryOptions({
+        author: opts.params.author,
+        name: opts.params.name,
+      })
+    );
+  },
   component: RouteComponent,
 });
 
@@ -27,10 +51,12 @@ function RouteComponent() {
     data: repository,
     isLoading,
     error,
-  } = useGetRepositoryById({
-    author: author,
-    name: name,
-  });
+  } = useSuspenseQuery(
+    getRepositoryQueryOptions({
+      author: author,
+      name: name,
+    })
+  );
   const { toast } = useToast();
 
   useEffect(() => {

@@ -62,6 +62,7 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Support optional loading text labels
    - Handle responsive container sizing
    - Implement smooth loading animations
+   - Use semi-transparent background (50% opacity) for better content visibility
    - Ensure proper TypeScript typing
    - Maintain accessibility standards
 
