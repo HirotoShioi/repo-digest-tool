@@ -17,8 +17,6 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Import the generated route tree
-
 // Create a new router instance
 const router = createRouter({
   routeTree,

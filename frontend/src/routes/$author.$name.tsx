@@ -14,7 +14,7 @@ import React, { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getRepositoryById } from "@/services/repositories/service";
-
+import { z } from "zod";
 type GetRepositoryQueryOptionsParams = {
   author: string;
   name: string;
@@ -31,6 +31,12 @@ function getRepositoryQueryOptions({
 }
 
 export const Route = createFileRoute("/$author/$name")({
+  params: {
+    parse: (params) => ({
+      author: z.string().parse(params.author),
+      name: z.string().parse(params.name),
+    }),
+  },
   loader: (opts) => {
     opts.context.queryClient.ensureQueryData(
       getRepositoryQueryOptions({
