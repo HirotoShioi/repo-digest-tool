@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
-import { PatternInput } from "@/components/repository-info/PatternInput";
-import { PatternList } from "@/components/repository-info/PatternList";
+import { PatternInput } from "@/components/repository-info/pattern-input";
+import { PatternList } from "@/components/repository-info/pattern-list";
 import { useState, useEffect, useCallback } from "react";
 import { Minimatch } from "minimatch";
 import { useToast } from "@/hooks/use-toast";

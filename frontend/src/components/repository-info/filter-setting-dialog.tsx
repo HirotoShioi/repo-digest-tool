@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/dialog";
 import { Settings, Ban, Filter, Brain, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { MaxTokensTab } from "./MaxTokensTab";
-import { AITab } from "./AITab";
-import { ExcludeTab } from "./ExcludeTab";
-import { IncludeTab } from "./IncludeTab";
+import { MaxTokensTab } from "./max-tokens-tab";
+import { AITab } from "./aI-tab";
+import { ExcludeTab } from "./exclude-tab";
+import { IncludeTab } from "./include-tab";
 import {
   FilterSettingsProvider,
   useFilterSettings,

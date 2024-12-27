@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { PatternInput } from "./PatternInput";
-import { PatternList } from "./PatternList";
+import { PatternInput } from "./pattern-input";
+import { PatternList } from "./pattern-list";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 import { useState, useEffect, useCallback } from "react";
 import { Minimatch } from "minimatch";
