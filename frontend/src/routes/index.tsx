@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AddRepositoryDialog } from "@/components/home/AddRepositoryDialog";
-import { RepositoryList } from "@/components/home/RepositoryList";
+import { AddRepositoryDialog } from "@/components/home/add-repository-dialog";
+import { RepositoryList } from "@/components/home/repository-list";
 import { Input } from "@/components/ui/input";
 import { useGetRepositories } from "@/services/repositories/queries";
 import { LoadingSpinner } from "@/components/loading-spinner";
