@@ -4,7 +4,7 @@ import {
   useParams,
 } from "@tanstack/react-router";
 import { useGetSummary } from "@/services/summary/queries";
-import { Report } from "@/components/repository-info/report";
+import { Report } from "@/components/repository-info/statistics";
 import { Download, FileText } from "lucide-react";
 import { FilterSettingDialog } from "@/components/repository-info/filter-setting-dialog";
 import { LoadingSpinner } from "@/components/loading-spinner";
