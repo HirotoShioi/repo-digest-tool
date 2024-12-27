@@ -54,6 +54,17 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Test search input with icon functionality
    - Test tab icons visibility and alignment
 
+6. Loading States
+   - Implement full-screen loading spinner
+   - Support customizable spinner size
+   - Support minimum height setting
+   - Allow custom styling through className
+   - Support optional loading text labels
+   - Handle responsive container sizing
+   - Implement smooth loading animations
+   - Ensure proper TypeScript typing
+   - Maintain accessibility standards
+
 # Repository Tool Database Requirements
 
 1. Database Setup
