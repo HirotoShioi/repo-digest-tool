@@ -1,4 +1,4 @@
-.PHONY: build run-dev run down logs shell clean init-db
+.PHONY: build run-dev run down logs shell clean init-db frontend
 
 build:
 	docker compose build
@@ -6,6 +6,9 @@ build:
 run-dev:
 	make init-db
 	docker compose up --watch api
+
+frontend:
+	pushd frontend && npm run dev && popd
 
 run:
 	make init-db

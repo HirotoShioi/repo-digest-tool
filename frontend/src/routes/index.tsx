@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
 import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
@@ -7,8 +8,11 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Search } from "lucide-react";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
+export const Route = createFileRoute("/")({
+  component: RouteComponent,
+});
 
-function RepositoriesPage() {
+function RouteComponent() {
   const { data: repositories, isLoading, error } = useGetRepositories();
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
@@ -56,5 +60,3 @@ function RepositoriesPage() {
     </div>
   );
 }
-
-export default RepositoriesPage;

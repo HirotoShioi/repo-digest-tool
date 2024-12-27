@@ -1,17 +1,27 @@
-import { useParams, useNavigate } from "react-router";
+import {
+  createFileRoute,
+  useNavigate,
+  useParams,
+} from "@tanstack/react-router";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
-import { Report } from "./components/Report";
+import { Report } from "@/pages/RepositoryDetails/components/Report";
 import { Download, FileText } from "lucide-react";
-import { FilterSettingDialog } from "./components/FilterSettingDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { FilterSettingDialog } from "@/pages/RepositoryDetails/components/FilterSettingDialog";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/LoadingButton";
 import React, { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-function RepositoryDetailsPage() {
-  const { author, name } = useParams<{ author: string; name: string }>();
+export const Route = createFileRoute("/$author/$name")({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const { author, name } = useParams({
+    from: "/$author/$name",
+  });
   const navigate = useNavigate();
   const {
     data: repository,
@@ -60,7 +70,7 @@ function RepositoryDetailsPage() {
       <div className="text-center py-8">
         <p className="text-gray-500">Repository not found</p>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate({ to: "/" })}
           className="mt-4 text-blue-600 hover:text-blue-800"
         >
           Return to repository list
@@ -126,5 +136,3 @@ function RepositoryDetailsPage() {
     </>
   );
 }
-
-export default RepositoryDetailsPage;
