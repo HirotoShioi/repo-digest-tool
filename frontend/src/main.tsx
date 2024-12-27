@@ -27,6 +27,7 @@ const router = createRouter({
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
   defaultPendingComponent: () => <FullScreenLoader label="Loading..." />,
+  defaultErrorComponent: () => <FullScreenLoader label="Error..." />,
 });
 
 // Register the router instance for type safety

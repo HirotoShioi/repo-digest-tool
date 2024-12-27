@@ -40,6 +40,7 @@ export const Route = createFileRoute("/$author/$name")({
     );
   },
   component: RouteComponent,
+  notFoundComponent: () => <div>Repository not found</div>,
 });
 
 function RouteComponent() {
