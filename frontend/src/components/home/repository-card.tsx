@@ -13,7 +13,7 @@ import {
   useUpdateRepository,
 } from "@/services/repositories/mutations";
 import { usePrefetchRepositoryById } from "@/services/repositories/queries";
-import { useNavigate } from "react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/hooks/use-toast";
 
 interface RepositoryCardProps {
@@ -79,7 +79,15 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
   return (
     <Card
       onMouseEnter={() => prefetch()}
-      onClick={() => navigate(`/${repository.author}/${repository.name}`)}
+      onClick={() =>
+        navigate({
+          to: "/$author/$name",
+          params: {
+            author: repository.author,
+            name: repository.name,
+          },
+        })
+      }
       className={`hover:shadow-lg transition-all cursor-pointer h-full`}
     >
       <CardHeader className="p-4">

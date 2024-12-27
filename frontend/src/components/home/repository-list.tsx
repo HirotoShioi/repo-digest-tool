@@ -1,5 +1,5 @@
-import type { Repository } from "../../../types";
-import { RepositoryCard } from "./RepositoryCard";
+import type { Repository } from "../../types";
+import { RepositoryCard } from "./repository-card";
 
 interface RepositoryListProps {
   repositories: Repository[];

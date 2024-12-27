@@ -1,4 +1,4 @@
-import { LoadingButton } from "@/components/LoadingButton";
+import { LoadingButton } from "@/components/loading-button";
 import { Textarea } from "@/components/ui/textarea";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
 import { useState } from "react";

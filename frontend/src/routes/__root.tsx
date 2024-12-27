@@ -1,19 +1,28 @@
-import { Outlet, Link } from "react-router";
+import {
+  Link,
+  Outlet,
+  createRootRouteWithContext,
+} from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { FileText, Moon, Sun } from "lucide-react";
-import { Button } from "./ui/button";
-import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/use-theme";
 import githubIcon from "@/assets/github.svg";
+import { QueryClient } from "@tanstack/react-query";
 
-export function Layout() {
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
+  component: RootComponent,
+});
+
+function RootComponent() {
   const { theme, setTheme } = useTheme();
-
   return (
     <div className="min-h-screen bg-muted">
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="mx-auto">
           <div className="flex h-14 items-center justify-between px-4">
-            {/* Left section */}
             <div className="flex items-center gap-4">
               <Link
                 className={cn(

@@ -1,28 +1,34 @@
-import { useEffect, useState } from "react";
-import { AddRepositoryDialog } from "@/pages/Repositories/components/AddRepositoryDialog";
-import { RepositoryList } from "@/pages/Repositories/components/RepositoryList";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { AddRepositoryDialog } from "@/components/home/add-repository-dialog";
+import { RepositoryList } from "@/components/home/repository-list";
 import { Input } from "@/components/ui/input";
-import { useGetRepositories } from "@/services/repositories/queries";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Search } from "lucide-react";
 import React from "react";
-import { useToast } from "@/hooks/use-toast";
+import { getRepositories } from "@/services/repositories/service";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 
-function RepositoriesPage() {
-  const { data: repositories, isLoading, error } = useGetRepositories();
+const getRepositoryQueryOptions = () => {
+  return queryOptions({
+    queryKey: ["repositories"],
+    queryFn: async () => {
+      return getRepositories();
+    },
+  });
+};
+
+export const Route = createFileRoute("/")({
+  loader: (opts) => {
+    console.log(opts.context);
+    opts.context.queryClient.ensureQueryData(getRepositoryQueryOptions());
+  },
+  component: RouteComponent,
+});
+
+function RouteComponent() {
+  const { data: repositories } = useSuspenseQuery(getRepositoryQueryOptions());
   const [searchQuery, setSearchQuery] = useState("");
-  const { toast } = useToast();
   const AddRepository = React.memo(AddRepositoryDialog);
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch repositories. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
 
   const filteredRepositories = (repositories ?? [])
     .filter(
@@ -48,13 +54,7 @@ function RepositoriesPage() {
         <AddRepository />
       </div>
 
-      {isLoading ? (
-        <LoadingSpinner size={48} minHeight={500} />
-      ) : (
-        <RepositoryList repositories={filteredRepositories} />
-      )}
+      <RepositoryList repositories={filteredRepositories} />
     </div>
   );
 }
-
-export default RepositoriesPage;

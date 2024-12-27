@@ -58,6 +58,8 @@ def get_repositories(github: GitHub = Depends(get_github)) -> List[Repository]:
 def get_repository(
     author: str, repository_name: str, github: GitHub = Depends(get_github)
 ) -> Repository:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(status_code=404, detail="Repository not found")
     return github.get(author, repository_name)
 
 

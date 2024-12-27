@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCloneRepository } from "@/services/repositories/mutations";
 import { useToast } from "@/hooks/use-toast";
-import { LoadingButton } from "@/components/LoadingButton";
+import { LoadingButton } from "@/components/loading-button";
 
 export function AddRepositoryDialog() {
   const [open, setOpen] = useState(false);

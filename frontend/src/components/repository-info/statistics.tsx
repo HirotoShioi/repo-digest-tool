@@ -1,7 +1,7 @@
-import { FileTypesChart } from "./FileTypesChart";
-import { DigestStatistics } from "./DigestStatistics";
-import { TopFilesChart } from "./TopFilesChart";
-import { AllFilesTable } from "./AllFilesTable";
+import { FileTypesChart } from "./file-types-chart";
+import { DigestStatistics } from "./digest-statistics";
+import { TopFilesChart } from "./top-files-chart";
+import { AllFilesTable } from "./all-files-table";
 import { Summary } from "@/types";
 interface ReportParams {
   summary: Summary;

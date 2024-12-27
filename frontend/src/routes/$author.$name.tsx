@@ -1,38 +1,64 @@
-import { useParams, useNavigate } from "react-router";
-import { useGetRepositoryById } from "@/services/repositories/queries";
+import {
+  createFileRoute,
+  useNavigate,
+  useParams,
+} from "@tanstack/react-router";
 import { useGetSummary } from "@/services/summary/queries";
-import { Report } from "./components/Report";
+import { Report } from "@/components/repository-info/statistics";
 import { Download, FileText } from "lucide-react";
-import { FilterSettingDialog } from "./components/FilterSettingDialog";
-import { LoadingSpinner } from "../../components/LoadingSpinner";
+import { FilterSettingDialog } from "@/components/repository-info/filter-setting-dialog";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
-import { LoadingButton } from "@/components/LoadingButton";
-import React, { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { LoadingButton } from "@/components/loading-button";
+import React from "react";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { getRepositoryById } from "@/services/repositories/service";
+import { z } from "zod";
+type GetRepositoryQueryOptionsParams = {
+  author: string;
+  name: string;
+};
 
-function RepositoryDetailsPage() {
-  const { author, name } = useParams<{ author: string; name: string }>();
-  const navigate = useNavigate();
-  const {
-    data: repository,
-    isLoading,
-    error,
-  } = useGetRepositoryById({
-    author: author,
-    name: name,
+function getRepositoryQueryOptions({
+  author,
+  name,
+}: GetRepositoryQueryOptionsParams) {
+  return queryOptions({
+    queryKey: ["repository", author, name],
+    queryFn: async () => getRepositoryById({ author, name }),
   });
-  const { toast } = useToast();
+}
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch repository. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
+export const Route = createFileRoute("/$author/$name")({
+  params: {
+    parse: (params) => ({
+      author: z.string().parse(params.author),
+      name: z.string().parse(params.name),
+    }),
+  },
+  loader: (opts) => {
+    opts.context.queryClient.ensureQueryData(
+      getRepositoryQueryOptions({
+        author: opts.params.author,
+        name: opts.params.name,
+      })
+    );
+  },
+  component: RouteComponent,
+  notFoundComponent: () => <div>Repository not found</div>,
+});
 
+function RouteComponent() {
+  const { author, name } = useParams({
+    from: "/$author/$name",
+  });
+  const navigate = useNavigate();
+  const { data: repository } = useSuspenseQuery(
+    getRepositoryQueryOptions({
+      author: author,
+      name: name,
+    })
+  );
   const FilterDialog = React.memo(FilterSettingDialog);
   const {
     data: summary,
@@ -47,20 +73,12 @@ function RepositoryDetailsPage() {
   const { mutate: generateDigest, isPending: isDigestLoading } =
     useGenerateDigest();
 
-  if (!author || !name) {
-    return <div>Repository not found</div>;
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   if (!repository) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">Repository not found</p>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate({ to: "/" })}
           className="mt-4 text-blue-600 hover:text-blue-800"
         >
           Return to repository list
@@ -126,5 +144,3 @@ function RepositoryDetailsPage() {
     </>
   );
 }
-
-export default RepositoryDetailsPage;
