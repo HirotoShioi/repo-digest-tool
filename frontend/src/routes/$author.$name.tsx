@@ -10,8 +10,7 @@ import { FilterSettingDialog } from "@/components/repository-info/filter-setting
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/loading-button";
-import React, { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import React from "react";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getRepositoryById } from "@/services/repositories/service";
 import { z } from "zod";
@@ -54,28 +53,12 @@ function RouteComponent() {
     from: "/$author/$name",
   });
   const navigate = useNavigate();
-  const {
-    data: repository,
-    isLoading,
-    error,
-  } = useSuspenseQuery(
+  const { data: repository } = useSuspenseQuery(
     getRepositoryQueryOptions({
       author: author,
       name: name,
     })
   );
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch repository. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
-
   const FilterDialog = React.memo(FilterSettingDialog);
   const {
     data: summary,
@@ -89,14 +72,6 @@ function RouteComponent() {
 
   const { mutate: generateDigest, isPending: isDigestLoading } =
     useGenerateDigest();
-
-  if (!author || !name) {
-    return <div>Repository not found</div>;
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   if (!repository) {
     return (
