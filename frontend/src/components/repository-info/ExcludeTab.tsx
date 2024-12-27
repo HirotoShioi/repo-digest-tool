@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { PatternInput } from "../PatternInput";
-import { PatternList } from "../PatternList";
 import { useFilterSettings } from "@/contexts/FilterSettingsContext";
+import { PatternInput } from "@/components/repository-info/PatternInput";
+import { PatternList } from "@/components/repository-info/PatternList";
 import { useState, useEffect, useCallback } from "react";
 import { Minimatch } from "minimatch";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,7 @@ function isValidGlob(pattern: string): boolean {
   }
 }
 
-export function IncludeTab() {
+export function ExcludeTab() {
   const { initialSettings, handleSavePatterns } = useFilterSettings();
   const { toast } = useToast();
   const [patterns, setPatterns] = useState<string[]>([]);
@@ -25,7 +25,7 @@ export function IncludeTab() {
 
   useEffect(() => {
     if (initialSettings) {
-      setPatterns(initialSettings.includePatterns || []);
+      setPatterns(initialSettings.excludePatterns || []);
     }
   }, [initialSettings]);
 
@@ -57,26 +57,26 @@ export function IncludeTab() {
 
   const handleSave = useCallback(() => {
     handleSavePatterns({
-      includePatterns: patterns,
-      excludePatterns: initialSettings?.excludePatterns || [],
+      excludePatterns: patterns,
+      includePatterns: initialSettings?.includePatterns || [],
     });
-  }, [handleSavePatterns, patterns, initialSettings?.excludePatterns]);
+  }, [handleSavePatterns, patterns, initialSettings?.includePatterns]);
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-medium">Include Patterns</h3>
+        <h3 className="font-medium">Exclude Patterns</h3>
         <p className="text-sm text-muted-foreground">
-          Specify patterns for files that should always be included
+          Specify patterns for files and directories to exclude from processing
         </p>
       </div>
       <PatternInput
         value={newPattern}
         onChange={setNewPattern}
         onAdd={handleAdd}
-        placeholder="Add new include pattern (e.g. *.md)"
+        placeholder="Add new exclude pattern (e.g. *.log)"
       />
-      <PatternList patterns={patterns} type="include" onRemove={handleRemove} />
+      <PatternList patterns={patterns} type="exclude" onRemove={handleRemove} />
       <div className="flex justify-end mt-4">
         <Button onClick={handleSave}>Save Settings</Button>
       </div>

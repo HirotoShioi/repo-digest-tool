@@ -5,9 +5,9 @@ import {
 } from "@tanstack/react-router";
 import { useGetRepositoryById } from "@/services/repositories/queries";
 import { useGetSummary } from "@/services/summary/queries";
-import { Report } from "@/pages/RepositoryDetails/components/Report";
+import { Report } from "@/components/repository-info/Report";
 import { Download, FileText } from "lucide-react";
-import { FilterSettingDialog } from "@/pages/RepositoryDetails/components/FilterSettingDialog";
+import { FilterSettingDialog } from "@/components/repository-info/FilterSettingDialog";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/LoadingButton";
