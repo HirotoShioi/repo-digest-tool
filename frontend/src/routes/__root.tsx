@@ -2,7 +2,7 @@ import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { FileText, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/use-theme";
 import githubIcon from "@/assets/github.svg";
 
 export const Route = createRootRoute({

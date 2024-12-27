@@ -4,7 +4,7 @@ import { AddRepositoryDialog } from "@/components/home/AddRepositoryDialog";
 import { RepositoryList } from "@/components/home/RepositoryList";
 import { Input } from "@/components/ui/input";
 import { useGetRepositories } from "@/services/repositories/queries";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Search } from "lucide-react";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";

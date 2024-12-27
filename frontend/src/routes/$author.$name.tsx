@@ -8,9 +8,9 @@ import { useGetSummary } from "@/services/summary/queries";
 import { Report } from "@/components/repository-info/Report";
 import { Download, FileText } from "lucide-react";
 import { FilterSettingDialog } from "@/components/repository-info/FilterSettingDialog";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
-import { LoadingButton } from "@/components/LoadingButton";
+import { LoadingButton } from "@/components/loading-button";
 import React, { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
