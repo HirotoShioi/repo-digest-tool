@@ -68,6 +68,20 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Ensure proper TypeScript typing
    - Maintain accessibility standards
 
+5. Repository Content Generation
+   - Efficient file reading with proper encoding handling
+   - Process files individually to manage memory usage
+   - Convert paths to relative format for consistency
+   - Skip invalid or unreadable files
+   - Proper error handling per file
+   - Support UTF-8 encoding with fallback
+   - Generate structured content output
+   - Handle large repositories efficiently
+   - Concurrent file processing with thread pool
+   - Dynamic thread pool sizing based on CPU cores
+   - Maximum thread limit for resource control
+   - Process results as they complete
+
 # Repository Tool Database Requirements
 
 1. Database Setup

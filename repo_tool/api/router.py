@@ -15,7 +15,11 @@ from repo_tool.api.repositories import (
     FilterSettingsRepository,
     SummaryCacheRepository,
 )
-from repo_tool.core.digest import generate_digest_content
+from repo_tool.core.digest import (
+    RespositoryContent,
+    generate_digest_content,
+    generate_repository_content,
+)
 from repo_tool.core.filter import filter_files_in_repo, get_filter_settings_from_env
 from repo_tool.core.github import GitHub, Repository
 from repo_tool.core.llm import filter_files_with_llm
@@ -208,7 +212,7 @@ class GenerateDigestParams(BaseModel):
     summary="Create a digest of a repository",
     description="Create a digest of a repository. This will create a digest of the repository and return it as a file.",
 )
-def get_digest_of_repository(
+def generate_digest(
     request: GenerateDigestParams,
     session: Session = Depends(get_session),
     github: GitHub = Depends(get_github),
@@ -241,6 +245,29 @@ def get_digest_of_repository(
     except Exception as e:
         os.unlink(temp_path)  # Clean up the temp file in case of error
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get(
+    "/repositories/{author}/{repository_name}/digest",
+    response_model=RespositoryContent,
+    summary="Get a digest of a repository",
+    description="Get a digest of a repository",
+)
+def get_digest_of_repository(
+    author: str,
+    repository_name: str,
+    session: Session = Depends(get_session),
+    github: GitHub = Depends(get_github),
+) -> RespositoryContent:
+    repo_info = github.get_repo_info(f"{author}/{repository_name}")
+    repositories = Repositories(session)
+    filter_settings_repo = repositories.filter_settings_repo
+    filter_settings = filter_settings_repo.get_by_repository_id(repo_info.id)
+    filtered_files = filter_files_in_repo(
+        repo_info.path, filter_settings=filter_settings
+    )
+    digest = generate_repository_content(repo_info, filtered_files)
+    return digest
 
 
 class Settings(BaseModel):

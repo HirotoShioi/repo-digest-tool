@@ -3,7 +3,12 @@ Core functionality for repo-digest-tool
 """
 
 from .contants import DIGEST_DIR
-from .digest import generate_digest
+from .digest import (
+    File,
+    RespositoryContent,
+    generate_digest,
+    generate_repository_content,
+)
 from .filter import filter_files_in_repo, get_filter_settings_from_env
 from .github import GitHub, Repository
 from .llm import filter_files_with_llm
@@ -21,4 +26,7 @@ __all__ = [
     "GitHub",
     "Repository",
     "get_filter_settings_from_env",
+    "generate_repository_content",
+    "RespositoryContent",
+    "File",
 ]
