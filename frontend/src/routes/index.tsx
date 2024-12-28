@@ -19,7 +19,6 @@ const getRepositoryQueryOptions = () => {
 
 export const Route = createFileRoute("/")({
   loader: (opts) => {
-    console.log(opts.context);
     opts.context.queryClient.ensureQueryData(getRepositoryQueryOptions());
   },
   component: RouteComponent,
