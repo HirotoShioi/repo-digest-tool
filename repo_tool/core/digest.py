@@ -1,8 +1,11 @@
 import concurrent.futures
+import os
 from concurrent.futures import Future
 from io import StringIO
 from pathlib import Path
 from typing import List, Optional, TypeVar
+
+from pydantic import BaseModel, Field
 
 from repo_tool.core.contants import DIGEST_DIR
 from repo_tool.core.filter import filter_files_in_repo
@@ -96,3 +99,84 @@ def store_result_to_file(repo_path: Path, filtered_files: List[Path]) -> None:
 
     with open(output_path, "w", encoding="utf-8") as output:
         output.write(digest_content)
+
+
+class File(BaseModel):
+    path: str = Field(..., description="The path of the file")
+    content: str = Field(..., description="The content of the file")
+    url: str = Field(..., description="The URL of the file")
+
+
+class RespositoryContent(BaseModel):
+    id: str = Field(..., description="The id of the repository")
+    name: str = Field(..., description="The name of the repository")
+    author: str = Field(..., description="The author of the repository")
+    files: List[File]
+
+
+def read_file_content(file_path: Path, repository: Repository) -> Optional[File]:
+    """
+    Read a single file's content with proper error handling.
+
+    Args:
+        file_path: Path to the file to read
+        repo_path: Base repository path for calculating relative path
+
+    Returns:
+        File object if successful, None if failed
+    """
+    try:
+        if not file_path.is_file():
+            return None
+
+        relative_path = str(file_path.relative_to(repository.path))
+        with file_path.open("r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+
+        return File(
+            path=relative_path,
+            content=content,
+            url=f"{repository.url}/blob/{repository.branch}/{relative_path}",
+        )
+
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+        return None
+
+
+def generate_repository_content(
+    repository: Repository, filtered_files: List[Path]
+) -> RespositoryContent:
+    """
+    Generate repository content from filtered files with concurrent file reading.
+
+    Args:
+        repo_path: Base repository path
+        filtered_files: List of filtered file paths to process
+
+    Returns:
+        RespositoryContent containing list of files with their paths and contents
+    """
+    # Calculate optimal number of threads based on CPU count and list size
+    max_workers = min(32, len(filtered_files), (os.cpu_count() or 1) * 4)
+
+    files = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all file reading tasks
+        future_to_file = {
+            executor.submit(read_file_content, file_path, repository): file_path
+            for file_path in filtered_files
+        }
+
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_file):
+            file_result = future.result()
+            if file_result:
+                files.append(file_result)
+
+    return RespositoryContent(
+        id=repository.id,
+        name=repository.name,
+        author=repository.author,
+        files=files,
+    )

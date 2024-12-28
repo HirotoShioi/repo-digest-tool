@@ -97,7 +97,27 @@ export interface paths {
          * Create a digest of a repository
          * @description Create a digest of a repository. This will create a digest of the repository and return it as a file.
          */
-        post: operations["get_digest_of_repository_digest_post"];
+        post: operations["generate_digest_digest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repositories/{author}/{repository_name}/digest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a digest of a repository
+         * @description Get a digest of a repository in either JSON or plain text format based on format query parameter
+         */
+        get: operations["get_repository_digest_repositories__author___repository_name__digest_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -169,6 +189,14 @@ export interface components {
              */
             prompt: string;
         };
+        /** ApiResponse */
+        ApiResponse: {
+            /**
+             * Status
+             * @description The status of the operation
+             */
+            status: string;
+        };
         /** CloneRepositoryParams */
         CloneRepositoryParams: {
             /**
@@ -181,6 +209,24 @@ export interface components {
              * @description The branch to clone
              */
             branch?: string | null;
+        };
+        /** File */
+        File: {
+            /**
+             * Path
+             * @description The path of the file
+             */
+            path: string;
+            /**
+             * Content
+             * @description The content of the file
+             */
+            content: string;
+            /**
+             * Url
+             * @description The URL of the file
+             */
+            url: string;
         };
         /** FileData */
         FileData: {
@@ -243,13 +289,25 @@ export interface components {
              */
             size: number;
         };
-        /** Response */
-        Response: {
+        /** RespositoryContent */
+        RespositoryContent: {
             /**
-             * Status
-             * @description The status of the operation
+             * Id
+             * @description The id of the repository
              */
-            status: string;
+            id: string;
+            /**
+             * Name
+             * @description The name of the repository
+             */
+            name: string;
+            /**
+             * Author
+             * @description The author of the repository
+             */
+            author: string;
+            /** Files */
+            files: components["schemas"]["File"][];
         };
         /** Settings */
         Settings: {
@@ -345,7 +403,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Response"];
+                    "application/json": components["schemas"]["ApiResponse"];
                 };
             };
         };
@@ -369,7 +427,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Response"];
+                    "application/json": components["schemas"]["ApiResponse"];
                 };
             };
             /** @description Validation Error */
@@ -398,7 +456,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Response"];
+                    "application/json": components["schemas"]["ApiResponse"];
                 };
             };
         };
@@ -453,7 +511,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Response"];
+                    "application/json": components["schemas"]["ApiResponse"];
                 };
             };
             /** @description Validation Error */
@@ -485,7 +543,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Response"];
+                    "application/json": components["schemas"]["ApiResponse"];
                 };
             };
             /** @description Validation Error */
@@ -531,7 +589,7 @@ export interface operations {
             };
         };
     };
-    get_digest_of_repository_digest_post: {
+    generate_digest_digest_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -550,6 +608,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_repository_digest_repositories__author___repository_name__digest_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                accept?: string;
+            };
+            path: {
+                author: string;
+                repository_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespositoryContent"];
+                };
             };
             /** @description Validation Error */
             422: {
