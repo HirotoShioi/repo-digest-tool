@@ -19,6 +19,7 @@ import {
   useFilterSettings,
 } from "@/contexts/FilterSettingsContext";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface FilterSettingDialogProps {
   onSave: () => void;
@@ -46,28 +47,7 @@ function TabItem({
   );
 }
 
-function DialogContent_({ children }: { children: React.ReactNode }) {
-  const { isPending } = useFilterSettings();
-  return (
-    <DialogContent
-      className="p-4 gap-0 max-w-2xl"
-      onPointerDownOutside={(e) => {
-        if (isPending) {
-          e.preventDefault();
-        }
-      }}
-      onEscapeKeyDown={(e) => {
-        if (isPending) {
-          e.preventDefault();
-        }
-      }}
-    >
-      {children}
-    </DialogContent>
-  );
-}
-
-function DialogWrapper({
+function DialogContainer({
   open,
   setOpen,
   children,
@@ -77,6 +57,11 @@ function DialogWrapper({
   children: React.ReactNode;
 }) {
   const { isPending } = useFilterSettings();
+  const toast = useToast();
+  function onClick() {
+    toast.dismiss();
+    setOpen(true);
+  }
   return (
     <Dialog
       open={open}
@@ -87,7 +72,32 @@ function DialogWrapper({
         }
       }}
     >
-      {children}
+      <DialogTrigger asChild>
+        <Button
+          size="lg"
+          className="bg-primary hover:bg-primary/90"
+          data-testid="filter-dialog-button"
+          onClick={onClick}
+        >
+          <Settings className="w-4 h-4" />
+          Filter
+        </Button>
+      </DialogTrigger>
+      <DialogContent
+        className="p-4 gap-0 max-w-2xl"
+        onPointerDownOutside={(e) => {
+          if (isPending) {
+            e.preventDefault();
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          if (isPending) {
+            e.preventDefault();
+          }
+        }}
+      >
+        {children}
+      </DialogContent>
     </Dialog>
   );
 }
@@ -105,64 +115,51 @@ function FilterSettingDialog({
       onSave={onSave}
       setOpen={setOpen}
     >
-      <DialogWrapper open={open} setOpen={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            size="lg"
-            className="bg-primary hover:bg-primary/90"
-            data-testid="filter-dialog-button"
-            onClick={() => setOpen(true)}
+      <DialogContainer open={open} setOpen={setOpen}>
+        <DialogHeader className="p-4">
+          <DialogTitle className="text-2xl font-semibold">
+            Filter Settings
+          </DialogTitle>
+          <DialogDescription></DialogDescription>
+        </DialogHeader>
+        <div className="flex-grow overflow-y-auto bg-background">
+          <Tabs
+            orientation="vertical"
+            dir="ltr"
+            defaultValue="exclude"
+            className="flex min-h-[500px]"
           >
-            <Settings className="w-4 h-4" />
-            Filter
-          </Button>
-        </DialogTrigger>
-        <DialogContent_>
-          <DialogHeader className="p-4">
-            <DialogTitle className="text-2xl font-semibold">
-              Filter Settings
-            </DialogTitle>
-            <DialogDescription></DialogDescription>
-          </DialogHeader>
-          <div className="flex-grow overflow-y-auto bg-background">
-            <Tabs
-              orientation="vertical"
-              dir="ltr"
-              defaultValue="exclude"
-              className="flex min-h-[500px]"
-            >
-              <TabsList className="flex flex-col h-full space-y-1 bg-background px-2 justify-start">
-                <TabItem value="exclude" icon={Ban}>
-                  Exclude
-                </TabItem>
-                <TabItem value="include" icon={Filter}>
-                  Include
-                </TabItem>
-                <TabItem value="ai" icon={Brain}>
-                  AI
-                </TabItem>
-                <TabItem value="max-tokens" icon={Wrench}>
-                  Max Tokens
-                </TabItem>
-              </TabsList>
-              <div className="flex-grow px-4">
-                <TabsContent value="exclude" className="mt-0">
-                  <ExcludeTab />
-                </TabsContent>
-                <TabsContent value="include" className="mt-0">
-                  <IncludeTab />
-                </TabsContent>
-                <TabsContent value="ai" className="mt-0">
-                  <AITab />
-                </TabsContent>
-                <TabsContent value="max-tokens" className="mt-0">
-                  <MaxTokensTab />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
-        </DialogContent_>
-      </DialogWrapper>
+            <TabsList className="flex flex-col h-full space-y-1 bg-background px-2 justify-start">
+              <TabItem value="exclude" icon={Ban}>
+                Exclude
+              </TabItem>
+              <TabItem value="include" icon={Filter}>
+                Include
+              </TabItem>
+              <TabItem value="ai" icon={Brain}>
+                AI
+              </TabItem>
+              <TabItem value="max-tokens" icon={Wrench}>
+                Max Tokens
+              </TabItem>
+            </TabsList>
+            <div className="flex-grow px-4">
+              <TabsContent value="exclude" className="mt-0">
+                <ExcludeTab />
+              </TabsContent>
+              <TabsContent value="include" className="mt-0">
+                <IncludeTab />
+              </TabsContent>
+              <TabsContent value="ai" className="mt-0">
+                <AITab />
+              </TabsContent>
+              <TabsContent value="max-tokens" className="mt-0">
+                <MaxTokensTab />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+      </DialogContainer>
     </FilterSettingsProvider>
   );
 }

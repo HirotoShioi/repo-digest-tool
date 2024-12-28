@@ -1,4 +1,3 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
@@ -10,7 +9,7 @@ interface PatternListProps {
 
 export function PatternList({ patterns, type, onRemove }: PatternListProps) {
   return (
-    <ScrollArea className="h-[300px] rounded-md border p-4">
+    <div className="h-[300px] rounded-md border p-4 overflow-y-auto">
       <div className="flex flex-wrap gap-2">
         {patterns.map((pattern) => (
           <Badge
@@ -29,6 +28,6 @@ export function PatternList({ patterns, type, onRemove }: PatternListProps) {
           </Badge>
         ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 }
