@@ -291,6 +291,21 @@ export interface components {
         };
         /** RespositoryContent */
         RespositoryContent: {
+            /**
+             * Id
+             * @description The id of the repository
+             */
+            id: string;
+            /**
+             * Name
+             * @description The name of the repository
+             */
+            name: string;
+            /**
+             * Author
+             * @description The author of the repository
+             */
+            author: string;
             /** Files */
             files: components["schemas"]["File"][];
         };
