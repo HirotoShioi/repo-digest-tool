@@ -24,10 +24,12 @@ function useGetSettings(params: GetSettingParams) {
       maxTokens: 10,
     },
     queryFn: async () => {
-      const response = await client.GET("/{author}/{repository_name}/settings", {
-        params: {
-          path: {
-            author: params.author,
+      const response = await client.GET(
+        `/repositories/{author}/{repository_name}/settings`,
+        {
+          params: {
+            path: {
+              author: params.author,
             repository_name: params.repository,
           },
         },
