@@ -64,7 +64,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{author}/{repository_name}/summary": {
+    "/repositories/{author}/{repository_name}/summary": {
         parameters: {
             query?: never;
             header?: never;
@@ -75,7 +75,7 @@ export interface paths {
          * Get a summary of a repository digest
          * @description Get a summary of a repository digest
          */
-        get: operations["get_summary_of_repository__author___repository_name__summary_get"];
+        get: operations["get_summary_of_repository_repositories__author___repository_name__summary_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -122,7 +122,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{author}/{repository_name}/settings": {
+    "/repositories/{author}/{repository_name}/settings": {
         parameters: {
             query?: never;
             header?: never;
@@ -130,9 +130,9 @@ export interface paths {
             cookie?: never;
         };
         /** Get Settings Of Repository */
-        get: operations["get_settings_of_repository__author___repository_name__settings_get"];
+        get: operations["get_settings_of_repository_repositories__author___repository_name__settings_get"];
         /** Update Settings Of Repository */
-        put: operations["update_settings_of_repository__author___repository_name__settings_put"];
+        put: operations["update_settings_of_repository_repositories__author___repository_name__settings_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -140,7 +140,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/{author}/{repository_name}/filter/ai": {
+    "/repositories/{author}/{repository_name}/filter/ai": {
         parameters: {
             query?: never;
             header?: never;
@@ -150,7 +150,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Get Ai Filter Of Repository */
-        post: operations["get_ai_filter_of_repository__author___repository_name__filter_ai_post"];
+        post: operations["get_ai_filter_of_repository_repositories__author___repository_name__filter_ai_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -499,7 +499,7 @@ export interface operations {
             };
         };
     };
-    get_summary_of_repository__author___repository_name__summary_get: {
+    get_summary_of_repository_repositories__author___repository_name__summary_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -615,7 +615,7 @@ export interface operations {
             };
         };
     };
-    get_settings_of_repository__author___repository_name__settings_get: {
+    get_settings_of_repository_repositories__author___repository_name__settings_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -647,7 +647,7 @@ export interface operations {
             };
         };
     };
-    update_settings_of_repository__author___repository_name__settings_put: {
+    update_settings_of_repository_repositories__author___repository_name__settings_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -683,7 +683,7 @@ export interface operations {
             };
         };
     };
-    get_ai_filter_of_repository__author___repository_name__filter_ai_post: {
+    get_ai_filter_of_repository_repositories__author___repository_name__filter_ai_post: {
         parameters: {
             query?: never;
             header?: never;

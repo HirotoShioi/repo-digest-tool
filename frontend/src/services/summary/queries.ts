@@ -38,7 +38,7 @@ function useGetSummary(params: GetSummaryParams) {
     staleTime: Infinity,
     queryFn: async () => {
       const response = await client.GET(
-        `/{author}/{repository_name}/summary`,
+        `/repositories/{author}/{repository_name}/summary`,
         {
           params: {
             path: {

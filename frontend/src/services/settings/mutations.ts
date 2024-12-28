@@ -13,7 +13,7 @@ function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (params: UpdateSettingsParams) =>
-      client.PUT(`/{author}/{repository_name}/settings`, {
+      client.PUT(`/repositories/{author}/{repository_name}/settings`, {
         params: {
           path: {
             author: params.author!,
@@ -52,10 +52,12 @@ function useExcludeFiles() {
     mutationFn: async (params: ExcludeFilesParams) => {
       let settings = queryClient.getQueryData<Settings>(["settings"]);
       if (!settings) {
-        const response = await client.GET("/{author}/{repository_name}/settings", {
-          params: {
-            path: {
-              author: params.author!,
+        const response = await client.GET(
+          "/repositories/{author}/{repository_name}/settings",
+          {
+            params: {
+              path: {
+                author: params.author!,
               repository_name: params.name!,
             },
           },
@@ -65,10 +67,12 @@ function useExcludeFiles() {
         }
         settings = toSettings(response.data);
       }
-      await client.PUT(`/{author}/{repository_name}/settings`, {
-        params: {
-          path: {
-            author: params.author!,
+      await client.PUT(
+        `/repositories/{author}/{repository_name}/settings`,
+        {
+          params: {
+            path: {
+              author: params.author!,
             repository_name: params.name!,
           },
         },
@@ -98,10 +102,12 @@ function useFilterFilesWithLLM() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (params: FilterFilesWithLLMParams) => {
-      await client.POST("/{author}/{repository_name}/filter/ai", {
-        params: {
-          path: {
-            author: params.author,
+      await client.POST(
+        `/repositories/{author}/{repository_name}/filter/ai`,
+        {
+          params: {
+            path: {
+              author: params.author,
             repository_name: params.name,
           },
         },

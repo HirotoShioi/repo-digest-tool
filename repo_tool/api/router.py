@@ -165,7 +165,7 @@ def update_repository(
 
 
 @router.get(
-    "/{author}/{repository_name}/summary",
+    "/repositories/{author}/{repository_name}/summary",
     response_model=Summary,
     summary="Get a summary of a repository digest",
     description="Get a summary of a repository digest",
@@ -278,7 +278,7 @@ def update_settings(request: Settings) -> Settings:
     )
 
 
-@router.get("/{author}/{repository_name}/settings")
+@router.get("/repositories/{author}/{repository_name}/settings")
 def get_settings_of_repository(
     author: str, repository_name: str, session: Session = Depends(get_session)
 ) -> Settings:
@@ -300,7 +300,7 @@ def get_settings_of_repository(
     )
 
 
-@router.put("/{author}/{repository_name}/settings")
+@router.put("/repositories/{author}/{repository_name}/settings")
 def update_settings_of_repository(
     author: str,
     repository_name: str,
@@ -325,7 +325,7 @@ class AiFilterParams(BaseModel):
     prompt: str = Field(..., description="The prompt to filter the files")
 
 
-@router.post("/{author}/{repository_name}/filter/ai")
+@router.post("/repositories/{author}/{repository_name}/filter/ai")
 def get_ai_filter_of_repository(
     author: str,
     repository_name: str,

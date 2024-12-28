@@ -138,7 +138,7 @@ def test_update_repository_not_found(client: TestClient) -> None:
 
 
 def test_get_summary_not_found(client: TestClient) -> None:
-    response = client.get(f"/{author}/{repo_name}/summary")
+    response = client.get(f"/repositories/{author}/{repo_name}/summary")
     assert response.status_code == 404
     assert response.json() == {"detail": "Repository not found"}
 
@@ -242,7 +242,7 @@ def test_get_repository_settings_default(client: TestClient, github: GitHub) -> 
     assert response.status_code == 200
 
     # Get default settings
-    response = client.get(f"/{author}/{repo_name}/settings")
+    response = client.get(f"/repositories/{author}/{repo_name}/settings")
     assert response.status_code == 200
     settings = response.json()
 
@@ -270,13 +270,15 @@ def test_update_repository_settings(client: TestClient, github: GitHub) -> None:
         "exclude_files": ["tests/*", "*.pyc"],
         "max_tokens": 500000,
     }
-    response = client.put(f"/{author}/{repo_name}/settings", json=new_settings)
+    response = client.put(
+        f"/repositories/{author}/{repo_name}/settings", json=new_settings
+    )
     assert response.status_code == 200
     updated_settings = response.json()
     assert updated_settings == new_settings
 
     # Verify settings were persisted
-    response = client.get(f"/{author}/{repo_name}/settings")
+    response = client.get(f"/repositories/{author}/{repo_name}/settings")
     assert response.status_code == 200
     persisted_settings = response.json()
     assert persisted_settings == new_settings
@@ -284,7 +286,7 @@ def test_update_repository_settings(client: TestClient, github: GitHub) -> None:
 
 def test_get_settings_nonexistent_repository(client: TestClient) -> None:
     """Test getting settings for a repository that doesn't exist"""
-    response = client.get("/nonexistent/repo/settings")
+    response = client.get("/repositories/nonexistent/repo/settings")
     assert response.status_code == 200  # Returns default settings
     settings = response.json()
     assert "include_files" in settings
@@ -308,7 +310,9 @@ def test_update_settings_validation(client: TestClient, github: GitHub) -> None:
         "exclude_files": ["tests/*"],
         "max_tokens": 500000,
     }
-    response = client.put(f"/{author}/{repo_name}/settings", json=invalid_settings)
+    response = client.put(
+        f"/repositories/{author}/{repo_name}/settings", json=invalid_settings
+    )
     assert response.status_code == 422  # Validation error
 
 
@@ -331,7 +335,9 @@ def test_settings_persistence_in_db(client: TestClient, session: Session) -> Non
         "exclude_files": ["tests/*", "*.pyc"],
         "max_tokens": 500000,
     }
-    response = client.put(f"/{author}/{repo_name}/settings", json=new_settings)
+    response = client.put(
+        f"/repositories/{author}/{repo_name}/settings", json=new_settings
+    )
     assert response.status_code == 200
 
     # Verify settings in database directly
@@ -365,7 +371,7 @@ def test_summary_cache_persistence(
     assert response.status_code == 200
 
     # Generate summary via API
-    response = client.get(f"/{author}/{repo_name}/summary")
+    response = client.get(f"/repositories/{author}/{repo_name}/summary")
     assert response.status_code == 200
 
     cached_summary = summary_cache_repo.get_by_repository_id(repo_id)
@@ -390,7 +396,7 @@ def test_summary_cache_deletion_in_db(client: TestClient, session: Session) -> N
     assert response.status_code == 200
 
     # Generate summary to create cache entry
-    response = client.get(f"/{author}/{repo_name}/summary")
+    response = client.get(f"/repositories/{author}/{repo_name}/summary")
     assert response.status_code == 200
     count = summary_cache_repo.count()
     assert count == 1
@@ -400,7 +406,9 @@ def test_summary_cache_deletion_in_db(client: TestClient, session: Session) -> N
         "exclude_files": ["tests/*", "*.pyc"],
         "max_tokens": 500000,
     }
-    response = client.put(f"/{author}/{repo_name}/settings", json=new_settings)
+    response = client.put(
+        f"/repositories/{author}/{repo_name}/settings", json=new_settings
+    )
     assert response.status_code == 200
     count = summary_cache_repo.count()
     assert count == 0
@@ -424,7 +432,7 @@ def test_settings_deletion_in_db(client: TestClient, session: Session) -> None:
         "exclude_files": [],
         "max_tokens": 500000,
     }
-    response = client.put(f"/{author}/{repo_name}/settings", json=settings)
+    response = client.put(f"/repositories/{author}/{repo_name}/settings", json=settings)
     assert response.status_code == 200
 
     # Delete repository via API
@@ -458,7 +466,9 @@ def test_bulk_delete_db_cleanup(client: TestClient, session: Session) -> None:
             "exclude_files": [],
             "max_tokens": 500000,
         }
-        response = client.put(f"/{author}/{repo_name}/settings", json=settings)
+        response = client.put(
+            f"/repositories/{author}/{repo_name}/settings", json=settings
+        )
         assert response.status_code == 200
 
     # Delete all repositories
