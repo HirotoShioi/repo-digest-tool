@@ -1,11 +1,11 @@
 import os
 import tempfile
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import Depends, Header, HTTPException, Response
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 from sqlmodel import Session
@@ -251,23 +251,15 @@ def generate_digest(
     "/repositories/{author}/{repository_name}/digest",
     summary="Get a digest of a repository",
     description="Get a digest of a repository in either JSON or plain text format based on format query parameter",
-    responses={
-        200: {
-            "content": {
-                "application/json": {"model": RespositoryContent},
-                "text/plain": {"type": "string"},
-            }
-        }
-    },
-    response_model=None,
+    response_model=RespositoryContent,
 )
 def get_repository_digest(
     author: str,
     repository_name: str,
-    accept: str = "json",
+    accept: str = Header(default="application/json"),
     session: Session = Depends(get_session),
     github: GitHub = Depends(get_github),
-) -> Union[str, JSONResponse]:
+) -> Response:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
 
@@ -279,8 +271,10 @@ def get_repository_digest(
         repo_info.path, filter_settings=filter_settings
     )
 
-    if accept.lower() == "text":
-        return generate_digest_content(repo_info.path, filtered_files)
+    if accept.lower() == "text/plain":
+        return PlainTextResponse(
+            content=generate_digest_content(repo_info.path, filtered_files)
+        )
     else:  # default to json
         content = generate_repository_content(repo_info, filtered_files)
         return JSONResponse(content=content.model_dump())
