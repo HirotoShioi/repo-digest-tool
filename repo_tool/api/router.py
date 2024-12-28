@@ -1,11 +1,11 @@
 import os
 import tempfile
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
 from sqlmodel import Session
@@ -41,7 +41,7 @@ def get_github() -> GitHub:
     return GitHub()
 
 
-class Response(BaseModel):
+class ApiResponse(BaseModel):
     status: str = Field(..., description="The status of the operation")
 
 
@@ -74,29 +74,29 @@ class CloneRepositoryParams(BaseModel):
 
 @router.post(
     "/repositories",
-    response_model=Response,
+    response_model=ApiResponse,
     summary="Clone a repository",
     description="Clone a repository. If the URL is not provided, all repositories will be cloned.",
 )
 def clone_repository(
     request: CloneRepositoryParams, github: GitHub = Depends(get_github)
-) -> Response:
+) -> ApiResponse:
     try:
         github.clone(request.url, request.branch)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return Response(status="success")
+    return ApiResponse(status="success")
 
 
 @router.delete(
     "/repositories",
-    response_model=Response,
+    response_model=ApiResponse,
     summary="Delete all repositories",
     description="Delete all repositories",
 )
 def delete_all_repositories(
     session: Session = Depends(get_session), github: GitHub = Depends(get_github)
-) -> Response:
+) -> ApiResponse:
     github.clean()
     repositories = Repositories(session)
     filter_settings_repo = repositories.filter_settings_repo
@@ -104,12 +104,12 @@ def delete_all_repositories(
 
     filter_settings_repo.delete_all()
     summary_cache_repo.delete_all()
-    return Response(status="success")
+    return ApiResponse(status="success")
 
 
 @router.delete(
     "/repositories/{author}/{repository_name}",
-    response_model=Response,
+    response_model=ApiResponse,
     summary="Delete a repository",
     description="Delete a repository. If the URL is not provided, all repositories will be deleted.",
 )
@@ -118,7 +118,7 @@ def delete_repository(
     repository_name: str,
     session: Session = Depends(get_session),
     github: GitHub = Depends(get_github),
-) -> Response:
+) -> ApiResponse:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.remove(f"{author}/{repository_name}")
@@ -128,28 +128,28 @@ def delete_repository(
 
     filter_settings_repo.delete_by_repository_id(f"{author}/{repository_name}")
     summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
-    return Response(status="success")
+    return ApiResponse(status="success")
 
 
 @router.put(
     "/repositories",
-    response_model=Response,
+    response_model=ApiResponse,
     summary="Update all repositories",
     description="Update all repositories",
 )
 def update_all_repositories(
     session: Session = Depends(get_session), github: GitHub = Depends(get_github)
-) -> Response:
+) -> ApiResponse:
     github.update()
     repositories = Repositories(session)
     summary_cache_repo = repositories.summary_cache_repo
     summary_cache_repo.delete_all()
-    return Response(status="success")
+    return ApiResponse(status="success")
 
 
 @router.put(
     "/repositories/{author}/{repository_name}",
-    response_model=Response,
+    response_model=ApiResponse,
     summary="Update a repository",
     description="Update a repository. If the URL is not provided, all repositories will be updated.",
 )
@@ -158,14 +158,14 @@ def update_repository(
     repository_name: str,
     session: Session = Depends(get_session),
     github: GitHub = Depends(get_github),
-) -> Response:
+) -> ApiResponse:
     if not github.repo_exists(f"{author}/{repository_name}"):
         raise HTTPException(status_code=404, detail="Repository not found")
     github.update(f"{author}/{repository_name}")
     repositories = Repositories(session)
     summary_cache_repo = repositories.summary_cache_repo
     summary_cache_repo.delete_by_repository_id(f"{author}/{repository_name}")
-    return Response(status="success")
+    return ApiResponse(status="success")
 
 
 @router.get(
@@ -249,16 +249,28 @@ def generate_digest(
 
 @router.get(
     "/repositories/{author}/{repository_name}/digest",
-    response_model=RespositoryContent,
     summary="Get a digest of a repository",
-    description="Get a digest of a repository",
+    description="Get a digest of a repository in either JSON or plain text format based on format query parameter",
+    responses={
+        200: {
+            "content": {
+                "application/json": {"model": RespositoryContent},
+                "text/plain": {"type": "string"},
+            }
+        }
+    },
+    response_model=None,
 )
-def get_digest_of_repository(
+def get_repository_digest(
     author: str,
     repository_name: str,
+    accept: str = "json",
     session: Session = Depends(get_session),
     github: GitHub = Depends(get_github),
-) -> RespositoryContent:
+) -> Union[str, JSONResponse]:
+    if not github.repo_exists(f"{author}/{repository_name}"):
+        raise HTTPException(status_code=404, detail="Repository not found")
+
     repo_info = github.get_repo_info(f"{author}/{repository_name}")
     repositories = Repositories(session)
     filter_settings_repo = repositories.filter_settings_repo
@@ -266,8 +278,12 @@ def get_digest_of_repository(
     filtered_files = filter_files_in_repo(
         repo_info.path, filter_settings=filter_settings
     )
-    digest = generate_repository_content(repo_info, filtered_files)
-    return digest
+
+    if accept.lower() == "text":
+        return generate_digest_content(repo_info.path, filtered_files)
+    else:  # default to json
+        content = generate_repository_content(repo_info, filtered_files)
+        return JSONResponse(content=content.model_dump())
 
 
 class Settings(BaseModel):

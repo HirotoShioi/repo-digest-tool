@@ -150,3 +150,12 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Run on pull requests to main branch
    - Use Ubuntu latest runner
    - Fail workflow if any build fails
+
+# Repository Tool API Requirements
+
+1. API Response Format
+   - Support multiple response formats (text/plain and application/json)
+   - Handle Accept header for format negotiation
+   - Return appropriate Content-Type header
+   - Support consistent response structure across formats
+   - Proper error handling for unsupported formats
