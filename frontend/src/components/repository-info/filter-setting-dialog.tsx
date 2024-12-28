@@ -19,6 +19,7 @@ import {
   useFilterSettings,
 } from "@/contexts/FilterSettingsContext";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface FilterSettingDialogProps {
   onSave: () => void;
@@ -98,6 +99,11 @@ function FilterSettingDialog({
   repository,
 }: FilterSettingDialogProps) {
   const [open, setOpen] = useState(false);
+  const toast = useToast();
+  function onClick() {
+    toast.dismiss();
+    setOpen(true);
+  }
   return (
     <FilterSettingsProvider
       author={author}
@@ -111,7 +117,7 @@ function FilterSettingDialog({
             size="lg"
             className="bg-primary hover:bg-primary/90"
             data-testid="filter-dialog-button"
-            onClick={() => setOpen(true)}
+            onClick={onClick}
           >
             <Settings className="w-4 h-4" />
             Filter

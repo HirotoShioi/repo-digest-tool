@@ -18,9 +18,13 @@ import { LoadingButton } from "@/components/loading-button";
 export function AddRepositoryDialog() {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   const { mutate: cloneRepository, isPending } = useCloneRepository();
-
+  const handleOpen = () => {
+    setOpen(true);
+    setUrl("");
+    dismiss();
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) {
@@ -44,7 +48,7 @@ export function AddRepositoryDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button onClick={handleOpen}>
           <PlusCircle className="w-5 h-5" />
           Add Repository
         </Button>

@@ -30,7 +30,7 @@ function toSummary(response: components["schemas"]["Summary"]): Summary {
   };
 }
 
-type GetSummaryParams = { author?: string; name?: string };
+type GetSummaryParams = { author: string; name: string };
 function useGetSummary(params: GetSummaryParams) {
   const query = useQuery({
     queryKey: ["summary", params.author, params.name],
