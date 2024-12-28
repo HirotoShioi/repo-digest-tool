@@ -480,3 +480,82 @@ def test_bulk_delete_db_cleanup(client: TestClient, session: Session) -> None:
         repo_id = url.split("/")[-2] + "/" + url.split("/")[-1]
         assert filter_settings_repo.get_by_repository_id(repo_id) is None
         assert summary_cache_repo.get_by_repository_id(repo_id) is None
+
+
+def test_get_repository_digest_json(client: TestClient, github: GitHub) -> None:
+    """Test getting repository digest in JSON format"""
+    # First add a repository
+    clone_payload = {
+        "url": test_repo_url,
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Get digest in JSON format
+    response = client.get(
+        f"/repositories/{author}/{repo_name}/digest",
+        headers={"Accept": "application/json"},
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert "id" in content
+    assert "name" in content
+    assert "author" in content
+    assert "files" in content
+    assert isinstance(content["files"], list)
+
+
+def test_get_repository_digest_text(client: TestClient, github: GitHub) -> None:
+    """Test getting repository digest in plain text format"""
+    # First add a repository
+    clone_payload = {
+        "url": test_repo_url,
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Get digest in plain text format
+    response = client.get(
+        f"/repositories/{author}/{repo_name}/digest", headers={"Accept": "text/plain"}
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "text/plain; charset=utf-8"
+    content = response.text
+    assert isinstance(content, str)
+    assert len(content) > 0
+
+
+def test_get_repository_digest_not_found(client: TestClient) -> None:
+    """Test getting digest for non-existent repository"""
+    response = client.get(
+        f"/repositories/{author}/{repo_name}/digest",
+        headers={"Accept": "application/json"},
+    )
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Repository not found"}
+
+
+def test_get_repository_digest_default_format(
+    client: TestClient, github: GitHub
+) -> None:
+    """Test getting repository digest with default format (JSON)"""
+    # First add a repository
+    clone_payload = {
+        "url": test_repo_url,
+        "branch": "main",
+    }
+    response = client.post("/repositories", json=clone_payload)
+    assert response.status_code == 200
+
+    # Get digest without specifying format
+    response = client.get(f"/repositories/{author}/{repo_name}/digest")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json"
+    content = response.json()
+    assert "id" in content
+    assert "name" in content
+    assert "author" in content
+    assert "files" in content
+    assert isinstance(content["files"], list)

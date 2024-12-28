@@ -108,6 +108,9 @@ class File(BaseModel):
 
 
 class RespositoryContent(BaseModel):
+    id: str = Field(..., description="The id of the repository")
+    name: str = Field(..., description="The name of the repository")
+    author: str = Field(..., description="The author of the repository")
     files: List[File]
 
 
@@ -171,4 +174,9 @@ def generate_repository_content(
             if file_result:
                 files.append(file_result)
 
-    return RespositoryContent(files=files)
+    return RespositoryContent(
+        id=repository.id,
+        name=repository.name,
+        author=repository.author,
+        files=files,
+    )
