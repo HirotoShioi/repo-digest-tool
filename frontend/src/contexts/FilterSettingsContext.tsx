@@ -52,7 +52,7 @@ export function FilterSettingsProvider({
 }: FilterSettingsProviderProps) {
   const { data: filterSettings } = useGetSettings({
     author,
-    repository,
+    name: repository,
   });
   const { toast } = useToast();
   const { mutate: updateSettings } = useUpdateSettings();
