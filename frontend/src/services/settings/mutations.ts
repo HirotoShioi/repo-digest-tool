@@ -9,6 +9,7 @@ type UpdateSettingsParams = {
   name: string;
   settings: Settings;
 };
+
 function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -1,10 +1,10 @@
 import { createContext, useContext, useCallback } from "react";
-import { useGetSettings } from "@/services/settings/queries";
 import {
   useFilterFilesWithLLM,
   useUpdateSettings,
 } from "@/services/settings/mutations";
 import { useToast } from "@/hooks/use-toast";
+import { Settings } from "@/types";
 
 interface SavePatternSettings {
   includePatterns: string[];
@@ -16,11 +16,7 @@ interface SaveSizeSettings {
 }
 
 interface FilterSettingsContextType {
-  initialSettings: {
-    includePatterns: string[];
-    excludePatterns: string[];
-    maxTokens: number;
-  } | null;
+  filterSettings: Settings;
   handleSavePatterns: (settings: SavePatternSettings) => void;
   handleSaveSize: (settings: SaveSizeSettings) => void;
   onSave: () => void;
@@ -41,6 +37,7 @@ interface FilterSettingsProviderProps {
   repository: string;
   onSave: () => void;
   setOpen: (open: boolean) => void;
+  filterSettings: Settings;
 }
 
 export function FilterSettingsProvider({
@@ -49,11 +46,8 @@ export function FilterSettingsProvider({
   repository,
   onSave,
   setOpen,
+  filterSettings,
 }: FilterSettingsProviderProps) {
-  const { data: filterSettings } = useGetSettings({
-    author,
-    repository,
-  });
   const { toast } = useToast();
   const { mutate: updateSettings } = useUpdateSettings();
 
@@ -139,7 +133,7 @@ export function FilterSettingsProvider({
   }
 
   const value = {
-    initialSettings: filterSettings,
+    filterSettings,
     handleSavePatterns,
     handleSaveSize,
     onSave,

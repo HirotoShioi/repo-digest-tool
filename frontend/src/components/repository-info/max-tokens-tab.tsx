@@ -1,17 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useFilterSettings } from "@/contexts/FilterSettingsContext";
-import { useState, useEffect, useCallback } from "react";
+import { useFilterSettings } from "@/contexts/filter-settings-context";
+import { useState, useCallback } from "react";
 
 export function MaxTokensTab() {
-  const { initialSettings, handleSaveSize } = useFilterSettings();
-  const [maxTokens, setMaxTokens] = useState(10);
-
-  useEffect(() => {
-    if (initialSettings) {
-      setMaxTokens(initialSettings.maxTokens || 10);
-    }
-  }, [initialSettings]);
+  const { filterSettings, handleSaveSize } = useFilterSettings();
+  const [maxTokens, setMaxTokens] = useState(filterSettings.maxTokens);
 
   const handleSave = useCallback(() => {
     handleSaveSize({ maxTokens: maxTokens });

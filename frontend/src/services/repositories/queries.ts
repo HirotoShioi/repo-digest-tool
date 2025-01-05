@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Repository } from "@/types";
 import { getRepositories, getRepositoryById } from "./service";
 
@@ -9,37 +9,35 @@ const useGetRepositories = () => {
   });
 };
 
-type GetRepositoryByIdParams = {
-  author?: string;
-  name?: string;
+type GetRepositoryQueryOptionsParams = {
+  author: string;
+  name: string;
 };
 
-const useGetRepositoryById = (params: GetRepositoryByIdParams) => {
-  return useQuery<Repository | null>({
-    queryKey: ["repository", params.author, params.name],
-    enabled: !!params.author && !!params.name,
-    queryFn: async () =>
-      getRepositoryById({
-        author: params.author!,
-        name: params.name!,
-      }),
+function getRepositoryByIdQueryOptions({
+  author,
+  name,
+}: GetRepositoryQueryOptionsParams) {
+  return queryOptions({
+    queryKey: ["repository", author, name],
+    queryFn: async () => getRepositoryById({ author, name }),
   });
-};
+}
 
 type PrefetchRepositoryByIdParams = {
   author: string;
   name: string;
 };
+
 const usePrefetchRepositoryById = (params: PrefetchRepositoryByIdParams) => {
   const queryClient = useQueryClient();
   const prefetch = () => {
     queryClient.prefetchQuery({
-      queryKey: ["repository", params.author, params.name],
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      queryFn: async () => getRepositoryById(params),
+      ...getRepositoryByIdQueryOptions(params),
+      staleTime: Infinity,
     });
   };
   return prefetch;
 };
 
-export { useGetRepositories, useGetRepositoryById, usePrefetchRepositoryById };
+export { useGetRepositories, usePrefetchRepositoryById, getRepositoryByIdQueryOptions };

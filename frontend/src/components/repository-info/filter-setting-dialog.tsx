@@ -17,14 +17,15 @@ import { IncludeTab } from "./include-tab";
 import {
   FilterSettingsProvider,
   useFilterSettings,
-} from "@/contexts/FilterSettingsContext";
+} from "@/contexts/filter-settings-context";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-
+import { Settings as RepositorySettings } from "@/types";
 interface FilterSettingDialogProps {
   onSave: () => void;
   author: string;
   repository: string;
+  settings: RepositorySettings;
 }
 
 function TabItem({
@@ -106,6 +107,7 @@ function FilterSettingDialog({
   onSave,
   author,
   repository,
+  settings,
 }: FilterSettingDialogProps) {
   const [open, setOpen] = useState(false);
   return (
@@ -114,6 +116,7 @@ function FilterSettingDialog({
       repository={repository}
       onSave={onSave}
       setOpen={setOpen}
+      filterSettings={settings}
     >
       <DialogContainer open={open} setOpen={setOpen}>
         <DialogHeader className="p-4">

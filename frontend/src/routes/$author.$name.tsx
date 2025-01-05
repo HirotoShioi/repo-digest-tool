@@ -11,23 +11,10 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { useGenerateDigest } from "@/services/digest/mutations";
 import { LoadingButton } from "@/components/loading-button";
 import React from "react";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { getRepositoryById } from "@/services/repositories/service";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { z } from "zod";
-type GetRepositoryQueryOptionsParams = {
-  author: string;
-  name: string;
-};
-
-function getRepositoryQueryOptions({
-  author,
-  name,
-}: GetRepositoryQueryOptionsParams) {
-  return queryOptions({
-    queryKey: ["repository", author, name],
-    queryFn: async () => getRepositoryById({ author, name }),
-  });
-}
+import { getRepositoryByIdQueryOptions } from "@/services/repositories/queries";
+import { getSettingsQueryOptions } from "@/services/settings/queries";
 
 export const Route = createFileRoute("/$author/$name")({
   params: {
@@ -36,13 +23,21 @@ export const Route = createFileRoute("/$author/$name")({
       name: z.string().parse(params.name),
     }),
   },
-  loader: (opts) => {
-    opts.context.queryClient.ensureQueryData(
-      getRepositoryQueryOptions({
-        author: opts.params.author,
+  loader: async (opts) => {
+    await Promise.all([
+      opts.context.queryClient.ensureQueryData(
+        getRepositoryByIdQueryOptions({
+          author: opts.params.author,
         name: opts.params.name,
-      })
-    );
+        })
+      ),
+      opts.context.queryClient.ensureQueryData(
+        getSettingsQueryOptions({
+          author: opts.params.author,
+        name: opts.params.name,
+        })
+      ),
+    ]);
   },
   component: RouteComponent,
   notFoundComponent: () => <div>Repository not found</div>,
@@ -53,12 +48,18 @@ function RouteComponent() {
     from: "/$author/$name",
   });
   const navigate = useNavigate();
-  const { data: repository } = useSuspenseQuery(
-    getRepositoryQueryOptions({
-      author: author,
-      name: name,
-    })
-  );
+  const [{ data: repository }, { data: settings }] = useSuspenseQueries({
+    queries: [
+      getRepositoryByIdQueryOptions({
+        author: author,
+        name: name,
+      }),
+      getSettingsQueryOptions({
+        author: author,
+        name: name,
+      }),
+    ],
+  });
   const FilterDialog = React.memo(FilterSettingDialog);
   const {
     data: summary,
@@ -73,7 +74,7 @@ function RouteComponent() {
   const { mutate: generateDigest, isPending: isDigestLoading } =
     useGenerateDigest();
 
-  if (!repository) {
+  if (!repository || !settings) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">Repository not found</p>
@@ -120,6 +121,7 @@ function RouteComponent() {
             }}
             author={author}
             repository={name}
+            settings={settings}
           />
         </div>
       </div>
