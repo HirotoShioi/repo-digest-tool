@@ -25,6 +25,7 @@ type GetRepositoryByIdParams = {
   author: string;
   name: string;
 };
+
 async function getRepositoryById(
   params: GetRepositoryByIdParams
 ): Promise<Repository | null> {

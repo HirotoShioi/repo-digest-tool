@@ -15,7 +15,7 @@ type GetSettingsParams = {
   name: string;
 };
 
-export async function getSettings({ author, name }: GetSettingsParams) {
+async function getSettings({ author, name }: GetSettingsParams) {
   const response = await client.GET(
     `/repositories/{author}/{repository_name}/settings`,
     {
@@ -34,3 +34,7 @@ export async function getSettings({ author, name }: GetSettingsParams) {
 
   return toSettings(response.data);
 }
+
+export { getSettings };
+
+export type { GetSettingsParams };
