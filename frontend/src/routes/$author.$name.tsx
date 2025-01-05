@@ -24,18 +24,20 @@ export const Route = createFileRoute("/$author/$name")({
     }),
   },
   loader: async (opts) => {
-    await opts.context.queryClient.ensureQueryData(
-      getRepositoryByIdQueryOptions({
-        author: opts.params.author,
+    await Promise.all([
+      opts.context.queryClient.ensureQueryData(
+        getRepositoryByIdQueryOptions({
+          author: opts.params.author,
         name: opts.params.name,
-      })
-    );
-    await opts.context.queryClient.ensureQueryData(
-      getSettingsQueryOptions({
-        author: opts.params.author,
+        })
+      ),
+      opts.context.queryClient.ensureQueryData(
+        getSettingsQueryOptions({
+          author: opts.params.author,
         name: opts.params.name,
-      })
-    );
+        })
+      ),
+    ]);
   },
   component: RouteComponent,
   notFoundComponent: () => <div>Repository not found</div>,
