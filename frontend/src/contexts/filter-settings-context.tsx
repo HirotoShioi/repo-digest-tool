@@ -16,11 +16,7 @@ interface SaveSizeSettings {
 }
 
 interface FilterSettingsContextType {
-  initialSettings: {
-    includePatterns: string[];
-    excludePatterns: string[];
-    maxTokens: number;
-  } | null;
+  filterSettings: Settings;
   handleSavePatterns: (settings: SavePatternSettings) => void;
   handleSaveSize: (settings: SaveSizeSettings) => void;
   onSave: () => void;
@@ -137,7 +133,7 @@ export function FilterSettingsProvider({
   }
 
   const value = {
-    initialSettings: filterSettings,
+    filterSettings,
     handleSavePatterns,
     handleSaveSize,
     onSave,

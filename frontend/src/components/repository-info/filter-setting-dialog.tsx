@@ -17,7 +17,7 @@ import { IncludeTab } from "./include-tab";
 import {
   FilterSettingsProvider,
   useFilterSettings,
-} from "@/contexts/FilterSettingsContext";
+} from "@/contexts/filter-settings-context";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Settings as RepositorySettings } from "@/types";

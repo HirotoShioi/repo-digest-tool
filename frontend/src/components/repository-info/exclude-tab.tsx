@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useFilterSettings } from "@/contexts/FilterSettingsContext";
+import { useFilterSettings } from "@/contexts/filter-settings-context";
 import { PatternInput } from "@/components/repository-info/pattern-input";
 import { PatternList } from "@/components/repository-info/pattern-list";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Minimatch } from "minimatch";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,16 +18,10 @@ function isValidGlob(pattern: string): boolean {
 }
 
 export function ExcludeTab() {
-  const { initialSettings, handleSavePatterns } = useFilterSettings();
+  const { filterSettings, handleSavePatterns } = useFilterSettings();
   const { toast } = useToast();
-  const [patterns, setPatterns] = useState<string[]>([]);
+  const [patterns, setPatterns] = useState<string[]>(filterSettings.excludePatterns);
   const [newPattern, setNewPattern] = useState("");
-
-  useEffect(() => {
-    if (initialSettings) {
-      setPatterns(initialSettings.excludePatterns || []);
-    }
-  }, [initialSettings]);
 
   const showErrorToast = useCallback(() => {
     toast({
@@ -58,9 +52,9 @@ export function ExcludeTab() {
   const handleSave = useCallback(() => {
     handleSavePatterns({
       excludePatterns: patterns,
-      includePatterns: initialSettings?.includePatterns || [],
+      includePatterns: filterSettings?.includePatterns || [],
     });
-  }, [handleSavePatterns, patterns, initialSettings?.includePatterns]);
+  }, [handleSavePatterns, patterns, filterSettings?.includePatterns]);
 
   return (
     <div className="space-y-4">

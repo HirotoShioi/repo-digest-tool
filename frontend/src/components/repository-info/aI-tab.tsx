@@ -1,6 +1,6 @@
 import { LoadingButton } from "@/components/loading-button";
 import { Textarea } from "@/components/ui/textarea";
-import { useFilterSettings } from "@/contexts/FilterSettingsContext";
+import { useFilterSettings } from "@/contexts/filter-settings-context";
 import { useState } from "react";
 
 export function AITab() {
