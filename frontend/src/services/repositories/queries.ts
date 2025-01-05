@@ -1,4 +1,4 @@
-import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { Repository } from "@/types";
 import { getRepositories, getRepositoryById } from "./service";
 
@@ -24,20 +24,5 @@ function getRepositoryByIdQueryOptions({
   });
 }
 
-type PrefetchRepositoryByIdParams = {
-  author: string;
-  name: string;
-};
 
-const usePrefetchRepositoryById = (params: PrefetchRepositoryByIdParams) => {
-  const queryClient = useQueryClient();
-  const prefetch = () => {
-    queryClient.prefetchQuery({
-      ...getRepositoryByIdQueryOptions(params),
-      staleTime: Infinity,
-    });
-  };
-  return prefetch;
-};
-
-export { useGetRepositories, usePrefetchRepositoryById, getRepositoryByIdQueryOptions };
+export { useGetRepositories, getRepositoryByIdQueryOptions };

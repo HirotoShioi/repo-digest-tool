@@ -12,10 +12,8 @@ import {
   useDeleteRepository,
   useUpdateRepository,
 } from "@/services/repositories/mutations";
-import { usePrefetchRepositoryById } from "@/services/repositories/queries";
 import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/hooks/use-toast";
-import { usePrefetchSettings } from "@/services/settings/queries";
 
 interface RepositoryCardProps {
   repository: Repository;
@@ -73,20 +71,8 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
     );
   }
 
-  const prefetchRepository = usePrefetchRepositoryById({
-    author: repository.author,
-    name: repository.name,
-  });
-  const prefetchSettings = usePrefetchSettings({
-    author: repository.author,
-    name: repository.name,
-  });
   return (
     <Card
-      onMouseEnter={() => {
-        prefetchRepository();
-        prefetchSettings();
-      }}
       onClick={() =>
         navigate({
           to: "/$author/$name",
