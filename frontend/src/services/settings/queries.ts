@@ -1,4 +1,4 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSettings } from "./service";  
 
 type GetSettingParams = {
@@ -20,4 +20,15 @@ function useGetSettings(params: GetSettingParams) {
   return useQuery(getSettingsQueryOptions(params));
 }
 
-export { useGetSettings, getSettingsQueryOptions };
+function usePrefetchSettings(params: GetSettingParams) {
+  const queryClient = useQueryClient();
+  const prefetch = () => {
+    queryClient.prefetchQuery({
+      ...getSettingsQueryOptions(params),
+      staleTime: Infinity,
+    });
+  };
+  return prefetch;
+}
+
+export { useGetSettings, getSettingsQueryOptions, usePrefetchSettings };
