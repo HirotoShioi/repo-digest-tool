@@ -16,8 +16,9 @@ export function RepositoryList({ repositories }: RepositoryListProps) {
             author: repo.author,
             name: repo.name,
           }}
+          key={repo.id}
         >
-          <RepositoryCard repository={repo} key={repo.id} />
+          <RepositoryCard repository={repo} />
         </Link>
       ))}
       {repositories.length === 0 && (
