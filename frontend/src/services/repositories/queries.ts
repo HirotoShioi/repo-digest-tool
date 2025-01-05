@@ -32,7 +32,10 @@ type PrefetchRepositoryByIdParams = {
 const usePrefetchRepositoryById = (params: PrefetchRepositoryByIdParams) => {
   const queryClient = useQueryClient();
   const prefetch = () => {
-    queryClient.prefetchQuery(getRepositoryByIdQueryOptions(params));
+    queryClient.prefetchQuery({
+      ...getRepositoryByIdQueryOptions(params),
+      staleTime: Infinity,
+    });
   };
   return prefetch;
 };
