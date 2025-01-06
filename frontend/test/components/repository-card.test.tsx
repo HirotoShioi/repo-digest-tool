@@ -4,16 +4,12 @@ import { render } from "../test-utils";
 import { describe, it, vi, expect, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import { RepositoryCard } from "@/components/home/repository-card";
-import { useNavigate } from "@tanstack/react-router";
 import {
   useDeleteRepository,
   useUpdateRepository,
 } from "@/services/repositories/mutations";
 import { Repository } from "@/types";
-
-vi.mock("@tanstack/react-router", () => ({
-  useNavigate: vi.fn(),
-}));
+import userEvent from "@testing-library/user-event";
 
 vi.mock("@/services/repositories/mutations", () => ({
   useDeleteRepository: vi.fn(),
@@ -32,14 +28,11 @@ describe("RepositoryCard", () => {
     size: 100,
   };
 
-  const mockNavigate = vi.fn();
   const mockDeleteMutate = vi.fn();
   const mockUpdateMutate = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    (useNavigate as any).mockReturnValue(mockNavigate);
     (useDeleteRepository as any).mockReturnValue({
       mutate: mockDeleteMutate,
       isPending: false,
@@ -57,51 +50,33 @@ describe("RepositoryCard", () => {
     expect(screen.getByText(mockRepository.url)).toBeInTheDocument();
   });
 
-  // it("navigates to repository details when clicked", () => {
-  //   render(<RepositoryCard repository={mockRepository} />);
+  it("calls delete mutation when delete button is clicked", async () => {
+    render(<RepositoryCard repository={mockRepository} />);
 
-  //   fireEvent.click(screen.getByText(mockRepository.name));
+    const deleteButton = screen.getByTestId("delete-repository-button");
+    await userEvent.click(deleteButton);
 
-  //   expect(mockNavigate).toHaveBeenCalledWith({
-  //     to: "/$author/$name",
-  //     params: {
-  //       author: mockRepository.author,
-  //       name: mockRepository.name,
-  //     },
-  //   });
-  // });
+    expect(mockDeleteMutate).toHaveBeenCalledWith(
+      {
+        author: mockRepository.author,
+        repositoryName: mockRepository.name,
+      },
+      expect.any(Object)
+    );
+  });
 
-  // it("calls delete mutation when delete button is clicked", () => {
-  //   render(<RepositoryCard repository={mockRepository} />);
+  it("calls update mutation when update button is clicked", async () => {
+    render(<RepositoryCard repository={mockRepository} />);
 
-  //   const deleteButton = screen.getByRole("button", {
-  //     name: /delete repository/i,
-  //   });
-  //   fireEvent.click(deleteButton);
+    const updateButton = screen.getByTestId("update-repository-button");
+    await userEvent.click(updateButton);
 
-  //   expect(mockDeleteMutate).toHaveBeenCalledWith(
-  //     {
-  //       author: mockRepository.author,
-  //       repositoryName: mockRepository.name,
-  //     },
-  //     expect.any(Object)
-  //   );
-  // });
-
-  // it("calls update mutation when update button is clicked", () => {
-  //   render(<RepositoryCard repository={mockRepository} />);
-
-  //   const updateButton = screen.getByRole("button", {
-  //     name: /update repository/i,
-  //   });
-  //   fireEvent.click(updateButton);
-
-  //   expect(mockUpdateMutate).toHaveBeenCalledWith(
-  //     {
-  //       author: mockRepository.author,
-  //       repositoryName: mockRepository.name,
-  //     },
-  //     expect.any(Object)
-  //   );
-  // });
+    expect(mockUpdateMutate).toHaveBeenCalledWith(
+      {
+        author: mockRepository.author,
+        repositoryName: mockRepository.name,
+      },
+      expect.any(Object)
+    );
+  });
 });
