@@ -34,10 +34,19 @@ describe("AddRepositoryDialog", () => {
   });
 
   it("shows loading state when cloning repository", async () => {
+    (useCloneRepository as any).mockReturnValue({
+      mutate: mockCloneRepository,
+      isPending: true,
+    });
+
     const { user } = render(<AddRepositoryDialog />);
     await user.click(screen.getByText("Add Repository"));
-    // check dialog appears
-    expect(screen.getByText("Add New Repository")).toBeInTheDocument();
+    await user.type(
+      screen.getByPlaceholderText("Enter Git repository URL"),
+      "https://github.com/user/repo"
+    );
+
+    expect(screen.getByText("Cloning...")).toBeInTheDocument();
   });
 
   it("calls clone mutation with entered URL", async () => {
@@ -72,11 +81,5 @@ describe("AddRepositoryDialog", () => {
     await waitFor(() => {
       expect(screen.queryByText("Add New Repository")).not.toBeInTheDocument();
     });
-  });
-
-  it("does not submit empty URL", async () => {
-    const { user } = render(<AddRepositoryDialog />);
-    await user.click(screen.getByText("Add Repository"));
-    await user.click(screen.getByText("Clone Repository"));
   });
 });

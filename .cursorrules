@@ -181,6 +181,8 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Test API integration
    - Test error handling
    - Test loading states
+     - Verify "Cloning..." text appears during repository clone
+     - Test LoadingButton state transitions
    - Test success/failure notifications
 
 2. RepositoryList & RepositoryCard
