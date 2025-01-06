@@ -141,6 +141,16 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Test Summary serialization
    - Test data model validation
 
+5. Component Tests
+   - Mock necessary UI components and hooks
+   - Test repository card rendering
+   - Test repository card interactions
+   - Test navigation functionality
+   - Test repository operations (delete, update)
+   - Ensure proper error handling in components
+   - Mock toast notifications
+   - Test loading states
+
 # CI/CD Requirements
 
 1. GitHub Actions

@@ -1,9 +1,15 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: "happy-dom", // または適切なブラウザ環境
-    setupFiles: ['./test/setup/test-setup.ts'], // Playwright設定用ファイル
+    environment: "happy-dom",
+    setupFiles: ['./test/setup/test-setup.ts'],
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
 });
