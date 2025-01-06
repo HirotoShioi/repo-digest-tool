@@ -10,7 +10,7 @@ import { ErrorPage } from "./components/error-page";
 import { queryClient } from "@/providers";
 
 // Create a new router instance
-const router = createRouter({
+export const router = createRouter({
   routeTree,
   context: {
     queryClient,
