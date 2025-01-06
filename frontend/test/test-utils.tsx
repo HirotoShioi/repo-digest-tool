@@ -1,4 +1,4 @@
-import { render, RenderOptions } from "@testing-library/react";
+import { render, RenderOptions, screen, waitFor } from "@testing-library/react";
 import Providers from "@/providers";
 import {
   createMemoryHistory,
@@ -51,4 +51,4 @@ export function customRender(
   return { user, ...result };
 }
 
-export { customRender as render };
+export { customRender as render, screen, waitFor };

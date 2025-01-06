@@ -8,12 +8,13 @@ type CloneRepositoryParams = {
 const useCloneRepository = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: (params: CloneRepositoryParams) => {
-      return client.POST("/repositories", {
+    mutationFn: async (params: CloneRepositoryParams) => {
+      const result = await client.POST("/repositories", {
         body: {
           url: params.repositoryIdOrUrl,
         },
       });
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repositories"] });

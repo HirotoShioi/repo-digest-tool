@@ -173,3 +173,30 @@ IMPORTANT: AFTER EACH USER REQUEST, CREATE AND/OR UPDATE .cursorrules file as a 
    - Return appropriate Content-Type header
    - Support consistent response structure across formats
    - Proper error handling for unsupported formats
+
+# Test Priority Components
+
+1. AddRepositoryDialog
+   - Test repository URL validation
+   - Test API integration
+   - Test error handling
+   - Test loading states
+   - Test success/failure notifications
+
+2. RepositoryList & RepositoryCard
+   - Test data rendering
+   - Test interaction handlers
+   - Test state management
+   - Test update/delete operations
+
+3. LoadingButton & LoadingSpinner
+   - Test loading state transitions
+   - Test accessibility
+   - Test component reusability
+   - Test visual feedback
+
+4. Layout
+   - Test navigation
+   - Test error boundaries
+   - Test common functionality
+   - Test responsive design
