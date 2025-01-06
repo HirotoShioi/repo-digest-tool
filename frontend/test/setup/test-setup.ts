@@ -1,3 +1,5 @@
+import "@testing-library/jest-dom";
+import { cleanup } from "@testing-library/react";
 import { beforeAll, afterAll, afterEach } from "vitest";
 
 
@@ -9,4 +11,5 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
+  cleanup();
 });
