@@ -12,7 +12,6 @@ import {
   useDeleteRepository,
   useUpdateRepository,
 } from "@/services/repositories/mutations";
-import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/hooks/use-toast";
 
 interface RepositoryCardProps {
@@ -21,7 +20,6 @@ interface RepositoryCardProps {
 
 export function RepositoryCard({ repository }: RepositoryCardProps) {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const { mutate: deleteRepository, isPending: isDeleting } =
     useDeleteRepository();
   const { mutate: updateRepository, isPending: isUpdating } =
@@ -72,18 +70,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
   }
 
   return (
-    <Card
-      onClick={() =>
-        navigate({
-          to: "/$author/$name",
-          params: {
-            author: repository.author,
-            name: repository.name,
-          },
-        })
-      }
-      className={`hover:shadow-lg transition-all cursor-pointer h-full`}
-    >
+    <Card className={`hover:shadow-lg transition-all cursor-pointer h-full`}>
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 max-w-[70%]">
@@ -105,6 +92,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
                   size="icon"
                   variant="ghost"
                   disabled={isUpdating}
+                  data-testid="update-repository-button"
                 >
                   {isUpdating ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -119,6 +107,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  disabled={isDeleting}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDelete();
@@ -126,6 +115,7 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
                   size="icon"
                   variant="ghost"
                   className="hover:text-destructive hover:bg-destructive/10"
+                  data-testid="delete-repository-button"
                 >
                   {isDeleting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

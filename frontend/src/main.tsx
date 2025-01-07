@@ -5,20 +5,12 @@ import "./index.css";
 import Providers from "@/providers";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FullScreenLoader } from "./components/full-screen-loader";
 import { ErrorPage } from "./components/error-page";
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { queryClient } from "@/providers";
 
 // Create a new router instance
-const router = createRouter({
+export const router = createRouter({
   routeTree,
   context: {
     queryClient,
@@ -40,10 +32,8 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Providers>
-        <RouterProvider router={router} defaultPreload="intent" />
-      </Providers>
-    </QueryClientProvider>
+    <Providers>
+      <RouterProvider router={router} defaultPreload="intent" />
+    </Providers>
   </StrictMode>
 );

@@ -13,7 +13,7 @@ on:
       - ".github/workflows/frontend-ci.yml"
 
 jobs:
-  build:
+  test-frontend:
     runs-on: ubuntu-latest
 
     defaults:
@@ -48,6 +48,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Test
+        run: pnpm test
 
       - name: Build
         run: pnpm build
