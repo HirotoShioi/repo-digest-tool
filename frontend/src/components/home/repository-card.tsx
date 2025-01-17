@@ -13,6 +13,7 @@ import {
   useUpdateRepository,
 } from "@/services/repositories/mutations";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "@tanstack/react-router";
 
 interface RepositoryCardProps {
   repository: Repository;
@@ -68,9 +69,21 @@ export function RepositoryCard({ repository }: RepositoryCardProps) {
       }
     );
   }
+  const navigate = useNavigate();
 
   return (
-    <Card className={`hover:shadow-lg transition-all cursor-pointer h-full`}>
+    <Card
+      className={`hover:shadow-lg transition-all cursor-pointer h-full`}
+      onClick={() => {
+        navigate({
+          to: "/$author/$name",
+          params: {
+            author: repository.author,
+            name: repository.name,
+          },
+        });
+      }}
+    >
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 max-w-[70%]">
