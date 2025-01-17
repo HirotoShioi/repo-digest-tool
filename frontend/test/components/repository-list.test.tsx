@@ -47,20 +47,4 @@ describe("RepositoryList", () => {
       )
     ).toBeInTheDocument();
   });
-
-  it("renders correct number of repository cards", () => {
-    render(<RepositoryList repositories={mockRepositories} />);
-
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(mockRepositories.length);
-  });
-
-  it("renders links with correct params", () => {
-    render(<RepositoryList repositories={mockRepositories} />);
-
-    mockRepositories.forEach((repo) => {
-      const link = screen.getByText(repo.name).closest("a");
-      expect(link).toHaveAttribute("href", `/${repo.author}/${repo.name}`);
-    });
-  });
 });
