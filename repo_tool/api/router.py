@@ -82,7 +82,7 @@ def clone_repository(
     request: CloneRepositoryParams, github: GitHub = Depends(get_github)
 ) -> ApiResponse:
     try:
-        github.clone(request.url, request.branch)
+        github.clone(request.url, request.branch, force=True)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return ApiResponse(status="success")
