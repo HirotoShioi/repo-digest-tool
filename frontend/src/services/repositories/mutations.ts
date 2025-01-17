@@ -14,6 +14,9 @@ const useCloneRepository = () => {
           url: params.repositoryIdOrUrl,
         },
       });
+      if (result.response.status !== 200) {
+        throw new Error("Failed to clone repository");
+      }
       return result.data;
     },
     onSuccess: () => {

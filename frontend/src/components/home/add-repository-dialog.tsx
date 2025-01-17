@@ -40,6 +40,13 @@ export function AddRepositoryDialog() {
               variant: "success",
             });
           },
+          onError: () => {
+            toast({
+              title: "Failed to clone repository",
+              description: "Please check the URL and try again.",
+              variant: "destructive",
+            });
+          },
         }
       );
     }
